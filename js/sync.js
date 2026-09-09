@@ -49,6 +49,7 @@ async function pedir(cfg, ruta, opciones = {}) {
   if (resp.status === 401) throw new Error('El token no vale o ha caducado.');
   if (resp.status === 403) throw new Error('GitHub ha rechazado la petición (permisos del token).');
   if (resp.status === 404 && opciones.method !== 'PUT') return null;
+  if (resp.status === 409 && opciones.method !== 'PUT') return null; // repositorio recién creado, aún vacío
   if (!resp.ok) {
     const cuerpo = await resp.text().catch(() => '');
     throw new Error(`GitHub ha respondido ${resp.status}. ${cuerpo.slice(0, 160)}`);
@@ -66,7 +67,9 @@ export async function comprobar(cfg) {
 }
 
 async function leerRemoto(cfg) {
-  return pedir(cfg, `/repos/${cfg.repo}/contents/${encodeURIComponent(cfg.ruta)}?ref=${encodeURIComponent(cfg.rama)}`);
+  // Sin ?ref: así funciona igual en un repositorio recién creado, que todavía
+  // no tiene ninguna rama.
+  return pedir(cfg, `/repos/${cfg.repo}/contents/${encodeURIComponent(cfg.ruta)}`);
 }
 
 // Sube el estado actual. Si alguien ha escrito desde otro dispositivo, avisa en
@@ -85,8 +88,10 @@ export async function subir(cfg, { forzar = false } = {}) {
   const cuerpo = {
     message: `Datos ${new Date().toLocaleString('es-ES')}`,
     content: aBase64(texto),
-    branch: cfg.rama,
   };
+  // Solo se indica la rama si ya existe algo: en un repositorio vacío GitHub
+  // crea el primer commit en la rama por defecto y mandar `branch` da error.
+  if (remoto) cuerpo.branch = cfg.rama;
   if (remoto?.sha) cuerpo.sha = remoto.sha;
 
   const resp = await pedir(cfg, `/repos/${cfg.repo}/contents/${encodeURIComponent(cfg.ruta)}`, {
@@ -102,7 +107,11 @@ export async function subir(cfg, { forzar = false } = {}) {
 export async function bajar(cfg) {
   const remoto = await leerRemoto(cfg);
   if (!remoto) throw new Error(`No hay ningún ${cfg.ruta} en ${cfg.repo} todavía. Sube los datos primero.`);
-  const texto = remoto.content ? deBase64(remoto.content) : deBase64((await (await fetch(remoto.download_url)).text()));
+  // Por encima de 1 MB GitHub no incrusta el contenido: hay que bajarlo de
+  // download_url, y ahí ya viene en texto plano (no en base64).
+  const texto = remoto.content
+    ? deBase64(remoto.content)
+    : await (await fetch(remoto.download_url)).text();
   const datos = JSON.parse(texto);
   await db.importarTodo(datos, { reemplazar: true });
   const nueva = { ...cfg, sha: remoto.sha, ultima: new Date().toISOString() };
