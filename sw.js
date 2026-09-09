@@ -1,7 +1,7 @@
 // sw.js — service worker. Guarda la app entera en caché para que funcione
 // sin conexión. Los datos no pasan por aquí: viven en IndexedDB.
 
-const VERSION = 'v5';
+const VERSION = 'v6';
 const CACHE = `entreno-${VERSION}`;
 
 const ARCHIVOS = [

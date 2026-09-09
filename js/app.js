@@ -7,7 +7,7 @@ import { qs, qsa, vaciar, h, toast } from './ui.js';
 
 // Sube este número cuando añadas datos nuevos a seed.js: la app los incorpora
 // sin tocar lo que tú hayas editado.
-const VERSION_SEMILLA = 4;
+const VERSION_SEMILLA = 5;
 
 export const estado = {
   ejercicios: [],

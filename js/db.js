@@ -114,21 +114,42 @@ export async function escribirMeta(clave, valor) {
 }
 
 // --- exportar / importar todo ---
+// Claves de 'meta' que NO salen nunca del dispositivo. El token de GitHub es
+// una credencial: no puede acabar dentro de una copia de seguridad, ni en el
+// repositorio ni en un archivo que se comparta o se guarde en la nube.
+const META_PRIVADA = ['github'];
+
 export async function exportarTodo() {
   const datos = { formato: 'entreno-nutricion', version: 1, exportado: new Date().toISOString(), almacenes: {} };
-  for (const nombre of NOMBRES_ALMACENES) datos.almacenes[nombre] = await todos(nombre);
+  for (const nombre of NOMBRES_ALMACENES) {
+    const filas = await todos(nombre);
+    datos.almacenes[nombre] = nombre === 'meta'
+      ? filas.filter((f) => !META_PRIVADA.includes(f.k))
+      : filas;
+  }
   return datos;
 }
 
 export async function importarTodo(datos, { reemplazar = true } = {}) {
   if (!datos || datos.formato !== 'entreno-nutricion') throw new Error('El archivo no es una copia válida de esta app.');
   await abrir();
+  // La configuración privada de este dispositivo se conserva: al traer datos de
+  // otro móvil no se pierde el token de aquí, ni se importa el de allí.
+  const privadas = [];
+  for (const k of META_PRIVADA) {
+    const fila = await obtener('meta', k);
+    if (fila) privadas.push(fila);
+  }
+
   for (const nombre of NOMBRES_ALMACENES) {
     const filas = datos.almacenes?.[nombre];
     if (!Array.isArray(filas)) continue;
     if (reemplazar) await vaciar(nombre);
-    if (filas.length) await guardarVarios(nombre, filas);
+    const limpias = nombre === 'meta' ? filas.filter((f) => !META_PRIVADA.includes(f.k)) : filas;
+    if (limpias.length) await guardarVarios(nombre, limpias);
   }
+
+  if (privadas.length) await guardarVarios('meta', privadas);
 }
 
 // id corto y único, legible en el JSON exportado
