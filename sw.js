@@ -1,7 +1,7 @@
 // sw.js — service worker. Guarda la app entera en caché para que funcione
 // sin conexión. Los datos no pasan por aquí: viven en IndexedDB.
 
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = `entreno-${VERSION}`;
 
 const ARCHIVOS = [
@@ -13,6 +13,8 @@ const ARCHIVOS = [
   './js/db.js',
   './js/seed.js',
   './js/logica.js',
+  './js/dia.js',
+  './js/selector-comida.js',
   './js/ui.js',
   './js/sync.js',
   './js/vistas/hoy.js',
@@ -23,6 +25,7 @@ const ARCHIVOS = [
   './js/vistas/ajustes.js',
   './icons/icono-192.png',
   './icons/icono-512.png',
+  './icons/icono-maskable-512.png',
 ];
 
 self.addEventListener('install', (e) => {
