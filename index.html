@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Entreno y comida</title>
+<meta name="description" content="Registro personal de entrenamiento y alimentación. Funciona sin conexión.">
+<meta name="theme-color" content="#0e1013">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Entreno">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icono-192.png">
+<link rel="apple-touch-icon" href="./icons/icono-192.png">
+<link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+
+<header class="cabecera">
+  <div class="crece">
+    <h1 id="titulo">Entreno y comida</h1>
+    <div class="sub" id="subtitulo">Cargando…</div>
+  </div>
+  <button class="chico fantasma" id="btn-ajustes" aria-label="Ajustes">Ajustes</button>
+</header>
+
+<main id="vista">
+  <p class="apagado">Cargando…</p>
+</main>
+
+<nav class="barra">
+  <a href="#/hoy"      data-ruta="hoy"><span class="ico">●</span>Hoy</a>
+  <a href="#/entreno"  data-ruta="entreno"><span class="ico">▲</span>Entreno</a>
+  <a href="#/comer"    data-ruta="comer"><span class="ico">■</span>Comer</a>
+  <a href="#/cocina"   data-ruta="cocina"><span class="ico">◆</span>Cocina</a>
+  <a href="#/progreso" data-ruta="progreso"><span class="ico">◇</span>Progreso</a>
+</nav>
+
+<script type="module" src="./js/app.js"></script>
+</body>
+</html>
