@@ -396,6 +396,7 @@ export const ALIMENTOS = [
   { nombre: 'Gochujang', cat: 'Salsas', kcal: 200, prot: 5, grasa: 1, hc: 42, fibra: 3, sal: 6, medida: 'g', racion: 20 },
   { nombre: 'Miso blanco', cat: 'Salsas', kcal: 195, prot: 12, grasa: 6, hc: 24, fibra: 5, sal: 12, medida: 'g', racion: 17 },
   { nombre: 'Wakame seco', cat: 'Salsas', kcal: 300, prot: 18, grasa: 3, hc: 45, fibra: 40, sal: 15, medida: 'g', racion: 3 },
+  { nombre: 'Café solo', cat: 'Salsas', kcal: 2, prot: 0.1, grasa: 0, hc: 0, fibra: 0, sal: 0, medida: 'g', racion: 60 },
   { nombre: 'Pepitas de chocolate negro', cat: 'Salsas', kcal: 530, prot: 5, grasa: 33, hc: 48, fibra: 8, sal: 0, medida: 'g', racion: 5 },
 ];
 
@@ -602,11 +603,23 @@ export const RECETAS = [
     ],
   },
   {
-    nombre: 'Tostada de desayuno', raciones: 1, tiempo: 5, tags: ['desayuno', 'rápida'],
+    nombre: 'Desayuno habitual', raciones: 1, tiempo: 5, tags: ['desayuno', 'rápida'],
+    nota: 'A las 6:00. El tomate, la pimienta y el orégano no se cuentan.',
     ingredientes: [
-      { nombre: 'Pan de Pagès blanco', cantidad: 45 }, { nombre: 'Cottage 0% (Carrefour)', cantidad: 120 },
+      { nombre: 'Pan de Pagès blanco', cantidad: 50 }, { nombre: 'Cottage 0% (Carrefour)', cantidad: 120 },
       { nombre: 'Atún al natural, escurrido', cantidad: 55 }, { nombre: 'AOVE', cantidad: 2 },
-      { nombre: 'Tomate', cantidad: 40 },
+      { nombre: 'Tomate', cantidad: 40 }, { nombre: 'Café solo', cantidad: 60 },
+      { nombre: 'Leche desnatada sin lactosa', cantidad: 30 },
+    ],
+  },
+  {
+    nombre: 'Desayuno habitual con 1/4 de aguacate', raciones: 1, tiempo: 5, tags: ['desayuno', 'rápida'],
+    nota: 'Misma base más 40 g de aguacate, que es un cuarto de uno mediano. La opción para los días que la grasa vaya corta.',
+    ingredientes: [
+      { nombre: 'Pan de Pagès blanco', cantidad: 50 }, { nombre: 'Cottage 0% (Carrefour)', cantidad: 120 },
+      { nombre: 'Atún al natural, escurrido', cantidad: 55 }, { nombre: 'AOVE', cantidad: 2 },
+      { nombre: 'Tomate', cantidad: 40 }, { nombre: 'Aguacate', cantidad: 40 },
+      { nombre: 'Café solo', cantidad: 60 }, { nombre: 'Leche desnatada sin lactosa', cantidad: 30 },
     ],
   },
   {
@@ -628,3 +641,11 @@ export const ESCAPES = [
   { cosa: '100 g de boniato frente a 100 g de patata', coste: '+13 kcal' },
   { cosa: 'Aguacate a ojo en vez de pesado', coste: '+65 kcal al día' },
 ];
+
+// Recetas y alimentos que se retiran al actualizar la semilla, porque los has
+// sustituido por otros. Lo ya registrado en el diario no se toca: cada entrada
+// guarda sus propios macros.
+export const RETIRADOS = {
+  recetas: ['tostada-de-desayuno'],
+  alimentos: [],
+};

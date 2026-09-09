@@ -159,7 +159,7 @@ async function pintarPeso(raiz) {
 
     pon(raiz, h('div', { class: 'tarjeta' },
       h('div', { class: 'fila entre' },
-        h('div', { class: 'dato' },
+        h('div', { class: 'dato heroe' },
           h('div', { class: 'n' }, `${n1(ultima.media)} kg`),
           h('div', { class: 'e' }, 'media de 7 días')),
         h('div', { class: 'dato', style: 'text-align:right' },

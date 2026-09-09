@@ -7,7 +7,7 @@ import { qs, qsa, vaciar, h, toast } from './ui.js';
 
 // Sube este número cuando añadas datos nuevos a seed.js: la app los incorpora
 // sin tocar lo que tú hayas editado.
-const VERSION_SEMILLA = 3;
+const VERSION_SEMILLA = 4;
 
 export const estado = {
   ejercicios: [],
@@ -47,6 +47,14 @@ async function sembrar() {
   await meter('alimentos', S.ALIMENTOS, (a) => idDe(a.nombre));
   await meter('recetas', S.RECETAS, (r) => idDe(r.nombre));
   await meter('despensa', S.DESPENSA, (d) => idDe(d.nombre));
+
+  // Retirar lo que se ha sustituido por una versión mejor. No toca el diario:
+  // cada comida registrada guarda sus propios macros.
+  for (const [almacen, ids] of Object.entries(S.RETIRADOS || {})) {
+    for (const id of ids) {
+      if (await db.obtener(almacen, id)) await db.borrar(almacen, id);
+    }
+  }
 
   if (!(await db.leerMeta('rutina'))) await db.escribirMeta('rutina', S.RUTINA);
   if (!(await db.leerMeta('config'))) {
@@ -98,7 +106,12 @@ let rutaActual = null;
 
 export function ir(ruta, params = {}) {
   const qp = new URLSearchParams(params).toString();
-  location.hash = `#/${ruta}${qp ? '?' + qp : ''}`;
+  const destino = `#/${ruta}${qp ? '?' + qp : ''}`;
+  // Ir a donde ya estás no dispara hashchange, así que hay que repintar a mano.
+  // Si no, botones como "elegir sesión" desde la propia pantalla de Entreno
+  // guardarían el cambio sin que se viera nada.
+  if (location.hash === destino) pintar();
+  else location.hash = destino;
 }
 
 export async function pintar() {

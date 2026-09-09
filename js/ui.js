@@ -120,11 +120,25 @@ export function segmentos(opciones, { valor = null, alElegir } = {}) {
   return cont;
 }
 
+// La regla: el indicador de esta app. Línea fina con el recorrido, relleno de
+// color hueso con lo que llevas y una marca naranja en el objetivo. Si te pasas,
+// el trazo sigue más allá de la marca. No cambia de color para felicitarte:
+// dice dónde estás respecto a la línea y ya.
 export function barraProgreso(actual, objetivo, { clase = '' } = {}) {
-  const pct = objetivo > 0 ? Math.min(100, (actual / objetivo) * 100) : 0;
-  const excedido = objetivo > 0 && actual > objetivo * 1.02;
-  return h('div', { class: 'barra-prog' },
-    h('i', { class: excedido ? 'pasado' : clase, style: `width:${pct}%` }));
+  const pct = objetivo > 0 ? (actual / objetivo) * 100 : 0;
+  const dentro = Math.max(0, Math.min(100, pct));
+  // Lo que se pasa se dibuja en el hueco de la derecha, que representa un 28% extra.
+  const fuera = Math.max(0, Math.min(100, ((pct - 100) / 28) * 100));
+  const completa = clase.includes('ok') || (objetivo > 0 && actual >= objetivo);
+  return h('div', {
+    class: 'regla' + (completa ? ' completa' : ''),
+    role: 'img',
+    'aria-label': `${Math.round(actual)} de ${Math.round(objetivo)}`,
+  },
+    h('div', { class: 'pista' },
+      h('i', { class: 'llena', style: `width:${dentro}%` }),
+      h('b', { class: 'diana' })),
+    h('i', { class: 'exceso', style: `width:${fuera * 0.22}%` }));
 }
 
 export function macrosVista(totales, objetivo) {

@@ -39,7 +39,7 @@ function dibujar(lado, margenSeguro) {
     const i = (y * lado + x) * 4;
     p[i] = r; p[i + 1] = g; p[i + 2] = b; p[i + 3] = 255;
   };
-  const FONDO = [14, 16, 19], ACENTO = [88, 166, 255], CLARO = [241, 244, 246];
+  const FONDO = [19, 19, 17], ACENTO = [226, 103, 58], CLARO = [240, 237, 229];
   for (let y = 0; y < lado; y++) for (let x = 0; x < lado; x++) pon(x, y, FONDO);
 
   // mancuerna: barra central + dos discos a cada lado

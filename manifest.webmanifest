@@ -8,15 +8,36 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0e1013",
-  "theme_color": "#0e1013",
+  "background_color": "#131311",
+  "theme_color": "#131311",
   "icons": [
-    { "src": "./icons/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "./icons/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "./icons/icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "./icons/icono-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icono-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icono-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "shortcuts": [
-    { "name": "Empezar entreno", "url": "./#/entreno" },
-    { "name": "Registrar comida", "url": "./#/comer" }
+    {
+      "name": "Empezar entreno",
+      "url": "./#/entreno"
+    },
+    {
+      "name": "Registrar comida",
+      "url": "./#/comer"
+    }
   ]
 }
