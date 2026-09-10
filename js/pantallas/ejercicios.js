@@ -122,7 +122,7 @@ export function Ejercicio({ id }) {
         <div class="tarjeta">
           ${grupos.map((g, i) => html`<div class="fila-f" style=${`justify-content:space-between;padding:10px 2px;${i ? 'border-top:1px solid var(--linea)' : 'padding-top:0'}`}>
             <span class="t2">${L.fechaCorta(g.fecha)}</span>
-            <span class="num" style="font-size:15px;text-align:right">${g.series.map((s) => `${n1(s.peso)} × ${s.reps}`).join(' · ')}</span>
+            <span class="num" style="font-size:15px;text-align:right">${g.series.map((s) => `${s.peso == null ? '–' : n1(s.peso)} × ${s.reps}`).join(' · ')}${g.series.some((s) => s.aprox) ? ' (aprox.)' : ''}</span>
           </div>`)}
         </div>`
       : html`<div class="tarjeta"><${Vacio} titulo="Aún sin registros">Cuando lo hagas en un entreno verás aquí tu mejor serie, tu progreso y el historial.<//></div>`}

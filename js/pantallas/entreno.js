@@ -59,6 +59,7 @@ function ElegirSesion() {
   const ultimas = sesionesTerminadas().slice(-10).reverse();
   const empezar = (plan) => iniciarSesion(plan);
   const [ver, ponerVer] = useState(null);
+  const [pasado, ponerPasado] = useState(false);
   return html`
     <header class="cabecera"><h1 class="titulo">Entreno</h1></header>
     <div class="pila">
@@ -76,13 +77,15 @@ function ElegirSesion() {
         </button>`;
       })}
       <button class="boton suave" onClick=${() => empezar('L')}><${Icono} n="mas" t=${20} g=${2.2} />Entreno libre</button>
+      <button class="boton suave" onClick=${() => ponerPasado(true)}><${Icono} n="reloj" t=${20} g=${2.2} />Apuntar un entreno pasado</button>
     </div>
 
     ${ultimas.length > 0 && html`
       <div class="seccion"><h2 class="titulo">Últimos entrenos</h2></div>
       <div class="lista">${ultimas.map((s) => html`<${FilaHistorial} s=${s} alPulsar=${() => ponerVer(s)} />`)}</div>`}
 
-    ${ver && html`<${HojaSesion} s=${ver} alCerrar=${() => ponerVer(null)} />`}`;
+    ${ver && html`<${HojaSesion} s=${ver} alCerrar=${() => ponerVer(null)} />`}
+    ${pasado && html`<${HojaEntrenoPasado} alCerrar=${() => ponerPasado(false)} />`}`;
 }
 
 function FilaHistorial({ s, alPulsar }) {
@@ -106,6 +109,7 @@ function HojaSesion({ s, alCerrar }) {
   };
   return html`<${Hoja} titulo=${`${s.plan === 'L' ? 'Entreno libre' : 'Sesión ' + s.plan} · ${L.fechaLarga(s.fecha)}`} alCerrar=${alCerrar}>
     <div class="pila">
+      ${s.aprox && html`<p class="t2 peq">Apuntado después con pesos estándar: no son los que levantaste. No cuenta para récords ni para la progresión.</p>`}
       ${grupos.length === 0 && html`<p class="t2">Este entreno no tiene series marcadas.</p>`}
       ${grupos.map((g) => html`<div class="tarjeta">
         <div class="fila-f" style="margin-bottom:8px">
@@ -117,6 +121,71 @@ function HojaSesion({ s, alCerrar }) {
         </div>`)}
       </div>`)}
       <button class="boton" onClick=${pasar}><${Icono} n="compartir" t=${20} g=${2.2} />Copiar para Claude</button>
+      ${borrando
+        ? html`<button class="boton peligro" onClick=${borrar}>Sí, borrar este entreno y sus series</button>`
+        : html`<button class="boton peligro" style="background:none" onClick=${() => ponerBorrando(true)}>Borrar este entreno</button>`}
+    </div>
+  <//>`;
+}
+
+// ---------------------------------------------------------------- apuntar un entreno pasado
+
+// Para un día que entrenaste y no quedó registrado. Se rellena con valores estándar
+// (tu peso de partida, reps mínimas del rango, RIR 3) y se puede cambiar antes de guardar.
+function HojaEntrenoPasado({ alCerrar }) {
+  const hoy = L.hoyISO();
+  const [fecha, ponerFecha] = useState(L.sumarDias(hoy, -1));
+  const [plan, ponerPlan] = useState(siguientePlan());
+  const [valores, ponerValores] = useState({});
+  const def = E.rutina[plan];
+  const items = def.ejercicios.map((x, i) => ({ x, i, ej: E.ejercicioPorId.get(x.id) })).filter((o) => o.ej);
+  const yaHay = E.sesiones.some((s) => s.fecha === fecha && s.fin);
+
+  const val = (ej, c) => valores[ej.id]?.[c] ?? (c === 'peso' ? (ej.pesoInicial != null ? String(ej.pesoInicial).replace('.', ',') : '') : String(ej.repMin));
+  const poner = (ej, c, v) => ponerValores({ ...valores, [ej.id]: { ...valores[ej.id], [c]: v } });
+
+  const guardar = async () => {
+    if (!fecha || fecha > hoy) { toast('Elige un día que ya haya pasado'); return; }
+    const inicio = L.desdeISO(fecha); inicio.setHours(19, 0, 0, 0);
+    const sesion = {
+      id: db.nuevoId('s'), fecha, plan, nombre: def.nombre, aprox: true,
+      inicio: inicio.toISOString(), fin: new Date(inicio.getTime() + 50 * 60000).toISOString(),
+      ejercicios: def.ejercicios.map((x) => ({ id: x.id, series: x.series })),
+    };
+    const filas = [];
+    for (const { x, i, ej } of items) {
+      const peso = aNum(val(ej, 'peso'));
+      const reps = aNum(val(ej, 'reps')) || ej.repMin;
+      for (let f = 0; f < x.series; f++) {
+        filas.push({ id: db.nuevoId('r') + i + f, sesionId: sesion.id, ejercicioId: ej.id, item: i, fecha, indice: f,
+          peso: peso ?? null, reps, rir: 3, aprox: true, ts: inicio.getTime() + (filas.length + 1) * 120000 });
+      }
+    }
+    await db.guardar('sesiones', sesion);
+    await db.guardarVarios('series', filas);
+    if (!E.config.primeraSesion || E.config.primeraSesion > fecha) await guardarConfig({ primeraSesion: fecha });
+    await recargar(); avisar();
+    toast(`Sesión ${plan} del ${L.fechaLarga(fecha)} apuntada`, 3000);
+    alCerrar();
+  };
+
+  return html`<${Hoja} titulo="Apuntar un entreno pasado" alCerrar=${alCerrar}>
+    <div class="pila">
+      <label class="campo"><span>Día</span>
+        <input class="entrada" type="date" max=${hoy} value=${fecha} onInput=${(e) => ponerFecha(e.currentTarget.value)} /></label>
+      <div class="segmentado">${ORDEN_SESIONES.map((p) => html`<button class=${p === plan ? 'activo' : ''} onClick=${() => { ponerPlan(p); ponerValores({}); }}>Sesión ${p}</button>`)}</div>
+      ${yaHay && html`<div class="aviso">Ese día ya tiene un entreno guardado. Si guardas, habrá dos.</div>`}
+      <p class="t2 peq">Con valores estándar: tu peso de partida y las repeticiones mínimas. Cámbialos si te acuerdas. Contará como día de gimnasio y para la rotación, pero no para récords ni para las subidas de peso.</p>
+      <div class="tarjeta">
+        <div style="display:grid;grid-template-columns:1fr 64px 52px;gap:6px;font-size:11px;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">
+          <span>${def.nombre}</span><span style="text-align:center">Kg</span><span style="text-align:center">Reps</span></div>
+        ${items.map(({ x, ej }) => html`<div style="display:grid;grid-template-columns:1fr 64px 52px;gap:6px;align-items:center;padding:5px 0">
+          <div class="crece"><div class="peq corta" style="font-weight:600">${ej.nombre}</div><div class="t2" style="font-size:12px">${x.series} series</div></div>
+          <input class="caja num" inputmode="decimal" placeholder="–" value=${val(ej, 'peso')} onInput=${(e) => poner(ej, 'peso', e.currentTarget.value)} />
+          <input class="caja num" inputmode="numeric" value=${val(ej, 'reps')} onInput=${(e) => poner(ej, 'reps', e.currentTarget.value)} />
+        </div>`)}
+      </div>
+      <button class="boton" onClick=${guardar}>Guardar entreno</button>
     </div>
   <//>`;
 }
@@ -197,7 +266,8 @@ function EntrenoActivo({ sesion }) {
 
 function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCompletar, alAnadirSerie }) {
   const [borrador, ponerBorrador] = useState({});
-  const previas = seriesDe(ej.id).filter((s) => s.sesionId !== sesion.id);
+  // Los entrenos apuntados después con pesos estándar no guían la progresión.
+  const previas = seriesDe(ej.id).filter((s) => s.sesionId !== sesion.id && !s.aprox);
   const analisis = L.analizarEjercicio(ej, previas, E.fase || L.faseActual(null));
   const ultima = analisis.ultima;
   const hechas = E.series.filter((s) => s.sesionId === sesion.id && s.item === i).sort((a, b) => a.indice - b.indice);

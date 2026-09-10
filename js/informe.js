@@ -28,8 +28,8 @@ export function ejerciciosDeSesion(s) {
 
 export function textoSerie(r, ej) {
   const reps = ej?.segundos ? `${r.reps} s` : `${r.reps} reps`;
-  const peso = ej?.tipo === 'corporal'
-    ? (r.peso ? `peso corporal + ${n1(r.peso)} kg` : 'peso corporal')
+  const peso = r.peso == null ? 'peso sin apuntar'
+    : ej?.tipo === 'corporal' ? (r.peso ? `peso corporal + ${n1(r.peso)} kg` : 'peso corporal')
     : `${n1(r.peso)} kg`;
   return `${peso} × ${reps} · RIR ${r.rir ?? '—'}`;
 }
@@ -39,6 +39,7 @@ function textoSesion(s) {
   const titulo = s.plan === 'L' ? 'Entreno libre' : `Sesión ${s.plan} · ${s.nombre}`;
   const l = [`## ${titulo} — ${fechaCompleta(s.fecha)}`];
   l.push(`Hora: ${hora(s.inicio)}${s.fin ? `–${hora(s.fin)} (${min} min)` : ' (sin terminar)'}${s.cerradaSola ? ' · se guardó sola al quedarse abierta' : ''}`);
+  if (s.aprox) l.push('OJO: apuntado después con pesos estándar; los pesos y repeticiones NO son los reales.');
   let volumen = 0, total = 0;
   for (const g of ejerciciosDeSesion(s)) {
     const ej = g.ej;

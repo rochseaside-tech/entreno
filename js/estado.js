@@ -103,10 +103,12 @@ function normalizar(e) {
 
 function mezclarEjercicios(guardados) {
   const porId = new Map(guardados.map((g) => [g.id, g]));
+  // Tus pesos de partida viven en seed.js: sin ellos, una instalación nueva no sugeriría peso.
+  const semilla = new Map(S.EJERCICIOS.map((e) => [e.id, e]));
   const lista = CATALOGO.map((c) => {
     const g = porId.get(c.id);
     const ajustes = g ? Object.fromEntries(AJUSTABLES.filter((k) => g[k] !== undefined).map((k) => [k, g[k]])) : {};
-    return normalizar({ ...c, ...ajustes });
+    return normalizar({ pesoInicial: semilla.get(c.id)?.pesoInicial ?? null, ...c, ...ajustes });
   });
   const enCatalogo = new Set(CATALOGO.map((c) => c.id));
   for (const g of guardados) if (!enCatalogo.has(g.id) && g.propio) lista.push(normalizar(g));
@@ -231,7 +233,8 @@ export const siguientePlan = () => L.siguienteSesion(
 export const unaRM = (peso, reps) => (peso > 0 && reps > 0 && reps <= 12 ? peso * (1 + reps / 30) : 0);
 
 export function records(ejercicioId) {
-  const s = seriesDe(ejercicioId).filter((x) => x.peso > 0 && x.reps > 0);
+  // Los entrenos apuntados después con pesos estándar no cuentan para récords.
+  const s = seriesDe(ejercicioId).filter((x) => x.peso > 0 && x.reps > 0 && !x.aprox);
   if (!s.length) return null;
   const mejorPeso = s.reduce((m, x) => (x.peso > m.peso || (x.peso === m.peso && x.reps > m.reps) ? x : m));
   const rm = Math.max(...s.map((x) => unaRM(x.peso, x.reps)));
