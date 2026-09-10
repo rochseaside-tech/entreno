@@ -87,12 +87,12 @@ export function Ejercicio({ id }) {
       <button class="boton chico suave" onClick=${() => ponerFotos(true)}>${ej.fotoPropia?.length ? 'Cambiar foto' : 'Poner mi foto'}</button>
     </div>
     <h1 class="titulo" style="font-size:26px;line-height:1.1;margin:14px 4px 8px">${ej.nombre}</h1>
-    <div class="chips" style="flex-wrap:wrap;margin:0 4px;padding:0">
+    <div class="chips ej" style="flex-wrap:wrap;margin:0 4px;padding:0">
       <span class="chip activo">${ej.grupo}</span>
       ${(ej.sec || []).map((m) => html`<span class="chip sec">${m}</span>`)}
     </div>
 
-    <div class="pila" style="margin-top:16px">
+    <div class="pila ej" style="margin-top:16px">
       ${ej.aviso && html`<div class="aviso"><${Icono} n="aviso" t=${17} g=${2} />${ej.aviso}</div>`}
       <div class="tarjeta">
         <ol class="pasos-lista">${ej.claves.map((c, i) => html`<li><b class="num">${i + 1}</b><span>${c}</span></li>`)}</ol>

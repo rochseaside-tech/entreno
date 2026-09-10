@@ -244,7 +244,7 @@ function EntrenoActivo({ sesion }) {
               alMenu=${() => ponerHoja({ tipo: 'menu', i })}
               alCompletar=${() => ponerAbierto(sesion.ejercicios.findIndex((x, j) => j > i && hechasDe(j) < x.series))}
               alAnadirSerie=${() => cambiarPlan((l) => { l[i].series++; return l; })} />`
-          : html`<button class="tarjeta plegada" key=${item.id + i} onClick=${() => ponerAbierto(i)}>
+          : html`<button class="tarjeta plegada ej" key=${item.id + i} onClick=${() => ponerAbierto(i)}>
               <${FotoEj} ej=${ej} clase="mini" quieta />
               <div class="crece"><div class="ej-nombre">${ej.nombre}</div>
                 <div class="ej-meta">${hechasDe(i)} de ${item.series} series · ${ej.repMin}–${ej.repMax} ${ej.segundos ? 'seg' : 'reps'}</div></div>
@@ -320,7 +320,7 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCompletar, alAnadirSe
 
   const filas = Array.from({ length: Math.max(item.series, hechas.length) }, (_, f) => f);
 
-  return html`<div class="tarjeta">
+  return html`<div class="tarjeta ej">
     <div class="ej-cab">
       <button onClick=${() => ir('ejercicio/' + ej.id)} aria-label=${'Ver ' + ej.nombre}><${FotoEj} ej=${ej} clase="mini-g" /></button>
       <div class="crece">

@@ -22,9 +22,9 @@
 
 /* Grafito: gris oscuro suave en vez de negro puro. Lavanda de protagonista y rosa palo
    de segundo color (anillo de proteína). */
-[data-tema="grafito"], [data-tema="grafito-rosa"] {
-  --fondo: #1E1E23; --superficie: #2A2A31; --superficie2: #36363E; --superficie3: #44444D; --linea: #3A3A42;
-  --texto: #F5F5F7; --texto2: #A3A3AD;
+[data-tema="grafito"], [data-tema="grafito-rosa"], [data-tema="mixto"] {
+  --fondo: #2A2A30; --superficie: #36363D; --superficie2: #43434B; --superficie3: #50505A; --linea: #47474F;
+  --texto: #F6F6F8; --texto2: #B3B3BD;
   --acento: #A99BFF; --enlace: #BDB2FF;
   --boton: #A99BFF; --sobre-boton: #17122E;
   --check: #A99BFF; --sobre-check: #17122E; --hecho: rgba(169,155,255,.13);
@@ -47,6 +47,21 @@
   --aviso-texto: #FF8F7A;
 }
 
+/* Lavanda y rosa: los dos a la vez. Lavanda en títulos, cabeceras, botones principales
+   y pestañas; rosa palo en todo lo de cada ejercicio (series, ✓, sugerencias), el
+   descanso y el anillo de proteína. */
+[data-tema="mixto"] {
+  --titulo-color: #CDC5FF;
+  --check: #EDB4C2; --sobre-check: #2B1419; --hecho: rgba(237,180,194,.13);
+  --timer-fondo: #EDB4C2; --timer-texto: #2B1419; --timer-linea: #2B1419; --timer-btn: rgba(43,20,25,.12);
+  --anillo2: #EDB4C2;
+}
+[data-tema="mixto"] .ej {
+  --acento: #EDB4C2; --enlace: #F2C3CF;
+  --sug-fondo: rgba(237,180,194,.15); --sug-texto: #F5CCD6;
+  --chip-fondo: rgba(237,180,194,.17); --chip-texto: #F7D2DB;
+}
+
 /* ------------------------------------------------------------ base */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; }
@@ -65,7 +80,7 @@ a { color: var(--enlace); text-decoration: none; }
 svg { display: block; flex: none; }
 h1, h2, h3, p { margin: 0; }
 .num { font-family: var(--num-font); font-weight: var(--num-peso); letter-spacing: var(--num-track); font-variant-numeric: tabular-nums; }
-.titulo { font-family: var(--titulo-font); font-weight: var(--titulo-peso); text-transform: var(--titulo-transform); letter-spacing: var(--titulo-track); }
+.titulo { font-family: var(--titulo-font); font-weight: var(--titulo-peso); text-transform: var(--titulo-transform); letter-spacing: var(--titulo-track); color: var(--titulo-color, inherit); }
 .t2 { color: var(--texto2); }
 .peq { font-size: 13.5px; }
 .crece { flex: 1; min-width: 0; }
