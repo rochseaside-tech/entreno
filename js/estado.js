@@ -116,14 +116,18 @@ function mezclarEjercicios(guardados) {
 // ---------------------------------------------------------------- carga
 
 export async function recargar() {
-  const [ejercicios, alimentos, recetas, despensa, uso, sesiones, series, habituales, rutina, config] = await Promise.all([
+  const [ejercicios, alimentos, recetas, despensa, uso, sesiones, series, habituales, fotos, rutina, config] = await Promise.all([
     db.todos('ejercicios'), db.todos('alimentos'), db.todos('recetas'), db.todos('despensa'),
-    db.todos('uso'), db.todos('sesiones'), db.todos('series'), db.todos('habituales'),
+    db.todos('uso'), db.todos('sesiones'), db.todos('series'), db.todos('habituales'), db.todos('fotos'),
     db.leerMeta('rutina', S.RUTINA), db.leerMeta('config', {}),
   ]);
 
   E.ejercicios = mezclarEjercicios(ejercicios);
   E.ejercicioPorId = new Map(E.ejercicios.map((e) => [e.id, e]));
+  for (const f of fotos) {
+    const ej = E.ejercicioPorId.get(f.id);
+    if (ej) ej.fotoPropia = [f.f0, f.f1].filter(Boolean);
+  }
 
   const es = (a, b) => a.nombre.localeCompare(b.nombre, 'es');
   E.misAlimentos = alimentos.sort(es);

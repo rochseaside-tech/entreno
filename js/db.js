@@ -3,8 +3,9 @@
 
 const NOMBRE_DB = 'entreno-nutricion';
 // v2: almacén 'habituales' (comidas guardadas para repetir con un toque).
+// v3: almacén 'fotos' (tus fotos de un ejercicio, en lugar de las de la base).
 // Subir la versión solo crea los almacenes nuevos: no toca los datos existentes.
-const VERSION_DB = 2;
+const VERSION_DB = 3;
 
 // Definición de los almacenes. keyPath = campo que hace de clave.
 const ALMACENES = {
@@ -23,6 +24,7 @@ const ALMACENES = {
   planes:     { keyPath: 'id', indices: { fecha: 'fecha' } },       // planes de batch cooking
   uso:        { keyPath: 'clave' },                                // aprendizaje: frecuencia y cantidades habituales
   habituales: { keyPath: 'id' },                                   // comidas guardadas: varios alimentos que se apuntan juntos
+  fotos:      { keyPath: 'id' },                                   // tus fotos: { id: ejercicio, f0, f1 } en data URL (entra en la copia)
 };
 
 export const NOMBRES_ALMACENES = Object.keys(ALMACENES);

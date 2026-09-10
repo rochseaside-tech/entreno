@@ -69,6 +69,7 @@ export function Ejercicios() {
 export function Ejercicio({ id }) {
   useEstado();
   const [ajustando, ponerAjustando] = useState(false);
+  const [fotos, ponerFotos] = useState(false);
   const ej = E.ejercicioPorId.get(id);
   if (!ej) return html`<button class="volver" onClick=${() => atras('ejercicios')}><${Icono} n="atras" t=${24} g=${2.4} />Ejercicios</button>
     <${Vacio} titulo="Este ejercicio ya no existe">Vuelve a la biblioteca y elige otro.<//>`;
@@ -81,8 +82,12 @@ export function Ejercicio({ id }) {
   return html`
     <button class="volver" onClick=${() => atras('ejercicios')}><${Icono} n="atras" t=${24} g=${2.4} />Volver</button>
     <${FotoEj} ej=${ej} clase="foto-grande" etiqueta=${ej.equipo} />
-    <h1 class="titulo" style="font-size:26px;line-height:1.1;margin:16px 4px 8px">${ej.nombre}</h1>
-    <div class="chips" style="flex-wrap:wrap;margin:0 4px">
+    <div class="fila-f" style="margin:10px 4px 0;align-items:flex-start">
+      <p class="t2 peq crece">${ej.fotoPropia?.length ? 'Foto tuya.' : ej.fotoNota || 'Si en tu gimnasio la máquina es distinta, pon tu propia foto.'}</p>
+      <button class="boton chico suave" onClick=${() => ponerFotos(true)}>${ej.fotoPropia?.length ? 'Cambiar foto' : 'Poner mi foto'}</button>
+    </div>
+    <h1 class="titulo" style="font-size:26px;line-height:1.1;margin:14px 4px 8px">${ej.nombre}</h1>
+    <div class="chips" style="flex-wrap:wrap;margin:0 4px;padding:0">
       <span class="chip activo">${ej.grupo}</span>
       ${(ej.sec || []).map((m) => html`<span class="chip sec">${m}</span>`)}
     </div>
@@ -121,7 +126,8 @@ export function Ejercicio({ id }) {
       : html`<div class="tarjeta"><${Vacio} titulo="Aún sin registros">Cuando lo hagas en un entreno verás aquí tu mejor serie, tu progreso y el historial.<//></div>`}
     </div>
 
-    ${ajustando && html`<${HojaAjustesEjercicio} ej=${ej} alCerrar=${() => ponerAjustando(false)} />`}`;
+    ${ajustando && html`<${HojaAjustesEjercicio} ej=${ej} alCerrar=${() => ponerAjustando(false)} />`}
+    ${fotos && html`<${HojaFotos} ej=${ej} alCerrar=${() => ponerFotos(false)} />`}`;
 }
 
 function HojaAjustesEjercicio({ ej, alCerrar }) {
@@ -145,6 +151,71 @@ function HojaAjustesEjercicio({ ej, alCerrar }) {
       <div class="rejilla-2">${campo('incremento', 'Subir de (kg)', 'decimal')}${campo('pesoInicial', 'Peso de partida (kg)', 'decimal')}</div>
       <p class="t2 peq">Cuando hagas todas las series al máximo de repeticiones con RIR 1 o más, la app te propondrá subir el peso en esa cantidad.</p>
       <button class="boton" onClick=${guardar}>Guardar cambios</button>
+    </div>
+  <//>`;
+}
+
+// ---------------------------------------------------------------- tus fotos
+
+// Recorta al centro en 4:3 y reduce a 560×420, como las fotos de la base.
+// Pasa por <img> para que respete el giro de las fotos del iPhone.
+async function reducirFoto(archivo) {
+  const url = URL.createObjectURL(archivo);
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const W = 560, H = 420;
+    const escala = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+    const w = img.naturalWidth * escala, h = img.naturalHeight * escala;
+    const lienzo = Object.assign(document.createElement('canvas'), { width: W, height: H });
+    lienzo.getContext('2d').drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+    return lienzo.toDataURL('image/jpeg', 0.8);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function HojaFotos({ ej, alCerrar }) {
+  const [f, ponerF] = useState([ej.fotoPropia?.[0] || null, ej.fotoPropia?.[1] || null]);
+  const [trabajando, ponerTrabajando] = useState(false);
+
+  const elegir = (i) => async (e) => {
+    const archivo = e.currentTarget.files?.[0];
+    e.currentTarget.value = '';
+    if (!archivo) return;
+    ponerTrabajando(true);
+    try {
+      const dato = await reducirFoto(archivo);
+      ponerF((prev) => { const n = [...prev]; n[i] = dato; return n; });
+    } catch { toast('No se ha podido abrir esa foto'); }
+    ponerTrabajando(false);
+  };
+  const guardar = async () => {
+    if (!f[0] && !f[1]) { toast('Elige al menos una foto'); return; }
+    const [f0, f1] = f[0] ? f : [f[1], null];
+    await db.guardar('fotos', { id: ej.id, f0, f1 });
+    await recargar(); avisar(); toast('Foto guardada'); alCerrar();
+  };
+  const quitar = async () => {
+    await db.borrar('fotos', ej.id);
+    await recargar(); avisar(); toast('Vuelve la foto de la base'); alCerrar();
+  };
+
+  const hueco = (i, texto) => html`<label class="tarjeta" style="display:block;cursor:pointer;padding:10px">
+    <div class="anim quieta" style="width:100%;aspect-ratio:4/3;border-radius:12px;display:grid;place-items:center">
+      ${f[i] ? html`<img src=${f[i]} alt="" />` : html`<span class="t2" style="display:flex;flex-direction:column;align-items:center;gap:6px"><${Icono} n="mas" t=${26} g=${2} />Elegir</span>`}
+    </div>
+    <div class="peq" style="margin-top:8px;font-weight:600;text-align:center">${texto}</div>
+    <input type="file" accept="image/*" style="display:none" onChange=${elegir(i)} />
+  </label>`;
+
+  return html`<${Hoja} titulo="Tu foto" alCerrar=${alCerrar}>
+    <p class="t2" style="margin-bottom:12px">Hazla con el móvil en horizontal. Con dos fotos, al empezar y al terminar el movimiento, se ve animada como las demás.</p>
+    <div class="rejilla-2" style="margin-bottom:14px">${hueco(0, 'Al empezar')}${hueco(1, 'Al terminar')}</div>
+    <div class="pila">
+      <button class="boton" disabled=${trabajando} onClick=${guardar}>${trabajando ? 'Preparando la foto…' : 'Guardar foto'}</button>
+      ${ej.fotoPropia?.length ? html`<button class="boton peligro" onClick=${quitar}>Volver a la foto original</button>` : null}
     </div>
   <//>`;
 }

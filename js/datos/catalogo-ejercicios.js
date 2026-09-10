@@ -527,6 +527,7 @@ export const CATALOGO = [
   {
     id: 'hip-thrust', nombre: 'Hip thrust en máquina', grupo: 'Glúteo', sec: ['Femoral'], equipo: 'Máquina',
     en: 'Barbell Hip Thrust', rep: [10, 12], rir: '1-2', descanso: 120, incremento: 5, tipo: 'peso',
+    fotoNota: 'La foto es del hip thrust con barra: el movimiento es el mismo, cambia el aparato.',
     claves: [
       'El borde del respaldo justo debajo del omóplato.',
       'Barbilla metida y costillas abajo: el movimiento es de cadera, la lumbar no se arquea.',
@@ -555,6 +556,7 @@ export const CATALOGO = [
   {
     id: 'extension-cadera', nombre: 'Extensión de cadera en máquina (patada de glúteo de pie)', grupo: 'Glúteo', sec: ['Femoral'], equipo: 'Máquina',
     en: 'One-Legged Cable Kickback', rep: [12, 15], rir: '1-2', descanso: 90, incremento: 2.5, tipo: 'peso',
+    fotoNota: 'La foto es de la patada en polea: el movimiento es el mismo, cambia el aparato.',
     claves: [
       'Tronco apoyado y firme, sin balancearte para ayudarte.',
       'Empuja con el talón y sube solo hasta la línea del cuerpo.',

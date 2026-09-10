@@ -103,6 +103,15 @@ export function Hoja({ titulo, alCerrar, accion = null, children }) {
 // ---------------------------------------------------------------- foto animada
 
 export function FotoEj({ ej, clase = 'mini', quieta = false, etiqueta = null }) {
+  // Tus fotos ganan a las de la base. Con una sola, la imagen se queda quieta.
+  if (ej?.fotoPropia?.length) {
+    const [a, b] = ej.fotoPropia;
+    return html`<div class=${`anim ${clase} ${quieta || !b ? 'quieta' : ''}`}>
+      <img src=${a} alt="" decoding="async" />
+      ${b ? html`<img src=${b} alt="" decoding="async" />` : null}
+      ${etiqueta && html`<span class="etiqueta-foto">${etiqueta}</span>`}
+    </div>`;
+  }
   if (!ej?.img) {
     return html`<div class=${`anim ${clase}`} style="display:grid;place-items:center">
       <span class="titulo t2" style="font-size:22px">${(ej?.nombre || '?').slice(0, 1)}</span></div>`;
