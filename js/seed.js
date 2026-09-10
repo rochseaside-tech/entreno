@@ -366,7 +366,8 @@ export const ALIMENTOS = [
 
   // --- Pescado y marisco ---
   { nombre: 'Atún al natural, escurrido', cat: 'Pescado', kcal: 110, prot: 24, grasa: 1, hc: 0, fibra: 0, sal: 1, medida: 'g', racion: 55 },
-  { nombre: 'Berberechos, escurridos', cat: 'Pescado', kcal: 53, prot: 8.4, grasa: 0, hc: 4.8, fibra: 0, sal: 1.4, medida: 'g', racion: 60, exacto: true },
+  { nombre: 'Berberechos, escurridos', cat: 'Pescado', kcal: 53, prot: 8.4, grasa: 0, hc: 4.8, fibra: 0, sal: 1.4, medida: 'g', racion: 60, exacto: true,
+    gramosUnidad: 90, nota: 'Lata Mercadona de 185 g: 90 g escurridos.' },
   { nombre: 'Anchoas en AOVE, escurridas', cat: 'Pescado', kcal: 200, prot: 26, grasa: 10, hc: 0, fibra: 0, sal: 5, medida: 'g', racion: 15 },
   { nombre: 'Merluza', cat: 'Pescado', kcal: 85, prot: 17, grasa: 1.5, hc: 0, fibra: 0, sal: 0.15, medida: 'g', racion: 200 },
   { nombre: 'Jurel', cat: 'Pescado', kcal: 120, prot: 20, grasa: 4.5, hc: 0, fibra: 0, sal: 0.2, medida: 'g', racion: 150 },
@@ -425,6 +426,8 @@ export const ALIMENTOS = [
   { nombre: 'Melón', cat: 'Fruta', kcal: 30, prot: 0.6, grasa: 0.2, hc: 7, fibra: 0.9, sal: 0, medida: 'g', racion: 200 },
   { nombre: 'Frutos rojos congelados', cat: 'Fruta', kcal: 45, prot: 1, grasa: 0.4, hc: 8, fibra: 3.5, sal: 0, medida: 'g', racion: 100 },
   { nombre: 'Pasas', cat: 'Fruta', kcal: 300, prot: 3, grasa: 0.5, hc: 70, fibra: 4, sal: 0, medida: 'g', racion: 16 },
+  { nombre: 'Melocotón light en lata (Mercadona)', cat: 'Fruta', kcal: 27, prot: 0.4, grasa: 0, hc: 6.3, fibra: 0.5, sal: 0.02, medida: 'g', racion: 120, exacto: true,
+    nota: 'En agua con edulcorantes. Lata de 400 g: 240 g escurridos. La grasa no se leía en la foto de la etiqueta; se pone 0 porque cuadra con las 27 kcal.' },
 
   // --- Salsas y despensa ---
   { nombre: 'Salmorejo de brick', cat: 'Salsas', kcal: 85, prot: 1, grasa: 7, hc: 3.4, fibra: 2, sal: 0.9, medida: 'g', racion: 250, exacto: true, nota: 'Un vaso de 250 ml son 212 kcal.' },

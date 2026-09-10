@@ -11,7 +11,7 @@ import { REGISTROS_PENDIENTES, CAMBIOS_PENDIENTES } from './datos/registros.js';
 
 // Sube este número cuando añadas datos nuevos a seed.js: la app los incorpora
 // sin tocar lo que tú hayas editado.
-const VERSION_SEMILLA = 6;
+const VERSION_SEMILLA = 7; // 7: melocotón light en lata (10 sep 2026)
 
 export const E = {
   listo: false,
@@ -218,6 +218,10 @@ async function aplicarRegistros() {
     if (c.receta) {
       const r = await db.obtener('recetas', idDe(c.receta));
       if (r) await db.guardar('recetas', { ...r, macrosRacion: c.macrosRacion });
+    }
+    if (c.alimento) {
+      const a = await db.obtener('alimentos', idDe(c.alimento));
+      if (a) await db.guardar('alimentos', { ...a, ...c.campos });
     }
     hechos.push(c.id);
     await db.escribirMeta('registrosAplicados', hechos);

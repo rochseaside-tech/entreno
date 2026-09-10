@@ -41,4 +41,10 @@ export const CAMBIOS_PENDIENTES = [
     receta: 'Sopa de pollo con col china y miso',
     macrosRacion: { kcal: 445, prot: 36, grasa: 13, hc: 41, fibra: 4, sal: 1.9 },
   },
+  {
+    // Foto de la lata del 10 sep: los valores ya coincidían; se añade el tamaño de la lata.
+    id: 'berberechos-lata-2026-09-10',
+    alimento: 'Berberechos, escurridos',
+    campos: { gramosUnidad: 90, nota: 'Lata Mercadona de 185 g: 90 g escurridos.' },
+  },
 ];
