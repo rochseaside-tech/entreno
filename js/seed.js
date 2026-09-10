@@ -309,6 +309,45 @@ export const RUTINA = {
 
 export const ORDEN_SESIONES = ['A', 'B', 'C', 'D'];
 
+// Calentamiento de cada sesión, unos 8 minutos. Propuesta del 10 sep 2026 (el plan no
+// traía ninguno): cuida la rodilla (bici con sillín alto, nada por debajo de 90°) y el
+// hombro izquierdo (rotación externa ligera antes de tirar o empujar). Después, las
+// series de aproximación del primer ejercicio.
+export const CALENTAMIENTOS = {
+  A: { min: 8, pasos: [
+    '4 min de bici o elíptica suave: puedes hablar sin ahogarte.',
+    'Rotaciones de hombro con un palo o una goma, brazos estirados: 10 hacia delante y 10 hacia atrás.',
+    'Rotación externa en polea muy ligera, codo pegado al cuerpo: 12 con cada brazo, empezando por el izquierdo.',
+    'Face pull con la polea muy ligera: 15.',
+    'Jalón al pecho casi sin peso: 12, notando cómo bajan los omóplatos.',
+  ] },
+  B: { min: 8, pasos: [
+    '4 min de bici suave, con el sillín alto para que la rodilla no se doble de más.',
+    'Puente de glúteo en el suelo: 15, apretando arriba un segundo.',
+    'Pasos laterales con goma por encima de las rodillas: 12 hacia cada lado.',
+    'Bisagra de cadera con un palo en la espalda: 10, echando la cadera atrás.',
+    'Hiperextensión sin peso y con poco recorrido: 10.',
+  ] },
+  C: { min: 8, pasos: [
+    '4 min de bici o elíptica suave.',
+    'Rotaciones de hombro con un palo o una goma: 10 hacia delante y 10 hacia atrás.',
+    'Rotación externa en polea muy ligera, codo pegado: 12 con cada brazo.',
+    'Flexiones con las manos apoyadas en un banco: 10, sin llegar a notar el hombro.',
+    'Press de pecho en máquina casi sin peso: 15.',
+  ] },
+  D: { min: 8, pasos: [
+    '4 min de bici suave, con el sillín alto.',
+    'Extensión de cuádriceps casi sin peso: 15, desde 90°, para calentar la rodilla.',
+    'Puente de glúteo en el suelo: 15.',
+    'Sentarte y levantarte de un banco sin peso: 10, bajando solo hasta 90°.',
+    'Gemelo de pie sin peso: 15.',
+  ] },
+  L: { min: 6, pasos: [
+    '4 min de bici o elíptica suave.',
+    'Movilidad de las articulaciones que vayas a usar: 10 repeticiones de cada una.',
+  ] },
+};
+
 // ---------------------------------------------------------------- alimentos
 // Valores por 100 g salvo medida 'ml' (por 100 ml) o 'ud' (los valores son por unidad).
 // exacto: true = tomado de la etiqueta del producto. El resto son valores de tabla:
@@ -579,6 +618,8 @@ export const RECETAS = [
   },
   {
     nombre: 'Sopa de pollo con col china y miso', raciones: 5, tiempo: 45, tags: ['batch', 'cena'],
+    // Macros por ración que dio Rocío el 10 sep 2026: mandan sobre el cálculo por ingredientes.
+    macrosRacion: { kcal: 445, prot: 36, grasa: 13, hc: 41, fibra: 4, sal: 1.9 },
     nota: 'Contramuslos con hueso: de 740 g de bandeja salen unos 500 g de carne.',
     ingredientes: [
       { nombre: 'Contramuslo de pollo sin piel', cantidad: 500 }, { nombre: 'AOVE', cantidad: 34 },

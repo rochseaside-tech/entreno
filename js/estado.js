@@ -7,7 +7,7 @@ import * as S from './seed.js';
 import * as L from './logica.js';
 import { CATALOGO } from './datos/catalogo-ejercicios.js';
 import { ALIMENTOS_BASE } from './datos/alimentos-base.js';
-import { REGISTROS_PENDIENTES } from './datos/registros.js';
+import { REGISTROS_PENDIENTES, CAMBIOS_PENDIENTES } from './datos/registros.js';
 
 // Sube este número cuando añadas datos nuevos a seed.js: la app los incorpora
 // sin tocar lo que tú hayas editado.
@@ -213,6 +213,15 @@ async function aplicarRegistros() {
     await db.escribirMeta('registrosAplicados', hechos);
     metidos.push(`Tu entreno del ${L.fechaLarga(r.sesion.fecha)} ya está registrado`);
   }
+  for (const c of CAMBIOS_PENDIENTES) {
+    if (hechos.includes(c.id)) continue;
+    if (c.receta) {
+      const r = await db.obtener('recetas', idDe(c.receta));
+      if (r) await db.guardar('recetas', { ...r, macrosRacion: c.macrosRacion });
+    }
+    hechos.push(c.id);
+    await db.escribirMeta('registrosAplicados', hechos);
+  }
   return metidos;
 }
 
@@ -247,7 +256,8 @@ export async function guardarConfig(cambios) {
 
 // ---------------------------------------------------------------- consultas de entreno
 
-export const seriesDe = (ejercicioId) => E.series.filter((s) => s.ejercicioId === ejercicioId);
+// Solo series de trabajo: las de aproximación no cuentan para récords, progresión ni historial.
+export const seriesDe = (ejercicioId) => E.series.filter((s) => s.ejercicioId === ejercicioId && !s.calent);
 export const seriesDeSesion = (sesionId) => E.series.filter((s) => s.sesionId === sesionId)
   .sort((a, b) => (a.indice ?? 0) - (b.indice ?? 0));
 export const sesionesTerminadas = () => E.sesiones.filter((s) => s.fin);

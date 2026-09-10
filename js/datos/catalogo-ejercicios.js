@@ -691,4 +691,8 @@ export const CATALOGO = [
   },
 ];
 
+// Ejercicios a una mano o una pierna: cada serie se apunta por lado (izquierda y derecha).
+const POR_LADOS = new Set(['remo-mancuerna', 'zancadas', 'bulgara', 'extension-cadera', 'elev-laterales-polea', 'patada-triceps', 'pallof']);
+for (const e of CATALOGO) if (POR_LADOS.has(e.id)) e.lados = true;
+
 export const CATALOGO_POR_ID = new Map(CATALOGO.map((e) => [e.id, e]));

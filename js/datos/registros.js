@@ -32,3 +32,13 @@ export const REGISTROS_PENDIENTES = [
     series: HECHO_9_SEP.flatMap(serie(S1, '2026-09-09', INICIO_9_SEP)),
   },
 ];
+
+// Cambios en datos que ya están en su móvil (la semilla solo añade lo que falta, no
+// cambia lo que hay). Se aplican una vez, igual que los registros.
+export const CAMBIOS_PENDIENTES = [
+  {
+    id: 'sopa-pollo-macros-2026-09-10',
+    receta: 'Sopa de pollo con col china y miso',
+    macrosRacion: { kcal: 445, prot: 36, grasa: 13, hc: 41, fibra: 4, sal: 1.9 },
+  },
+];

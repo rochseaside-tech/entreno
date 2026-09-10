@@ -257,7 +257,19 @@ h1, h2, h3, p { margin: 0; }
 .fila-serie.hecha .ok { background: var(--check); color: var(--sobre-check); }
 .anadir-serie { margin-top: 8px; width: 100%; height: 42px; border-radius: 11px; background: var(--superficie2); font-weight: 600; font-size: 15px; color: var(--texto2); }
 .plegada { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; }
-.hecho-marca { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--check); color: var(--sobre-check); }
+.hecho-marca { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--check); color: var(--sobre-check); flex: none; }
+
+/* series por lados y de aproximación */
+.fila-serie .n small { display: block; margin-top: -1px; font-size: 10px; font-weight: 700; letter-spacing: .02em; color: var(--texto2); }
+.fila-serie.calent .n { font-size: 13px; color: var(--texto2); }
+.fila-serie.calent .ant { font-size: 12.5px; }
+.fila-serie.calent .caja { font-size: 16px; }
+
+/* pasos del calentamiento */
+.paso-cal { display: flex; gap: 10px; align-items: flex-start; width: 100%; padding: 7px 0; text-align: left; font-size: 15px; line-height: 1.35; }
+.paso-cal i { flex: none; width: 22px; height: 22px; margin-top: 1px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 2px var(--superficie3); }
+.paso-cal.hecho i { background: var(--check); color: var(--sobre-check); box-shadow: none; }
+.paso-cal.hecho span { color: var(--texto2); text-decoration: line-through; }
 
 /* descanso: la barra que se vacía */
 .descanso {

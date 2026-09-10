@@ -1,7 +1,7 @@
 // sw.js — guarda la app en el móvil para que funcione sin cobertura en el gimnasio.
 // Los datos no pasan por aquí: viven en IndexedDB.
 
-const VERSION = 'v13';
+const VERSION = 'v14';
 const CACHE = `entreno-${VERSION}`;
 const FOTOS = 'entreno-fotos-v1'; // aparte: no se vuelven a bajar en cada versión
 
