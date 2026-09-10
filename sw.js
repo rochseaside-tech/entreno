@@ -1,9 +1,9 @@
-// sw.js — guarda la app en el móvil para que funcione sin cobertura en el gimnasio.
-// Los datos no pasan por aquí: viven en IndexedDB.
+﻿// sw.js â€” guarda la app en el mÃ³vil para que funcione sin cobertura en el gimnasio.
+// Los datos no pasan por aquÃ­: viven en IndexedDB.
 
-const VERSION = 'v8';
+const VERSION = 'v9';
 const CACHE = `entreno-${VERSION}`;
-const FOTOS = 'entreno-fotos-v1'; // aparte: no se vuelven a bajar en cada versión
+const FOTOS = 'entreno-fotos-v1'; // aparte: no se vuelven a bajar en cada versiÃ³n
 
 const ARCHIVOS = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
@@ -44,7 +44,7 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // La app: red primero, para ver siempre la última versión; sin cobertura, la copia.
+  // La app: red primero, para ver siempre la Ãºltima versiÃ³n; sin cobertura, la copia.
   e.respondWith((async () => {
     try {
       const resp = await fetch(e.request);
@@ -54,7 +54,7 @@ self.addEventListener('fetch', (e) => {
       const guardado = await caches.match(e.request);
       if (guardado) return guardado;
       if (e.request.mode === 'navigate') return caches.match('./index.html');
-      throw new Error('sin conexión y sin copia');
+      throw new Error('sin conexiÃ³n y sin copia');
     }
   })());
 });

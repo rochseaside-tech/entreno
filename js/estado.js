@@ -113,6 +113,31 @@ function mezclarEjercicios(guardados) {
   return lista;
 }
 
+// ---------------------------------------------------------------- entrenos de la versión anterior
+
+// La primera versión guardaba inicio y fin como milisegundos, sin nombre ni lista
+// de ejercicios, y las series sin 'item'. Se adaptan al leer; lo guardado no se toca.
+const aISO = (t) => (typeof t === 'number' ? new Date(t).toISOString() : t);
+
+function adaptarSesion(s) {
+  const plan = E.rutina[s.plan];
+  return {
+    ...s,
+    inicio: aISO(s.inicio), fin: aISO(s.fin),
+    nombre: s.nombre ?? plan?.nombre ?? 'Entreno',
+    ejercicios: s.ejercicios ?? (plan?.ejercicios || []).map((x) => ({ id: x.id, series: x.series })),
+  };
+}
+
+function adaptarSeries(series, sesiones) {
+  const porId = new Map(sesiones.map((s) => [s.id, s]));
+  return series.map((r) => {
+    if (r.item !== undefined) return r;
+    const i = porId.get(r.sesionId)?.ejercicios.findIndex((x) => x.id === r.ejercicioId) ?? -1;
+    return { ...r, item: i >= 0 ? i : 0 };
+  });
+}
+
 // ---------------------------------------------------------------- carga
 
 export async function recargar() {
@@ -140,9 +165,9 @@ export async function recargar() {
   E.despensa = despensa.sort(es);
   E.habituales = habituales.sort((a, b) => (b.veces || 0) - (a.veces || 0));
   E.uso = new Map(uso.map((u) => [u.clave, u]));
-  E.sesiones = sesiones.sort((a, b) => (a.inicio < b.inicio ? -1 : 1));
-  E.series = series;
   E.rutina = rutina;
+  E.sesiones = sesiones.map(adaptarSesion).sort((a, b) => (a.inicio < b.inicio ? -1 : 1));
+  E.series = adaptarSeries(series, E.sesiones);
   E.config = { objetivos: { ...S.OBJETIVOS }, perfil: { ...S.PERFIL }, ...config };
   // logica.js lee OBJETIVOS y PERFIL de seed.js: se actualizan con lo que hayas cambiado en Ajustes.
   Object.assign(S.OBJETIVOS, E.config.objetivos);
