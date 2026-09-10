@@ -3,7 +3,7 @@
 
 import * as db from './db.js';
 import * as L from './logica.js';
-import { estado } from './app.js';
+import { E as estado } from './estado.js';
 
 export async function cargarDia(fecha) {
   const [comidas, sesiones, peso, pasos, semana] = await Promise.all([

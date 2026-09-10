@@ -2,7 +2,9 @@
 // Todos los datos viven aquí, en el dispositivo. Nada sale a ningún servidor.
 
 const NOMBRE_DB = 'entreno-nutricion';
-const VERSION_DB = 1;
+// v2: almacén 'habituales' (comidas guardadas para repetir con un toque).
+// Subir la versión solo crea los almacenes nuevos: no toca los datos existentes.
+const VERSION_DB = 2;
 
 // Definición de los almacenes. keyPath = campo que hace de clave.
 const ALMACENES = {
@@ -20,6 +22,7 @@ const ALMACENES = {
   despensa:   { keyPath: 'id' },                                   // lo que sueles tener en casa
   planes:     { keyPath: 'id', indices: { fecha: 'fecha' } },       // planes de batch cooking
   uso:        { keyPath: 'clave' },                                // aprendizaje: frecuencia y cantidades habituales
+  habituales: { keyPath: 'id' },                                   // comidas guardadas: varios alimentos que se apuntan juntos
 };
 
 export const NOMBRES_ALMACENES = Object.keys(ALMACENES);

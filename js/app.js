@@ -1,159 +1,69 @@
-// app.js — arranque, estado compartido y navegación entre vistas.
+// app.js — arranque y navegación. Cada pantalla es un componente; la ruta sale del #.
 
-import * as db from './db.js';
-import * as S from './seed.js';
-import * as L from './logica.js';
-import { qs, qsa, vaciar, h, toast } from './ui.js';
+import { html, render, useEffect, useState } from './vendor/preact-htm.js';
+import { E, useEstado, arrancarDatos, toast } from './estado.js';
+import { Tabs, Toast } from './comunes.js';
+import { Hoy } from './pantallas/hoy.js';
+import { Entreno, BarraDescanso } from './pantallas/entreno.js';
+import { Ejercicios, Ejercicio } from './pantallas/ejercicios.js';
+import { Comida } from './pantallas/comida.js';
+import { Progreso } from './pantallas/progreso.js';
+import { Ajustes } from './pantallas/ajustes.js';
 
-// Sube este número cuando añadas datos nuevos a seed.js: la app los incorpora
-// sin tocar lo que tú hayas editado.
-const VERSION_SEMILLA = 5;
-
-export const estado = {
-  ejercicios: [],
-  ejercicioPorId: new Map(),
-  rutina: S.RUTINA,
-  alimentos: [],
-  alimentoPorNombre: new Map(),
-  recetas: [],
-  despensa: [],
-  uso: new Map(),
-  sesiones: [],
-  sesionActiva: null,
-  config: {},
-};
-
-export const idDe = (texto) => texto
-  .toLowerCase()
-  .normalize('NFD').replace(/[̀-ͯ]/g, '')
-  .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-
-// ---------------------------------------------------------------- siembra
-
-async function sembrar() {
-  const version = await db.leerMeta('versionSemilla', 0);
-  if (version >= VERSION_SEMILLA) return;
-
-  const meter = async (almacen, filas, hacerId) => {
-    const existentes = new Set((await db.todos(almacen)).map((f) => f.id));
-    const nuevas = filas
-      .map((f) => ({ ...f, id: hacerId(f) }))
-      .filter((f) => !existentes.has(f.id));
-    if (nuevas.length) await db.guardarVarios(almacen, nuevas);
-    return nuevas.length;
-  };
-
-  await meter('ejercicios', S.EJERCICIOS, (e) => e.id);
-  await meter('alimentos', S.ALIMENTOS, (a) => idDe(a.nombre));
-  await meter('recetas', S.RECETAS, (r) => idDe(r.nombre));
-  await meter('despensa', S.DESPENSA, (d) => idDe(d.nombre));
-
-  // Retirar lo que se ha sustituido por una versión mejor. No toca el diario:
-  // cada comida registrada guarda sus propios macros.
-  for (const [almacen, ids] of Object.entries(S.RETIRADOS || {})) {
-    for (const id of ids) {
-      if (await db.obtener(almacen, id)) await db.borrar(almacen, id);
-    }
-  }
-
-  if (!(await db.leerMeta('rutina'))) await db.escribirMeta('rutina', S.RUTINA);
-  if (!(await db.leerMeta('config'))) {
-    await db.escribirMeta('config', {
-      objetivos: { ...S.OBJETIVOS },
-      perfil: { ...S.PERFIL },
-      primeraSesion: null,
-      sonidoDescanso: true,
-      vibrar: true,
-    });
-  }
-  await db.escribirMeta('versionSemilla', VERSION_SEMILLA);
-}
-
-// ---------------------------------------------------------------- carga
-
-export async function recargar() {
-  const [ejercicios, alimentos, recetas, despensa, uso, sesiones, rutina, config] = await Promise.all([
-    db.todos('ejercicios'), db.todos('alimentos'), db.todos('recetas'), db.todos('despensa'),
-    db.todos('uso'), db.todos('sesiones'), db.leerMeta('rutina', S.RUTINA), db.leerMeta('config', {}),
-  ]);
-
-  estado.ejercicios = ejercicios;
-  estado.ejercicioPorId = new Map(ejercicios.map((e) => [e.id, e]));
-  estado.alimentos = alimentos.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
-  estado.alimentoPorNombre = new Map(alimentos.map((a) => [a.nombre, a]));
-  estado.recetas = recetas.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
-  estado.despensa = despensa.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
-  estado.uso = new Map(uso.map((u) => [u.clave, u]));
-  estado.sesiones = sesiones.sort((a, b) => (a.inicio < b.inicio ? -1 : 1));
-  estado.rutina = rutina;
-  estado.config = { objetivos: { ...S.OBJETIVOS }, perfil: { ...S.PERFIL }, ...config };
-  estado.sesionActiva = estado.sesiones.find((s) => !s.fin) || null;
-  estado.fase = L.faseActual(estado.config.primeraSesion);
-}
-
-// ---------------------------------------------------------------- navegación
-
-const RUTAS = {
-  hoy: () => import('./vistas/hoy.js'),
-  entreno: () => import('./vistas/entreno.js'),
-  comer: () => import('./vistas/comer.js'),
-  cocina: () => import('./vistas/cocina.js'),
-  progreso: () => import('./vistas/progreso.js'),
-  ajustes: () => import('./vistas/ajustes.js'),
-};
-
-let rutaActual = null;
-
-export function ir(ruta, params = {}) {
-  const qp = new URLSearchParams(params).toString();
-  const destino = `#/${ruta}${qp ? '?' + qp : ''}`;
-  // Ir a donde ya estás no dispara hashchange, así que hay que repintar a mano.
-  // Si no, botones como "elegir sesión" desde la propia pantalla de Entreno
-  // guardarían el cambio sin que se viera nada.
-  if (location.hash === destino) pintar();
-  else location.hash = destino;
-}
-
-export async function pintar() {
+// '#/ejercicio/jalon-prono?desde=entreno' -> { nombre: 'ejercicio', id: 'jalon-prono', params: { desde: 'entreno' } }
+function leerRuta() {
   const bruto = location.hash.replace(/^#\/?/, '') || 'hoy';
-  const [nombre, cadena] = bruto.split('?');
-  const ruta = RUTAS[nombre] ? nombre : 'hoy';
-  const params = Object.fromEntries(new URLSearchParams(cadena || ''));
-
-  qsa('nav.barra a').forEach((a) => a.classList.toggle('activo', a.dataset.ruta === ruta));
-
-  const contenedor = qs('#vista');
-  try {
-    await recargar();
-    const modulo = await RUTAS[ruta]();
-    vaciar(contenedor);
-    await modulo.pintar(contenedor, params);
-    if (rutaActual !== ruta) contenedor.scrollIntoView({ block: 'start' });
-    rutaActual = ruta;
-  } catch (err) {
-    console.error(err);
-    vaciar(contenedor).append(
-      h('div', { class: 'aviso alerta' }, 'Algo ha fallado al abrir esta pantalla.'),
-      h('pre', { class: 'pequeno apagado', style: 'white-space:pre-wrap' }, String(err?.stack || err)));
-  }
+  const [camino, cadena] = bruto.split('?');
+  const [nombre, id] = camino.split('/');
+  return { nombre, id: id ? decodeURIComponent(id) : null, params: Object.fromEntries(new URLSearchParams(cadena || '')) };
 }
 
-// Cabecera: cada vista puede poner su título y subtítulo.
-export function cabecera(titulo, subtitulo = '') {
-  qs('#titulo').textContent = titulo;
-  qs('#subtitulo').textContent = subtitulo;
-}
+const PANTALLAS = {
+  hoy: { C: Hoy, tab: 'hoy' },
+  entreno: { C: Entreno, tab: 'entreno' },
+  ejercicios: { C: Ejercicios, tab: 'ejercicios' },
+  ejercicio: { C: Ejercicio, tab: 'ejercicios', detalle: true },
+  comida: { C: Comida, tab: 'comida' },
+  progreso: { C: Progreso, tab: 'progreso' },
+  ajustes: { C: Ajustes, tab: 'hoy', detalle: true },
+};
 
-// ---------------------------------------------------------------- arranque
+function App() {
+  useEstado();
+  const [ruta, ponerRuta] = useState(leerRuta);
+
+  useEffect(() => {
+    const cambio = () => { ponerRuta(leerRuta()); window.scrollTo(0, 0); };
+    addEventListener('hashchange', cambio);
+    return () => removeEventListener('hashchange', cambio);
+  }, []);
+
+  if (!E.listo) return null;
+
+  const p = PANTALLAS[ruta.nombre] || PANTALLAS.hoy;
+  const conDescanso = !!E.descanso;
+  return html`
+    <main class=${`pantalla ${p.detalle ? 'entra' : 'aparece'} ${conDescanso ? 'con-descanso' : ''}`} key=${ruta.nombre + (ruta.id || '')}>
+      <${p.C} id=${ruta.id} params=${ruta.params} />
+    </main>
+    ${conDescanso && html`<${BarraDescanso} />`}
+    <${Tabs} activa=${p.tab} />
+    <${Toast} />`;
+}
 
 async function arrancar() {
-  await db.abrir();
-  await sembrar();
-  await recargar();
+  render(html`<${App} />`, document.getElementById('app'));
+  try {
+    await arrancarDatos();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('app').innerHTML =
+      '<div class="pantalla"><div class="aviso">No se han podido abrir tus datos. Cierra la app y ábrela otra vez.</div></div>';
+    return;
+  }
 
-  qs('#btn-ajustes').addEventListener('click', () => ir('ajustes'));
-  window.addEventListener('hashchange', pintar);
-  await pintar();
+  // Pedir al sistema que no borre los datos aunque falte espacio.
+  try { await navigator.storage?.persist?.(); } catch { /* no disponible */ }
 
   if ('serviceWorker' in navigator) {
     try {
@@ -162,14 +72,25 @@ async function arrancar() {
         const nuevo = reg.installing;
         nuevo?.addEventListener('statechange', () => {
           if (nuevo.state === 'installed' && navigator.serviceWorker.controller) {
-            toast('Hay una versión nueva. Ciérrala y ábrela otra vez.', 5000);
+            toast('Hay una versión nueva: se verá la próxima vez que abras la app.', 4000);
           }
         });
       });
-    } catch (e) {
-      console.warn('Service worker no registrado:', e);
-    }
+    } catch (e) { console.warn('Service worker no registrado:', e); }
+    guardarFotos();
   }
+}
+
+// La primera vez, bajar todas las fotos de ejercicios para tenerlas sin cobertura.
+async function guardarFotos() {
+  try {
+    if (localStorage.getItem('fotos-v1')) return;
+    await navigator.serviceWorker.ready;
+    if (!navigator.serviceWorker.controller) return; // aún no controla: la próxima vez
+    const urls = E.ejercicios.filter((e) => e.img).flatMap((e) => [0, 1].map((i) => `./img/ej/${e.img}-${i}.webp`));
+    for (let i = 0; i < urls.length; i += 8) await Promise.allSettled(urls.slice(i, i + 8).map((u) => fetch(u)));
+    localStorage.setItem('fotos-v1', '1');
+  } catch { /* se reintenta al abrir otra vez */ }
 }
 
 arrancar();

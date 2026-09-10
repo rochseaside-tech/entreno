@@ -1,63 +1,54 @@
-// sw.js — service worker. Guarda la app entera en caché para que funcione
-// sin conexión. Los datos no pasan por aquí: viven en IndexedDB.
+// sw.js — guarda la app en el móvil para que funcione sin cobertura en el gimnasio.
+// Los datos no pasan por aquí: viven en IndexedDB.
 
-const VERSION = 'v6';
+const VERSION = 'v7';
 const CACHE = `entreno-${VERSION}`;
+const FOTOS = 'entreno-fotos-v1'; // aparte: no se vuelven a bajar en cada versión
 
 const ARCHIVOS = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './css/styles.css',
-  './js/app.js',
-  './js/db.js',
-  './js/seed.js',
-  './js/logica.js',
-  './js/dia.js',
-  './js/selector-comida.js',
-  './js/ui.js',
-  './js/sync.js',
-  './js/vistas/hoy.js',
-  './js/vistas/entreno.js',
-  './js/vistas/comer.js',
-  './js/vistas/cocina.js',
-  './js/vistas/progreso.js',
-  './js/vistas/ajustes.js',
-  './icons/icono-192.png',
-  './icons/icono-512.png',
-  './icons/icono-maskable-512.png',
+  './', './index.html', './manifest.webmanifest', './css/app.css',
+  './js/app.js', './js/estado.js', './js/comunes.js', './js/descanso.js',
+  './js/db.js', './js/seed.js', './js/logica.js', './js/dia.js',
+  './js/vendor/preact-htm.js',
+  './js/datos/catalogo-ejercicios.js', './js/datos/alimentos-base.js',
+  './js/pantallas/hoy.js', './js/pantallas/entreno.js', './js/pantallas/ejercicios.js',
+  './js/pantallas/comida.js', './js/pantallas/progreso.js', './js/pantallas/ajustes.js',
+  './icons/icono-192.png', './icons/icono-512.png', './icons/icono-maskable-512.png', './icons/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE)
-      .then((c) => Promise.allSettled(ARCHIVOS.map((f) => c.add(f))))
-      .then(() => self.skipWaiting())
-  );
+  e.waitUntil(caches.open(CACHE)
+    .then((c) => Promise.allSettled(ARCHIVOS.map((f) => c.add(f))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys()
-      .then((claves) => Promise.all(claves.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
+  e.waitUntil(caches.keys()
+    .then((claves) => Promise.all(claves.filter((k) => k !== CACHE && k !== FOTOS).map((k) => caches.delete(k))))
+    .then(() => self.clients.claim()));
 });
 
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
-  // La sincronización con GitHub y los enlaces externos nunca pasan por aquí.
   if (e.request.method !== 'GET' || url.origin !== self.location.origin) return;
 
-  // Red primero: si hay cobertura siempre ves la última versión de la app.
-  // Si no la hay, tira de la copia guardada y funciona igual.
+  // Fotos de ejercicios: primero la copia guardada, no cambian nunca.
+  if (url.pathname.includes('/img/ej/')) {
+    e.respondWith((async () => {
+      const guardada = await caches.match(e.request);
+      if (guardada) return guardada;
+      const resp = await fetch(e.request);
+      if (resp.ok) (await caches.open(FOTOS)).put(e.request, resp.clone());
+      return resp;
+    })());
+    return;
+  }
+
+  // La app: red primero, para ver siempre la última versión; sin cobertura, la copia.
   e.respondWith((async () => {
     try {
       const resp = await fetch(e.request);
-      if (resp && resp.ok) {
-        const copia = resp.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copia));
-      }
+      if (resp && resp.ok) { const copia = resp.clone(); caches.open(CACHE).then((c) => c.put(e.request, copia)); }
       return resp;
     } catch {
       const guardado = await caches.match(e.request);
@@ -66,8 +57,4 @@ self.addEventListener('fetch', (e) => {
       throw new Error('sin conexión y sin copia');
     }
   })());
-});
-
-self.addEventListener('message', (e) => {
-  if (e.data === 'actualizar') self.skipWaiting();
 });
