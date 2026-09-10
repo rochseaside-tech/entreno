@@ -182,9 +182,33 @@ export async function arrancarDatos() {
   if (await db.obtener('meta', 'github')) await db.borrar('meta', 'github');
   await sembrar();
   await recargar();
+  E.ultimaCopia = await db.leerMeta('ultimaCopia');
+  await cerrarOlvidadas();
   E.listo = true;
   avisar();
 }
+
+// Un entreno que se quedó abierto (se te olvidó pulsar «Terminar») se guarda solo
+// tras 3 horas sin marcar ninguna serie. Si no tenía ninguna serie, se descarta:
+// abrirlo sin querer no debe contar como día de gimnasio.
+const TRES_HORAS = 3 * 3600 * 1000;
+export async function cerrarOlvidadas() {
+  const s = E.sesionActiva;
+  if (!s) return;
+  const suyas = E.series.filter((r) => r.sesionId === s.id);
+  const ultimaVez = Math.max(new Date(s.inicio).getTime() || 0, ...suyas.map((r) => r.ts || 0));
+  if (Date.now() - ultimaVez < TRES_HORAS) return;
+  if (suyas.length === 0) await db.borrar('sesiones', s.id);
+  else await db.guardar('sesiones', { ...s, fin: new Date(ultimaVez + 60000).toISOString(), cerradaSola: true });
+  await recargar();
+  avisar();
+  if (suyas.length) toast('Tu último entreno se quedó abierto: se ha guardado solo.', 3500);
+}
+
+// Al volver a la app (por ejemplo, al día siguiente) se comprueba otra vez.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && E.listo) cerrarOlvidadas();
+});
 
 export async function guardarConfig(cambios) {
   E.config = { ...E.config, ...cambios };

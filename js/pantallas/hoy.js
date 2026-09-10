@@ -7,6 +7,7 @@ import * as db from '../db.js';
 import { cargarDia } from '../dia.js';
 import { Icono, FotoEj, Anillo, GraficaLinea, Hoja, ir, n0, n1, aNum } from '../comunes.js';
 import { iniciarSesion, minutosEstimados } from './entreno.js';
+import { guardarCopia } from './ajustes.js';
 
 const capital = (t) => t.charAt(0).toUpperCase() + t.slice(1);
 export const fechaBonita = (iso) => capital(L.desdeISO(iso).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }));
@@ -35,6 +36,7 @@ export function Hoy() {
 
     <div class="pila">
       <${TarjetaEntreno} />
+      <${AvisoCopia} />
       ${dia && html`<${TarjetaComida} dia=${dia} />`}
       <${TarjetaSemana} hoy=${hoy} />
       <${TarjetaPeso} pesos=${pesos} alPulsar=${() => ponerHojaPeso(true)} />
@@ -97,6 +99,25 @@ function TarjetaComida({ dia }) {
     </div>
     ${dia.avisos.map((a) => html`<div class="aviso" style="margin-top:12px">${a.texto}</div>`)}
   </button>`;
+}
+
+// ---------------------------------------------------------------- copia de seguridad
+
+// Aparece sola cuando hay datos y hace 7 días o más de la última copia.
+function AvisoCopia() {
+  const dias = E.ultimaCopia ? L.diasEntre(E.ultimaCopia, L.hoyISO()) : null;
+  const hayDatos = E.sesiones.length > 0 || E.uso.size > 0;
+  if (!hayDatos || (dias !== null && dias < 7)) return null;
+  return html`<div class="tarjeta">
+    <div class="fila-f" style="align-items:flex-start">
+      <${Icono} n="guardar" t=${22} g=${2} />
+      <div class="crece">
+        <b>${dias === null ? 'Aún no tienes copia de tus datos' : `Hace ${dias} días de tu última copia`}</b>
+        <p class="t2 peq" style="margin-top:2px">Tus datos solo están en este iPhone. Un toque y se guarda en Archivos o iCloud.</p>
+      </div>
+    </div>
+    <button class="boton suave" style="margin-top:12px" onClick=${() => guardarCopia().catch(() => toast('No se ha podido guardar la copia'))}>Guardar copia</button>
+  </div>`;
 }
 
 // ---------------------------------------------------------------- semana

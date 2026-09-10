@@ -111,7 +111,9 @@ export function Ejercicio({ id }) {
       ${rec ? html`
         <div class="dos-botones">
           <div class="tarjeta dato"><small>Mejor serie</small><div class="num">${n1(rec.mejorPeso.peso)} <span>kg ×</span> ${rec.mejorPeso.reps}</div></div>
-          <div class="tarjeta dato"><small>Tu máximo a 1 rep, calculado</small><div class="num">${n0(rec.rm)} <span>kg</span></div></div>
+          ${rec.rm > 0
+            ? html`<div class="tarjeta dato"><small>Tu máximo a 1 rep, calculado</small><div class="num">${n0(rec.rm)} <span>kg</span></div></div>`
+            : html`<div class="tarjeta dato"><small>Sesiones registradas</small><div class="num">${prog.puntos.length}</div></div>`}
         </div>
         <div class="tarjeta">
           <div class="dato"><small>Peso de trabajo por sesión</small></div>

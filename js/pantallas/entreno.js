@@ -9,6 +9,7 @@ import { ORDEN_SESIONES } from '../seed.js';
 import { Icono, FotoEj, Hoja, ir, n0, n1, aNum } from '../comunes.js';
 import * as D from '../descanso.js';
 import { ListaEjercicios } from './ejercicios.js';
+import { ejerciciosDeSesion, textoSerie, textoEntrenos, copiar } from '../informe.js';
 
 // ---------------------------------------------------------------- utilidades
 
@@ -55,8 +56,9 @@ export function Entreno() {
 
 function ElegirSesion() {
   const toca = siguientePlan();
-  const ultimas = sesionesTerminadas().slice(-5).reverse();
+  const ultimas = sesionesTerminadas().slice(-10).reverse();
   const empezar = (plan) => iniciarSesion(plan);
+  const [ver, ponerVer] = useState(null);
   return html`
     <header class="cabecera"><h1 class="titulo">Entreno</h1></header>
     <div class="pila">
@@ -78,18 +80,45 @@ function ElegirSesion() {
 
     ${ultimas.length > 0 && html`
       <div class="seccion"><h2 class="titulo">Últimos entrenos</h2></div>
-      <div class="lista">${ultimas.map((s) => html`<${FilaHistorial} s=${s} />`)}</div>`}`;
+      <div class="lista">${ultimas.map((s) => html`<${FilaHistorial} s=${s} alPulsar=${() => ponerVer(s)} />`)}</div>`}
+
+    ${ver && html`<${HojaSesion} s=${ver} alCerrar=${() => ponerVer(null)} />`}`;
 }
 
-function FilaHistorial({ s }) {
+function FilaHistorial({ s, alPulsar }) {
   const series = E.series.filter((x) => x.sesionId === s.id);
   const min = Math.round((new Date(s.fin) - new Date(s.inicio)) / 60000);
-  return html`<div class="item">
+  return html`<button class="item" onClick=${alPulsar}>
     <div class="crece">
       <div class="nombre">${s.plan === 'L' ? '' : `Sesión ${s.plan} · `}${s.nombre}</div>
       <div class="meta">${L.fechaLarga(s.fecha)} · ${min} min · ${series.length} series · ${n0(volumenDe(series))} kg</div>
     </div>
-  </div>`;
+    <${Icono} n="chevron" t=${18} g=${2.2} clase="chevron" />
+  </button>`;
+}
+
+// Un entreno pasado con todas sus series, tal cual se hicieron.
+function HojaSesion({ s, alCerrar }) {
+  const grupos = ejerciciosDeSesion(s).filter((g) => g.series.length);
+  const pasar = async () => {
+    const ok = await copiar(textoEntrenos([s], `${s.plan === 'L' ? 'entreno libre' : 'sesión ' + s.plan} del ${L.fechaLarga(s.fecha)}`));
+    toast(ok ? 'Copiado: pégalo en Claude' : 'No se ha podido copiar');
+  };
+  return html`<${Hoja} titulo=${`${s.plan === 'L' ? 'Entreno libre' : 'Sesión ' + s.plan} · ${L.fechaLarga(s.fecha)}`} alCerrar=${alCerrar}>
+    <div class="pila">
+      ${grupos.length === 0 && html`<p class="t2">Este entreno no tiene series marcadas.</p>`}
+      ${grupos.map((g) => html`<div class="tarjeta">
+        <div class="fila-f" style="margin-bottom:8px">
+          <${FotoEj} ej=${g.ej} clase="mini" quieta />
+          <b class="crece">${g.nombre}</b>
+        </div>
+        ${g.series.map((r, i) => html`<div class="fila-f peq" style="justify-content:space-between;padding:5px 2px;border-top:1px solid var(--superficie3)">
+          <span class="t2">Serie ${i + 1}</span><span class="num" style="font-size:15px">${textoSerie(r, g.ej)}</span>
+        </div>`)}
+      </div>`)}
+      <button class="boton" onClick=${pasar}><${Icono} n="compartir" t=${20} g=${2.2} />Copiar para Claude</button>
+    </div>
+  <//>`;
 }
 
 // ---------------------------------------------------------------- entreno en marcha

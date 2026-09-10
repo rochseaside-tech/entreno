@@ -6,6 +6,7 @@ import * as L from '../logica.js';
 import * as db from '../db.js';
 import { Icono, Hoja, GraficaLinea, GraficaBarras, ir, n0, n1, aNum } from '../comunes.js';
 import { HojaPeso } from './hoy.js';
+import { textoEntrenos, copiar } from '../informe.js';
 
 const MEDIDAS = [['cintura', 'Cintura'], ['cadera', 'Cadera'], ['pecho', 'Pecho'], ['muslo', 'Muslo'], ['brazo', 'Brazo']];
 
@@ -93,6 +94,7 @@ export function Progreso() {
     </div>
 
     <${Fuerza} />
+    <${PasarAClaude} />
 
     ${hoja === 'peso' && html`<${HojaPeso} alCerrar=${() => ponerHoja(null)} alGuardar=${refrescar} />`}
     ${hoja === 'pasos' && html`<${HojaNumero} titulo="Pasos de hoy" unidad="pasos" inicial=${pasosHoy}
@@ -120,10 +122,33 @@ function Fuerza() {
         ? html`<div class="lista">${filas.map(({ ej, rec, prog }) => html`
             <button class="item" onClick=${() => ir('ejercicio/' + ej.id)}>
               <div class="crece"><div class="nombre corta">${ej.nombre}</div>
-                <div class="meta">Mejor: ${n1(rec.mejorPeso.peso)} kg × ${rec.mejorPeso.reps} · máximo calculado ${n0(rec.rm)} kg</div></div>
+                <div class="meta">Mejor: ${n1(rec.mejorPeso.peso)} kg × ${rec.mejorPeso.reps}${rec.rm > 0 ? ` · máximo calculado ${n0(rec.rm)} kg` : ''}</div></div>
               ${prog.mejora != null && html`<span class="pastilla">${prog.mejora >= 0 ? '+' : ''}${n0(prog.mejora)} %</span>`}
             </button>`)}</div>`
         : html`<div class="tarjeta t2">Cuando termines tu primer entreno, aquí verás cuánto sube cada ejercicio.</div>`}
+    </div>`;
+}
+
+// ---------------------------------------------------------------- pasar a Claude
+
+function PasarAClaude() {
+  const todas = sesionesTerminadas();
+  const hace28 = L.sumarDias(L.hoyISO(), -27);
+  const opciones = [
+    ['Último entreno', todas.slice(-1), 'último entreno'],
+    ['Últimas 4 semanas', todas.filter((s) => s.fecha >= hace28), 'últimas 4 semanas'],
+    ['Todo', todas, 'todos'],
+  ];
+  const pasar = async (lista, alcance) => {
+    const ok = await copiar(textoEntrenos(lista, alcance));
+    toast(ok ? `Copiado (${lista.length} ${lista.length === 1 ? 'entreno' : 'entrenos'}): pégalo en Claude` : 'No se ha podido copiar', 3000);
+  };
+  return html`
+    <div class="seccion"><h2 class="titulo">Pasar a Claude</h2></div>
+    <div class="tarjeta pila">
+      <p class="t2 peq">Copia tus entrenos con todas las series tal cual las hiciste: peso, repeticiones y RIR de cada una. Luego lo pegas en Claude.</p>
+      ${opciones.map(([texto, lista, alcance]) => html`<button class="boton suave" disabled=${!lista.length} onClick=${() => pasar(lista, alcance)}>
+        <${Icono} n="compartir" t=${20} g=${2.2} />${texto}${lista.length ? ` · ${lista.length}` : ''}</button>`)}
     </div>`;
 }
 
