@@ -103,6 +103,12 @@ function FilaHistorial({ s, alPulsar }) {
 // Un entreno pasado con todas sus series, tal cual se hicieron.
 function HojaSesion({ s, alCerrar }) {
   const grupos = ejerciciosDeSesion(s).filter((g) => g.series.length);
+  const [borrando, ponerBorrando] = useState(false);
+  const borrar = async () => {
+    for (const r of E.series.filter((x) => x.sesionId === s.id)) await db.borrar('series', r.id);
+    await db.borrar('sesiones', s.id);
+    await recargar(); avisar(); toast('Entreno borrado'); alCerrar();
+  };
   const pasar = async () => {
     const ok = await copiar(textoEntrenos([s], `${s.plan === 'L' ? 'entreno libre' : 'sesión ' + s.plan} del ${L.fechaLarga(s.fecha)}`));
     toast(ok ? 'Copiado: pégalo en Claude' : 'No se ha podido copiar');

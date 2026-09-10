@@ -38,7 +38,8 @@ function textoSesion(s) {
   const min = s.fin ? Math.round((new Date(s.fin) - new Date(s.inicio)) / 60000) : null;
   const titulo = s.plan === 'L' ? 'Entreno libre' : `Sesión ${s.plan} · ${s.nombre}`;
   const l = [`## ${titulo} — ${fechaCompleta(s.fecha)}`];
-  l.push(`Hora: ${hora(s.inicio)}${s.fin ? `–${hora(s.fin)} (${min} min)` : ' (sin terminar)'}${s.cerradaSola ? ' · se guardó sola al quedarse abierta' : ''}`);
+  if (s.horaDesconocida) l.push('Hora y duración: no se apuntaron (registrado a mano después; pesos, reps y RIR son los reales).');
+  else l.push(`Hora: ${hora(s.inicio)}${s.fin ? `–${hora(s.fin)} (${min} min)` : ' (sin terminar)'}${s.cerradaSola ? ' · se guardó sola al quedarse abierta' : ''}`);
   if (s.aprox) l.push('OJO: apuntado después con pesos estándar; los pesos y repeticiones NO son los reales.');
   let volumen = 0, total = 0;
   for (const g of ejerciciosDeSesion(s)) {

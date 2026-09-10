@@ -67,18 +67,33 @@ async function arrancar() {
 
   if ('serviceWorker' in navigator) {
     try {
+      const yaHabia = !!navigator.serviceWorker.controller;
       const reg = await navigator.serviceWorker.register('./sw.js');
-      reg.addEventListener('updatefound', () => {
-        const nuevo = reg.installing;
-        nuevo?.addEventListener('statechange', () => {
-          if (nuevo.state === 'installed' && navigator.serviceWorker.controller) {
-            toast('Hay una versión nueva: se verá la próxima vez que abras la app.', 4000);
-          }
-        });
+      // El nuevo service worker toma el control en cuanto se instala (skipWaiting + claim).
+      // Cuando pasa, hay versión nueva: se recarga en cuanto no estés en medio de algo.
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (yaHabia) { hayVersionNueva = true; recargarSiSePuede(); }
+      });
+      // El iPhone deja la app dormida en segundo plano: al volver, se comprueba si hay versión nueva.
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') return;
+        reg.update().catch(() => {});
+        recargarSiSePuede();
       });
     } catch (e) { console.warn('Service worker no registrado:', e); }
     guardarFotos();
   }
+}
+
+// Recargar no pierde nada (las series se guardan al marcar ✓ y el descanso vive en
+// localStorage), pero no se hace con un panel abierto o escribiendo: se espera.
+let hayVersionNueva = false, recargando = false;
+function recargarSiSePuede() {
+  if (!hayVersionNueva || recargando) return;
+  const ocupada = document.querySelector('.hoja') || ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+  if (ocupada) { setTimeout(recargarSiSePuede, 5000); return; }
+  recargando = true;
+  location.reload();
 }
 
 // La primera vez, bajar todas las fotos de ejercicios para tenerlas sin cobertura.

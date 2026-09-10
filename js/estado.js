@@ -7,6 +7,7 @@ import * as S from './seed.js';
 import * as L from './logica.js';
 import { CATALOGO } from './datos/catalogo-ejercicios.js';
 import { ALIMENTOS_BASE } from './datos/alimentos-base.js';
+import { REGISTROS_PENDIENTES } from './datos/registros.js';
 
 // Sube este número cuando añadas datos nuevos a seed.js: la app los incorpora
 // sin tocar lo que tú hayas editado.
@@ -183,11 +184,36 @@ export async function arrancarDatos() {
   // La versión anterior guardaba aquí un token de GitHub. Ya no se usa: fuera.
   if (await db.obtener('meta', 'github')) await db.borrar('meta', 'github');
   await sembrar();
+  const metidos = await aplicarRegistros();
   await recargar();
   E.ultimaCopia = await db.leerMeta('ultimaCopia');
   await cerrarOlvidadas();
   E.listo = true;
   avisar();
+  if (metidos.length) toast(metidos.join(' · '), 4000);
+}
+
+// Mete una sola vez los entrenos que se pasaron a mano (ver datos/registros.js).
+// Si ese día ya había otro entreno, era el guardado mal: se sustituye.
+async function aplicarRegistros() {
+  const hechos = await db.leerMeta('registrosAplicados', []);
+  const metidos = [];
+  for (const r of REGISTROS_PENDIENTES) {
+    if (hechos.includes(r.id) || L.hoyISO() > r.hasta) continue;
+    const mismoDia = (await db.todos('sesiones')).filter((s) => s.fecha === r.sesion.fecha && s.id !== r.sesion.id);
+    for (const s of mismoDia) {
+      for (const x of await db.porIndice('series', 'sesionId', s.id)) await db.borrar('series', x.id);
+      await db.borrar('sesiones', s.id);
+    }
+    await db.guardar('sesiones', r.sesion);
+    await db.guardarVarios('series', r.series);
+    const cfg = await db.leerMeta('config', {});
+    if (!cfg.primeraSesion || cfg.primeraSesion > r.sesion.fecha) await db.escribirMeta('config', { ...cfg, primeraSesion: r.sesion.fecha });
+    hechos.push(r.id);
+    await db.escribirMeta('registrosAplicados', hechos);
+    metidos.push(`Tu entreno del ${L.fechaLarga(r.sesion.fecha)} ya está registrado`);
+  }
+  return metidos;
 }
 
 // Un entreno que se quedó abierto (se te olvidó pulsar «Terminar») se guarda solo

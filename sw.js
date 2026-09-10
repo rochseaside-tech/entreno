@@ -1,7 +1,7 @@
 // sw.js — guarda la app en el móvil para que funcione sin cobertura en el gimnasio.
 // Los datos no pasan por aquí: viven en IndexedDB.
 
-const VERSION = 'v10';
+const VERSION = 'v11';
 const CACHE = `entreno-${VERSION}`;
 const FOTOS = 'entreno-fotos-v1'; // aparte: no se vuelven a bajar en cada versión
 
@@ -9,7 +9,7 @@ const ARCHIVOS = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
   './js/app.js', './js/estado.js', './js/comunes.js', './js/descanso.js',
   './js/db.js', './js/seed.js', './js/logica.js', './js/dia.js', './js/informe.js',
-  './js/vendor/preact-htm.js',
+  './js/vendor/preact-htm.js', './js/datos/registros.js',
   './js/datos/catalogo-ejercicios.js', './js/datos/alimentos-base.js',
   './js/pantallas/hoy.js', './js/pantallas/entreno.js', './js/pantallas/ejercicios.js',
   './js/pantallas/comida.js', './js/pantallas/progreso.js', './js/pantallas/ajustes.js',
@@ -47,7 +47,9 @@ self.addEventListener('fetch', (e) => {
   // La app: red primero, para ver siempre la última versión; sin cobertura, la copia.
   e.respondWith((async () => {
     try {
-      const resp = await fetch(e.request);
+      // no-cache: pregunta siempre a GitHub si el archivo cambió (si no, responde rápido
+      // con «sin cambios»). Sin esto, la caché de GitHub podía servir la versión vieja 10 minutos.
+      const resp = await fetch(e.request, { cache: 'no-cache' });
       if (resp && resp.ok) { const copia = resp.clone(); caches.open(CACHE).then((c) => c.put(e.request, copia)); }
       return resp;
     } catch {
