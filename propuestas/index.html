@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Entreno · tres estilos</title>
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&display=swap" rel="stylesheet">
+<script>
+  // El estilo se pone antes de pintar nada, para que no parpadee al abrir.
+  (() => {
+    let t = location.hash.slice(1);
+    if (!['noche', 'estudio', 'energia'].includes(t)) { try { t = localStorage.getItem('tema') || 'noche'; } catch { t = 'noche'; } }
+    document.documentElement.dataset.tema = t;
+  })();
+</script>
+<style>
+/* ------------------------------------------------------------ temas */
+:root, [data-tema="noche"] {
+  --fondo: #000000; --superficie: #141416; --superficie2: #222226; --linea: #2B2B30;
+  --texto: #F4F4F6; --texto2: #8D8D95;
+  --acento: #9B8CFF; --enlace: #B3A8FF;
+  --boton: #9B8CFF; --sobre-boton: #0B0716;
+  --check: #9B8CFF; --sobre-check: #0B0716; --hecho: rgba(155,140,255,.10);
+  --sug-fondo: rgba(155,140,255,.14); --sug-texto: #C4BBFF;
+  --chip-fondo: rgba(155,140,255,.16); --chip-texto: #C4BBFF;
+  --timer-fondo: #9B8CFF; --timer-texto: #0B0716; --timer-linea: #0B0716; --timer-btn: rgba(11,7,22,.14);
+  --anillo2: #F4F4F6; --tab-activo: #9B8CFF;
+  --num-font: -apple-system, "SF Pro Display", system-ui, "Segoe UI", sans-serif; --num-peso: 700; --num-track: -0.02em;
+  --titulo-font: -apple-system, "SF Pro Display", system-ui, "Segoe UI", sans-serif; --titulo-peso: 700; --titulo-transform: none; --titulo-track: -0.02em;
+  --radio: 20px;
+}
+[data-tema="estudio"] {
+  --fondo: #F2F3F5; --superficie: #FFFFFF; --superficie2: #EEF0F3; --linea: #E2E4E8;
+  --texto: #0C0D10; --texto2: #6A6F79;
+  --acento: #12B76A; --enlace: #0A8F52;
+  --boton: #0C0D10; --sobre-boton: #FFFFFF;
+  --check: #12B76A; --sobre-check: #FFFFFF; --hecho: #EAF8F0;
+  --sug-fondo: #E3F7EC; --sug-texto: #0A7A45;
+  --chip-fondo: #E3F7EC; --chip-texto: #0A7A45;
+  --timer-fondo: #0C0D10; --timer-texto: #FFFFFF; --timer-linea: #12B76A; --timer-btn: rgba(255,255,255,.13);
+  --anillo2: #0C0D10; --tab-activo: #0C0D10;
+  --num-font: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, "Segoe UI", sans-serif; --num-peso: 700; --num-track: 0;
+  --titulo-font: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, "Segoe UI", sans-serif; --titulo-peso: 700; --titulo-transform: none; --titulo-track: -0.01em;
+  --radio: 22px;
+}
+[data-tema="energia"] {
+  --fondo: #F2F2F0; --superficie: #FFFFFF; --superficie2: #ECECE8; --linea: #DCDCD6;
+  --texto: #111111; --texto2: #66665F;
+  --acento: #FFD23F; --enlace: #111111;
+  --boton: #111111; --sobre-boton: #FFD23F;
+  --check: #111111; --sobre-check: #FFD23F; --hecho: #FFF4C2;
+  --sug-fondo: #FFD23F; --sug-texto: #111111;
+  --chip-fondo: #111111; --chip-texto: #FFD23F;
+  --timer-fondo: #FFD23F; --timer-texto: #111111; --timer-linea: #111111; --timer-btn: rgba(0,0,0,.09);
+  --anillo2: #111111; --tab-activo: #111111;
+  --num-font: "Big Shoulders Display", "Arial Narrow", -apple-system, sans-serif; --num-peso: 800; --num-track: 0.01em;
+  --titulo-font: "Big Shoulders Display", "Arial Narrow", -apple-system, sans-serif; --titulo-peso: 800; --titulo-transform: uppercase; --titulo-track: 0.01em;
+  --radio: 14px;
+}
+
+/* ------------------------------------------------------------ base */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { background: var(--fondo); }
+body {
+  margin: 0; background: var(--fondo); color: var(--texto);
+  font: 15px/1.35 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+svg { display: block; }
+.num { font-family: var(--num-font); font-weight: var(--num-peso); letter-spacing: var(--num-track); font-variant-numeric: tabular-nums; }
+.titulo { font-family: var(--titulo-font); font-weight: var(--titulo-peso); text-transform: var(--titulo-transform); letter-spacing: var(--titulo-track); }
+.t2 { color: var(--texto2); }
+
+/* ------------------------------------------------------------ selector de estilo */
+.selector {
+  position: sticky; top: 0; z-index: 20;
+  padding: calc(env(safe-area-inset-top) + 10px) 16px 12px;
+  background: color-mix(in srgb, var(--fondo) 82%, transparent);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--linea);
+}
+.segmentos { display: flex; gap: 2px; max-width: 420px; margin: 0 auto; padding: 3px; border-radius: 12px; background: var(--superficie2); }
+.segmentos button { flex: 1; padding: 9px 0; border-radius: 9px; font-weight: 600; font-size: 14px; color: var(--texto2); }
+.segmentos button[aria-pressed="true"] { background: var(--superficie); color: var(--texto); box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+.nota { max-width: 420px; margin: 8px auto 0; font-size: 12.5px; text-align: center; color: var(--texto2); }
+
+/* ------------------------------------------------------------ pantallas */
+.pantallas {
+  display: grid; grid-template-columns: repeat(auto-fit, 390px); justify-content: center;
+  gap: 40px 32px; padding: 28px 16px 60px;
+}
+.marco { display: flex; flex-direction: column; gap: 10px; }
+.etiqueta { font-size: 13px; font-weight: 600; color: var(--texto2); text-align: center; }
+.pantalla {
+  position: relative; height: 844px; overflow: hidden;
+  background: var(--fondo); border-radius: 46px; outline: 1px solid var(--linea);
+  box-shadow: 0 30px 60px -30px rgba(0,0,0,.35);
+}
+.scroll { height: 100%; overflow: hidden; padding: 58px 16px 190px; }
+@media (max-width: 440px) {
+  .pantallas { grid-template-columns: 1fr; padding: 16px 0 40px; gap: 28px; }
+  .pantalla { border-radius: 0; outline: 0; box-shadow: none; border-top: 1px solid var(--linea); border-bottom: 1px solid var(--linea); }
+  .scroll { padding-top: 20px; }
+}
+
+/* barra de pestañas */
+.tabs {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 84px; padding: 8px 6px 0;
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  background: color-mix(in srgb, var(--superficie) 88%, transparent);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  border-top: 1px solid var(--linea);
+}
+.tabs span { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 600; color: var(--texto2); }
+.tabs svg { width: 26px; height: 26px; }
+.tabs .activo { color: var(--tab-activo); }
+[data-tema="energia"] .tabs .activo svg { background: var(--acento); border-radius: 8px; box-shadow: 0 0 0 5px var(--acento); }
+
+/* tarjetas */
+.tarjeta { background: var(--superficie); border-radius: var(--radio); padding: 14px; }
+[data-tema="estudio"] .tarjeta, [data-tema="energia"] .tarjeta { box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+.pila > * + * { margin-top: 12px; }
+.seccion { margin: 22px 4px 8px; font-size: 20px; }
+.boton {
+  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+  height: 52px; border-radius: 14px; background: var(--boton); color: var(--sobre-boton);
+  font-weight: 700; font-size: 16.5px;
+}
+.boton.suave { background: var(--superficie2); color: var(--texto); }
+.boton.chico { width: auto; height: 36px; padding: 0 16px; border-radius: 18px; font-size: 14.5px; }
+
+/* preview animado: se alternan la foto de inicio y la de final */
+.anim { position: relative; overflow: hidden; background: var(--superficie2); flex: none; }
+.anim img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.anim img + img { animation: alterna 2.6s ease-in-out infinite; }
+@keyframes alterna { 0%, 38% { opacity: 0; } 50%, 88% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .anim img + img { animation: none; } }
+.miniatura { width: 64px; height: 64px; border-radius: 14px; }
+[data-tema="energia"] .miniatura { border-radius: 10px; }
+
+/* ------------------------------------------------------------ entreno en marcha */
+.cab-entreno { display: flex; align-items: flex-start; gap: 12px; margin: 0 4px 14px; }
+.cab-entreno .crece { flex: 1; }
+.pastilla { display: inline-block; padding: 3px 9px; border-radius: 99px; background: var(--chip-fondo); color: var(--chip-texto); font-size: 12px; font-weight: 700; }
+.cab-entreno h2 { margin: 6px 0 0; font-size: 26px; line-height: 1.1; }
+.crono { display: flex; align-items: center; gap: 10px; margin: 0 4px 16px; }
+.crono .num { font-size: 22px; }
+.crono .barra { flex: 1; height: 5px; border-radius: 3px; background: var(--superficie2); overflow: hidden; }
+.crono .barra i { display: block; height: 100%; width: 43%; background: var(--acento); border-radius: 3px; }
+[data-tema="energia"] .crono .barra i { background: var(--texto); }
+
+.ej-cab { display: flex; gap: 12px; align-items: center; }
+.ej-cab .crece { flex: 1; min-width: 0; }
+.ej-nombre { font-size: 17px; font-weight: 650; line-height: 1.2; }
+.ej-meta { font-size: 13.5px; color: var(--texto2); margin-top: 3px; }
+.mas { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--texto2); }
+.sugerencia { display: flex; align-items: center; gap: 8px; margin: 12px 0 6px; padding: 9px 12px; border-radius: 12px; background: var(--sug-fondo); color: var(--sug-texto); font-size: 14px; font-weight: 600; }
+
+.series { margin-top: 10px; }
+.fila { display: grid; grid-template-columns: 38px 1fr 58px 46px 38px 38px; gap: 6px; align-items: center; padding: 5px 6px; border-radius: 12px; }
+.fila.cabeza { font-size: 11px; font-weight: 700; color: var(--texto2); text-transform: uppercase; letter-spacing: .04em; padding-bottom: 2px; }
+.fila.cabeza span:not(:nth-child(2)) { text-align: center; }
+.fila .n { text-align: center; font-weight: 700; color: var(--texto2); }
+.fila .ant { font-size: 14px; color: var(--texto2); }
+.fila .caja { height: 38px; border-radius: 10px; background: var(--superficie2); display: grid; place-items: center; font-size: 18px; }
+.fila .caja.vacia { color: var(--texto2); opacity: .55; }
+.fila .ok { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: var(--superficie2); color: var(--texto2); transition: transform .15s; }
+.fila .ok:active { transform: scale(.92); }
+.fila.hecha { background: var(--hecho); }
+.fila.hecha .caja { background: transparent; }
+.fila.hecha .ok { background: var(--check); color: var(--sobre-check); }
+.anadir { margin-top: 8px; width: 100%; height: 40px; border-radius: 11px; background: var(--superficie2); font-weight: 600; font-size: 14.5px; color: var(--texto2); }
+
+.plegada { display: flex; align-items: center; gap: 12px; }
+.plegada .miniatura { width: 52px; height: 52px; border-radius: 12px; }
+.plegada .crece { flex: 1; }
+.plegada .ej-nombre { font-size: 16px; }
+
+/* descanso: la barra que se vacía */
+.descanso {
+  position: absolute; left: 10px; right: 10px; bottom: 94px; z-index: 2;
+  border-radius: 20px; background: var(--timer-fondo); color: var(--timer-texto);
+  padding: 12px 12px 12px 18px; display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 12px 30px -10px rgba(0,0,0,.45); overflow: hidden;
+}
+.descanso .linea { position: absolute; left: 0; top: 0; height: 4px; background: var(--timer-linea); width: 100%; transform-origin: left; }
+.descanso .crece { flex: 1; }
+.descanso small { display: block; font-size: 12px; font-weight: 700; opacity: .75; text-transform: uppercase; letter-spacing: .05em; }
+.descanso .num { font-size: 34px; line-height: 1; }
+[data-tema="energia"] .descanso .num { font-size: 44px; }
+.descanso button { height: 40px; min-width: 46px; padding: 0 10px; border-radius: 12px; background: var(--timer-btn); font-weight: 700; font-size: 14px; }
+
+/* ------------------------------------------------------------ un ejercicio */
+.volver { display: flex; align-items: center; gap: 2px; margin: 0 0 12px; color: var(--enlace); font-size: 16px; font-weight: 500; }
+.preview { width: 100%; aspect-ratio: 4 / 3; border-radius: var(--radio); }
+.preview .equipo { position: absolute; left: 10px; bottom: 10px; z-index: 1; padding: 5px 10px; border-radius: 99px; font-size: 12.5px; font-weight: 600; color: #fff; background: rgba(0,0,0,.55); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.detalle h2 { margin: 16px 4px 8px; font-size: 26px; line-height: 1.1; }
+[data-tema="energia"] .detalle h2 { font-size: 32px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 4px; }
+.chip { padding: 5px 11px; border-radius: 99px; font-size: 13px; font-weight: 600; background: var(--chip-fondo); color: var(--chip-texto); }
+.chip.sec { background: transparent; color: var(--texto2); box-shadow: inset 0 0 0 1.5px var(--linea); }
+.pasos { list-style: none; margin: 0; padding: 0; }
+.pasos li { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; }
+.pasos li + li { margin-top: 10px; }
+.pasos b { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; background: var(--superficie2); }
+.dato-dos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dato small { display: block; font-size: 12.5px; color: var(--texto2); font-weight: 600; }
+.dato .num { font-size: 26px; margin-top: 4px; }
+.dato .num span { font-size: 15px; color: var(--texto2); font-family: -apple-system, system-ui, sans-serif; font-weight: 600; }
+.grafica .area { fill: var(--acento); opacity: .16; }
+.grafica .trazo { fill: none; stroke: var(--acento); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.grafica .punto { fill: var(--acento); }
+[data-tema="energia"] .grafica .trazo { stroke: var(--texto); }
+[data-tema="energia"] .grafica .area { opacity: .55; }
+[data-tema="energia"] .grafica .punto { fill: var(--texto); }
+.grafica text { fill: var(--texto2); font-size: 10px; font-family: -apple-system, system-ui, sans-serif; }
+.historial .linea-h { display: flex; justify-content: space-between; gap: 10px; padding: 10px 2px; border-top: 1px solid var(--linea); font-size: 14.5px; }
+.historial .linea-h:first-child { border-top: 0; padding-top: 0; }
+
+/* ------------------------------------------------------------ inicio */
+.fecha { margin: 0 4px; font-size: 13px; font-weight: 600; color: var(--texto2); }
+.cab-inicio { display: flex; align-items: center; justify-content: space-between; margin: 2px 4px 14px; }
+.cab-inicio h1 { margin: 0; font-size: 34px; line-height: 1.05; }
+[data-tema="energia"] .cab-inicio h1 { font-size: 44px; }
+.icono-btn { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: var(--superficie2); }
+.toca small { font-size: 12.5px; font-weight: 700; color: var(--texto2); text-transform: uppercase; letter-spacing: .05em; }
+.toca h3 { margin: 4px 0 2px; font-size: 22px; line-height: 1.15; }
+[data-tema="energia"] .toca h3 { font-size: 28px; }
+.fila-mini { display: flex; gap: 8px; margin: 14px 0; }
+.fila-mini .anim { width: 60px; height: 60px; border-radius: 12px; }
+.fila-mini .resto { width: 60px; height: 60px; border-radius: 12px; display: grid; place-items: center; background: var(--superficie2); font-weight: 700; color: var(--texto2); }
+.anillos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.anillo { display: flex; align-items: center; gap: 10px; }
+.anillo svg { width: 64px; height: 64px; transform: rotate(-90deg); flex: none; }
+.anillo .pista { fill: none; stroke: var(--superficie2); stroke-width: 9; }
+.anillo .valor { fill: none; stroke-width: 9; stroke-linecap: round; }
+.anillo .num { font-size: 20px; line-height: 1.1; }
+.anillo small { display: block; font-size: 12px; color: var(--texto2); font-weight: 600; }
+.macros { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; font-size: 13px; }
+.macros .t { display: flex; justify-content: space-between; color: var(--texto2); font-weight: 600; }
+.macros .t b { color: var(--texto); }
+.macros .b { height: 5px; border-radius: 3px; background: var(--superficie2); margin-top: 5px; overflow: hidden; }
+.macros .b i { display: block; height: 100%; border-radius: 3px; background: var(--texto2); }
+.semana { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+.semana span { font-size: 11.5px; font-weight: 700; color: var(--texto2); }
+.semana i { display: grid; place-items: center; width: 36px; height: 36px; margin: 6px auto 0; border-radius: 50%; background: var(--superficie2); font-style: normal; }
+.semana .si i { background: var(--check); color: var(--sobre-check); }
+.semana .hoy i { background: transparent; box-shadow: inset 0 0 0 2px var(--texto); }
+.peso { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.peso .num { font-size: 30px; line-height: 1; }
+.peso .num span { font-size: 15px; color: var(--texto2); font-family: -apple-system, system-ui, sans-serif; font-weight: 600; }
+.peso svg { width: 120px; height: 40px; }
+.peso .trazo { fill: none; stroke: var(--acento); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+[data-tema="energia"] .peso .trazo { stroke: var(--texto); }
+</style>
+</head>
+<body>
+
+<div class="selector">
+  <div class="segmentos" role="group" aria-label="Estilo">
+    <button data-t="noche" aria-pressed="true">Noche</button>
+    <button data-t="estudio" aria-pressed="false">Estudio</button>
+    <button data-t="energia" aria-pressed="false">Energía</button>
+  </div>
+  <p class="nota">Cambia de estilo arriba. Son maquetas con datos inventados: solo funcionan los ✓ y el descanso.</p>
+</div>
+
+<main class="pantallas">
+
+  <!-- ============================================ ENTRENO EN MARCHA -->
+  <section class="marco">
+    <div class="etiqueta">Entrenando</div>
+    <div class="pantalla">
+      <div class="scroll">
+        <div class="cab-entreno">
+          <div class="crece">
+            <span class="pastilla">Sesión A</span>
+            <h2 class="titulo">Torso, tirón y hombro</h2>
+          </div>
+          <button class="boton chico">Terminar</button>
+        </div>
+        <div class="crono"><span class="num">23:41</span><span class="barra"><i></i></span><span class="t2">55 min</span></div>
+
+        <div class="pila">
+          <div class="tarjeta">
+            <div class="ej-cab">
+              <div class="anim miniatura"><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg" alt=""><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/1.jpg" alt=""></div>
+              <div class="crece">
+                <div class="ej-nombre">Jalón al pecho, agarre prono</div>
+                <div class="ej-meta">3 series · 8–12 reps · RIR 2</div>
+              </div>
+              <span class="mas" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></span>
+            </div>
+            <div class="sugerencia"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Completaste las 3 series: hoy, 42,5 kg</div>
+            <div class="series">
+              <div class="fila cabeza"><span>Serie</span><span>Anterior</span><span>Kg</span><span>Reps</span><span>RIR</span><span>✓</span></div>
+              <div class="fila hecha"><span class="n">1</span><span class="ant">40 × 12</span><span class="caja num">42,5</span><span class="caja num">10</span><span class="caja num">2</span><button class="ok" aria-label="Serie hecha"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div>
+              <div class="fila hecha"><span class="n">2</span><span class="ant">40 × 12</span><span class="caja num">42,5</span><span class="caja num">9</span><span class="caja num">2</span><button class="ok" aria-label="Serie hecha"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div>
+              <div class="fila"><span class="n">3</span><span class="ant">40 × 12</span><span class="caja num">42,5</span><span class="caja num vacia">9</span><span class="caja num vacia">2</span><button class="ok" aria-label="Marcar serie hecha"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div>
+            </div>
+            <button class="anadir">+ Añadir serie</button>
+          </div>
+
+          <div class="tarjeta plegada">
+            <div class="anim miniatura"><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Cable_Rows/0.jpg" alt=""><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Cable_Rows/1.jpg" alt=""></div>
+            <div class="crece"><div class="ej-nombre">Remo sentado</div><div class="ej-meta">0 de 3 series · 8–12 reps</div></div>
+          </div>
+          <div class="tarjeta plegada">
+            <div class="anim miniatura"><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Machine_Shoulder_Military_Press/0.jpg" alt=""><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Machine_Shoulder_Military_Press/1.jpg" alt=""></div>
+            <div class="crece"><div class="ej-nombre">Press hombro en máquina</div><div class="ej-meta">0 de 3 series · 8–12 reps</div></div>
+          </div>
+          <div class="tarjeta plegada">
+            <div class="anim miniatura"><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Side_Lateral_Raise/0.jpg" alt=""><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Side_Lateral_Raise/1.jpg" alt=""></div>
+            <div class="crece"><div class="ej-nombre">Elevaciones laterales</div><div class="ej-meta">0 de 3 series · 12–15 reps</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="descanso" id="descanso">
+        <span class="linea" id="descanso-linea"></span>
+        <div class="crece"><small>Descanso</small><span class="num" id="descanso-num">1:30</span></div>
+        <button id="menos">−15</button><button id="mas">+15</button><button id="saltar">Saltar</button>
+      </div>
+      <nav class="tabs" data-activa="1"></nav>
+    </div>
+  </section>
+
+  <!-- ============================================ UN EJERCICIO -->
+  <section class="marco">
+    <div class="etiqueta">Un ejercicio</div>
+    <div class="pantalla">
+      <div class="scroll detalle">
+        <div class="volver"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Ejercicios</div>
+        <div class="anim preview">
+          <img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg" alt="Jalón al pecho, posición inicial">
+          <img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/1.jpg" alt="Jalón al pecho, posición final">
+          <span class="equipo">Polea alta</span>
+        </div>
+        <h2 class="titulo">Jalón al pecho, agarre prono</h2>
+        <div class="chips"><span class="chip">Espalda</span><span class="chip sec">Bíceps</span><span class="chip sec">Hombro posterior</span></div>
+
+        <div class="pila" style="margin-top:16px">
+          <div class="tarjeta">
+            <ol class="pasos">
+              <li><b class="num">1</b><span>Agarra la barra un palmo más abierta que los hombros, palmas hacia delante.</span></li>
+              <li><b class="num">2</b><span>Saca pecho y baja la barra hasta la clavícula, llevando los codos hacia las costillas.</span></li>
+              <li><b class="num">3</b><span>Sube despacio hasta estirar los brazos del todo, sin soltar la tensión.</span></li>
+            </ol>
+          </div>
+          <div class="dato-dos">
+            <div class="tarjeta dato"><small>Mejor serie</small><div class="num">40 <span>kg ×</span> 12</div></div>
+            <div class="tarjeta dato"><small>Tu máximo a 1 rep, calculado</small><div class="num">56 <span>kg</span></div></div>
+          </div>
+          <div class="tarjeta">
+            <div class="dato"><small>Peso de trabajo, últimas 8 sesiones</small></div>
+            <svg class="grafica" viewBox="0 0 330 120" width="100%" role="img" aria-label="Del 32,5 al 42,5 kg en ocho sesiones">
+              <path class="area" d="M10 85.8 L52.9 71.7 L95.7 71.7 L138.6 57.5 L181.4 57.5 L224.3 43.3 L267.1 43.3 L310 29.2 L310 104 L10 104 Z"/>
+              <polyline class="trazo" points="10,85.8 52.9,71.7 95.7,71.7 138.6,57.5 181.4,57.5 224.3,43.3 267.1,43.3 310,29.2"/>
+              <circle class="punto" cx="310" cy="29.2" r="4.5"/>
+              <text x="10" y="118">21 jul</text><text x="283" y="118">hoy</text><text x="258" y="22">42,5</text>
+            </svg>
+          </div>
+          <div class="tarjeta historial">
+            <div class="linea-h"><span>7 sep</span><span class="num">40 × 12 · 40 × 12 · 40 × 12</span></div>
+            <div class="linea-h"><span>3 sep</span><span class="num">40 × 12 · 40 × 11 · 40 × 10</span></div>
+            <div class="linea-h"><span>30 ago</span><span class="num">37,5 × 12 · 37,5 × 12 · 37,5 × 12</span></div>
+          </div>
+        </div>
+      </div>
+      <nav class="tabs" data-activa="2"></nav>
+    </div>
+  </section>
+
+  <!-- ============================================ INICIO -->
+  <section class="marco">
+    <div class="etiqueta">Pantalla de inicio</div>
+    <div class="pantalla">
+      <div class="scroll">
+        <div class="fecha">Miércoles, 10 de septiembre</div>
+        <div class="cab-inicio">
+          <h1 class="titulo">Hoy</h1>
+          <span class="icono-btn" aria-label="Ajustes"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg></span>
+        </div>
+
+        <div class="pila">
+          <div class="tarjeta toca">
+            <small>Te toca</small>
+            <h3 class="titulo">Sesión B · Pierna y cadera</h3>
+            <div class="t2">6 ejercicios · unos 50 min</div>
+            <div class="fila-mini">
+              <div class="anim"><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Hip_Thrust/0.jpg" alt=""><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Hip_Thrust/1.jpg" alt=""></div>
+              <div class="anim"><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hyperextensions_Back_Extensions/0.jpg" alt=""><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hyperextensions_Back_Extensions/1.jpg" alt=""></div>
+              <div class="anim"><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Leg_Curl/0.jpg" alt=""><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Leg_Curl/1.jpg" alt=""></div>
+              <div class="anim"><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Thigh_Abductor/0.jpg" alt=""><img src="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Thigh_Abductor/1.jpg" alt=""></div>
+              <div class="resto">+2</div>
+            </div>
+            <button class="boton">Empezar entreno</button>
+          </div>
+
+          <div class="tarjeta">
+            <div class="anillos">
+              <div class="anillo">
+                <svg viewBox="0 0 80 80"><circle class="pista" cx="40" cy="40" r="34"/><circle class="valor" cx="40" cy="40" r="34" stroke="var(--acento)" stroke-dasharray="145.9 213.6"/></svg>
+                <div><div class="num">1.240</div><small>de 1.815 kcal</small></div>
+              </div>
+              <div class="anillo">
+                <svg viewBox="0 0 80 80"><circle class="pista" cx="40" cy="40" r="34"/><circle class="valor" cx="40" cy="40" r="34" stroke="var(--anillo2)" stroke-dasharray="144.4 213.6"/></svg>
+                <div><div class="num">98 g</div><small>de 145 g proteína</small></div>
+              </div>
+            </div>
+            <div class="macros">
+              <div><div class="t">Grasa <b>41 / 62 g</b></div><div class="b"><i style="width:66%"></i></div></div>
+              <div><div class="t">Hidratos <b>120 / 169 g</b></div><div class="b"><i style="width:71%"></i></div></div>
+            </div>
+          </div>
+
+          <div class="tarjeta">
+            <div class="semana">
+              <div class="si"><span>L</span><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i></div>
+              <div><span>M</span><i></i></div>
+              <div class="hoy"><span>X</span><i></i></div>
+              <div><span>J</span><i></i></div>
+              <div><span>V</span><i></i></div>
+              <div><span>S</span><i></i></div>
+              <div><span>D</span><i></i></div>
+            </div>
+          </div>
+
+          <div class="tarjeta peso">
+            <div><div class="dato"><small>Peso, media de 7 días</small></div><div class="num" style="margin-top:6px">61,8 <span>kg · −0,3</span></div></div>
+            <svg viewBox="0 0 120 40"><polyline class="trazo" points="4,12 20,10 36,15 52,14 68,20 84,19 100,25 116,28"/></svg>
+          </div>
+        </div>
+      </div>
+      <nav class="tabs" data-activa="0"></nav>
+    </div>
+  </section>
+</main>
+
+<script>
+// Barra de pestañas, igual en las tres pantallas
+const TABS = [
+  ['Hoy', '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.7" fill="currentColor" stroke="none"/>'],
+  ['Entreno', '<rect x="5" y="7" width="3" height="10" rx="1"/><rect x="16" y="7" width="3" height="10" rx="1"/><path d="M8 12h8M3 10v4M21 10v4"/>'],
+  ['Ejercicios', '<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>'],
+  ['Comida', '<path d="M3.5 11h17a8.5 8.5 0 0 1-17 0Z"/><path d="M9.5 7.5c0-1.6 1-2.8 2.6-2.8M14 7.8c.4-1.9 1.9-3.1 3.6-3.1"/>'],
+  ['Progreso', '<path d="M4 19.5h16"/><path d="M5 15l4.5-4.5 3.5 3L19 7"/><path d="M15 7h4v4"/>'],
+];
+document.querySelectorAll('.tabs').forEach((nav) => {
+  nav.innerHTML = TABS.map(([n, d], i) =>
+    `<span class="${i == nav.dataset.activa ? 'activo' : ''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>${n}</span>`).join('');
+});
+
+// Estilo elegido
+const botones = document.querySelectorAll('.segmentos button');
+function tema(t) {
+  document.documentElement.dataset.tema = t;
+  botones.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.t === t)));
+  document.querySelector('meta[name=theme-color]').content = getComputedStyle(document.documentElement).getPropertyValue('--fondo').trim();
+  try { localStorage.setItem('tema', t); } catch {}
+}
+botones.forEach((b) => b.addEventListener('click', () => tema(b.dataset.t)));
+let guardado = 'noche';
+try { guardado = localStorage.getItem('tema') || 'noche'; } catch {}
+const pedido = location.hash.slice(1);
+tema(['noche', 'estudio', 'energia'].includes(pedido) ? pedido : guardado);
+
+// Marcar series
+document.querySelectorAll('.fila .ok').forEach((b) => b.addEventListener('click', () => {
+  const fila = b.closest('.fila');
+  fila.classList.toggle('hecha');
+  fila.querySelectorAll('.caja').forEach((c) => c.classList.remove('vacia'));
+  if (fila.classList.contains('hecha')) { total = 90; queda = 90; }
+}));
+
+// Descanso: se calcula por hora de fin, así que no se desfasa aunque bloquees el móvil
+let total = 90, queda = 84;
+const num = document.getElementById('descanso-num');
+const linea = document.getElementById('descanso-linea');
+function pinta() {
+  const m = Math.floor(queda / 60), s = String(queda % 60).padStart(2, '0');
+  num.textContent = `${m}:${s}`;
+  linea.style.transform = `scaleX(${queda / total})`;
+}
+setInterval(() => { queda = queda > 0 ? queda - 1 : total; pinta(); }, 1000);
+document.getElementById('menos').onclick = () => { queda = Math.max(0, queda - 15); pinta(); };
+document.getElementById('mas').onclick = () => { queda += 15; total = Math.max(total, queda); pinta(); };
+document.getElementById('saltar').onclick = () => { queda = total = 90; pinta(); };
+pinta();
+</script>
+</body>
+</html>
