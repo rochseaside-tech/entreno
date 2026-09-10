@@ -5,7 +5,7 @@ import { html, useState, useEffect } from '../vendor/preact-htm.js';
 import { E, useEstado, avisar, toast, recargar, guardarConfig } from '../estado.js';
 import * as L from '../logica.js';
 import * as db from '../db.js';
-import { Icono, Interruptor, atras, n0, aNum } from '../comunes.js';
+import { Icono, Interruptor, atras, n0, aNum, TEMAS, ponerTema } from '../comunes.js';
 
 export async function guardarCopia() {
   const datos = await db.exportarTodo();
@@ -35,6 +35,7 @@ export function Ajustes() {
   useEstado();
   const o = E.config.objetivos || {};
   const [ultima, ponerUltima] = useState(null);
+  const [tema, ponerTemaElegido] = useState(document.documentElement.dataset.tema);
   const [obj, ponerObj] = useState({ kcalEntreno: o.kcalEntreno, kcalDescanso: o.kcalDescanso, proteina: o.proteina, grasa: o.grasa });
   useEffect(() => { db.leerMeta('ultimaCopia').then(ponerUltima); }, [E.ultimaCopia]);
 
@@ -63,6 +64,18 @@ export function Ajustes() {
   return html`
     <button class="volver" onClick=${() => atras('hoy')}><${Icono} n="atras" t=${24} g=${2.4} />Hoy</button>
     <header class="cabecera"><h1 class="titulo">Ajustes</h1></header>
+
+    <div class="seccion"><h2 class="titulo">Aspecto</h2></div>
+    <div class="lista">
+      ${TEMAS.map((t) => html`<button class="item" onClick=${() => { ponerTema(t.id); ponerTemaElegido(t.id); }} aria-pressed=${tema === t.id}>
+        <span style=${`width:44px;height:44px;border-radius:12px;background:${t.fondo};box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;gap:4px;flex:none`}>
+          <i style=${`width:14px;height:14px;border-radius:50%;background:${t.acento}`}></i>
+          <i style=${`width:10px;height:10px;border-radius:50%;background:${t.dos}`}></i>
+        </span>
+        <span class="crece nombre">${t.nombre}</span>
+        ${tema === t.id && html`<span style="color:var(--acento)"><${Icono} n="check" t=${22} g=${2.6} /></span>`}
+      </button>`)}
+    </div>
 
     <div class="seccion"><h2 class="titulo">Copia de seguridad</h2></div>
     <div class="tarjeta pila">

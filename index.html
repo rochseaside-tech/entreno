@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-<html lang="es" data-tema="noche">
+<html lang="es" data-tema="grafito">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <title>Entreno</title>
 <meta name="description" content="Entreno y comida. Funciona sin conexión.">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#1E1E23">
+<script>
+  // El aspecto elegido se pone antes de pintar nada, para que no parpadee al abrir.
+  try { document.documentElement.dataset.tema = localStorage.getItem('tema') || 'grafito'; } catch (e) { /* por defecto */ }
+</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

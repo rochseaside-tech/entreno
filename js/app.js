@@ -2,7 +2,7 @@
 
 import { html, render, useEffect, useState } from './vendor/preact-htm.js';
 import { E, useEstado, arrancarDatos, toast } from './estado.js';
-import { Tabs, Toast } from './comunes.js';
+import { Tabs, Toast, ponerTema } from './comunes.js';
 import { Hoy } from './pantallas/hoy.js';
 import { Entreno, BarraDescanso } from './pantallas/entreno.js';
 import { Ejercicios, Ejercicio } from './pantallas/ejercicios.js';
@@ -52,6 +52,7 @@ function App() {
 }
 
 async function arrancar() {
+  ponerTema(document.documentElement.dataset.tema);
   render(html`<${App} />`, document.getElementById('app'));
   try {
     await arrancarDatos();

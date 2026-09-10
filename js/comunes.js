@@ -195,3 +195,19 @@ export function Interruptor({ valor, alCambiar, etiqueta }) {
 export function Vacio({ titulo, children }) {
   return html`<div class="vacio"><b>${titulo}</b>${children}</div>`;
 }
+
+// ---------------------------------------------------------------- aspecto
+
+// Los colores de cada uno están en css/app.css. Se guarda en este móvil (localStorage).
+export const TEMAS = [
+  { id: 'grafito', nombre: 'Grafito y lavanda', fondo: '#1E1E23', acento: '#A99BFF', dos: '#EDB4C2' },
+  { id: 'grafito-rosa', nombre: 'Grafito y rosa palo', fondo: '#1E1E23', acento: '#EDB4C2', dos: '#B9AEFF' },
+  { id: 'noche', nombre: 'Noche', fondo: '#000000', acento: '#9B8CFF', dos: '#F4F4F6' },
+];
+
+export function ponerTema(id) {
+  const t = TEMAS.find((x) => x.id === id) || TEMAS[0];
+  document.documentElement.dataset.tema = t.id;
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', t.fondo);
+  try { localStorage.setItem('tema', t.id); } catch { /* modo privado */ }
+}

@@ -20,6 +20,33 @@
   color-scheme: dark;
 }
 
+/* Grafito: gris oscuro suave en vez de negro puro. Lavanda de protagonista y rosa palo
+   de segundo color (anillo de proteína). */
+[data-tema="grafito"], [data-tema="grafito-rosa"] {
+  --fondo: #1E1E23; --superficie: #2A2A31; --superficie2: #36363E; --superficie3: #44444D; --linea: #3A3A42;
+  --texto: #F5F5F7; --texto2: #A3A3AD;
+  --acento: #A99BFF; --enlace: #BDB2FF;
+  --boton: #A99BFF; --sobre-boton: #17122E;
+  --check: #A99BFF; --sobre-check: #17122E; --hecho: rgba(169,155,255,.13);
+  --sug-fondo: rgba(169,155,255,.16); --sug-texto: #CFC7FF;
+  --chip-fondo: rgba(169,155,255,.18); --chip-texto: #D2CBFF;
+  --timer-fondo: #A99BFF; --timer-texto: #17122E; --timer-linea: #17122E; --timer-btn: rgba(23,18,46,.14);
+  --anillo2: #EDB4C2; --tab-activo: #BDB2FF;
+  --aviso-fondo: rgba(255,138,118,.15); --aviso-texto: #FF9F8C;
+  --sombra: 0 12px 30px -10px rgba(0,0,0,.55);
+}
+/* La misma base con el rosa palo de protagonista y la lavanda de segundo color. */
+[data-tema="grafito-rosa"] {
+  --acento: #EDB4C2; --enlace: #F2C3CF;
+  --boton: #EDB4C2; --sobre-boton: #2B1419;
+  --check: #EDB4C2; --sobre-check: #2B1419; --hecho: rgba(237,180,194,.12);
+  --sug-fondo: rgba(237,180,194,.15); --sug-texto: #F5CCD6;
+  --chip-fondo: rgba(237,180,194,.17); --chip-texto: #F7D2DB;
+  --timer-fondo: #EDB4C2; --timer-texto: #2B1419; --timer-linea: #2B1419; --timer-btn: rgba(43,20,25,.12);
+  --anillo2: #B9AEFF; --tab-activo: #F2C3CF;
+  --aviso-texto: #FF8F7A;
+}
+
 /* ------------------------------------------------------------ base */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; }
