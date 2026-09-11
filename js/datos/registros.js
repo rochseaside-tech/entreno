@@ -31,7 +31,33 @@ export const REGISTROS_PENDIENTES = [
     },
     series: HECHO_9_SEP.flatMap(serie(S1, '2026-09-09', INICIO_9_SEP)),
   },
+  CENA_9_SEP(),
 ];
+
+// Cena del 9 sep, que quedó sin apuntar. Macros de cada línea tal como los dio Rocío el
+// 11 sep (cuadran con su biblioteca); fibra y sal calculadas con la biblioteca.
+function CENA_9_SEP() {
+  const fecha = '2026-09-09', id = 'reg-cena-2026-09-09';
+  const base = Date.parse('2026-09-09T19:00:00Z'); // 21:00 en España, aproximada
+  const L = [
+    // nombre, cantidad, medida, origen, refId, kcal, prot, grasa, hc, fibra, sal, nota
+    ['Chuleta de pavo', 130, 'g', 'alimento', 'chuleta-de-pavo', 156, 28.6, 4.6, 0, 0, 0.2],
+    ['AOVE', 3, 'g', 'alimento', 'aove', 27, 0, 3, 0, 0, 0, 'De cocinar.'],
+    ['Salmorejo de brick', 150, 'ml', 'alimento', 'salmorejo-de-brick', 128, 1.5, 10.5, 5.1, 3, 1.35],
+    ['Huevo M', 1, 'ud', 'alimento', 'huevo-m', 75, 6.5, 5, 0.4, 0, 0.15, 'Cocido.'],
+    ['Jamón serrano en taquitos', 15, 'g', 'alimento', 'jamon-serrano-en-taquitos', 36, 4.5, 2, 0.1, 0, 0.68],
+    ['Tostas de arroz y maíz', 10, 'g', 'alimento', 'tostas-de-arroz-y-maiz', 39, 0.8, 0.3, 8, 0.2, 0.04, '2 unidades.'],
+    ['Escalivada casera', 1, 'racion', 'receta', 'escalivada-casera', 110, 2.5, 4, 8.8, 3.5, 0],
+    ['Anchoas en AOVE, escurridas', 15, 'g', 'alimento', 'anchoas-en-aove-escurridas', 30, 3.9, 1.5, 0, 0, 0.75],
+  ];
+  return {
+    id, hasta: '2026-09-30', fecha, toma: 'cena', nombreToma: 'cena',
+    comidas: L.map(([nombre, cantidad, medida, origen, refId, kcal, prot, grasa, hc, fibra, sal, nota = null], i) => ({
+      id: `${id}-${i + 1}`, fecha, toma: 'cena', nombre, cantidad, medida, origen, refId, nota,
+      kcal, prot, grasa, hc, fibra, sal, ts: base + i * 1000,
+    })),
+  };
+}
 
 // Cambios en datos que ya están en su móvil (la semilla solo añade lo que falta, no
 // cambia lo que hay). Se aplican una vez, igual que los registros.
@@ -40,6 +66,12 @@ export const CAMBIOS_PENDIENTES = [
     id: 'sopa-pollo-macros-2026-09-10',
     receta: 'Sopa de pollo con col china y miso',
     macrosRacion: { kcal: 445, prot: 36, grasa: 13, hc: 41, fibra: 4, sal: 1.9 },
+  },
+  {
+    // Rocío dio el 11 sep sus macros por ración; mandan sobre el cálculo por ingredientes.
+    id: 'escalivada-macros-2026-09-11',
+    receta: 'Escalivada casera',
+    macrosRacion: { kcal: 110, prot: 2.5, grasa: 4, hc: 8.8, fibra: 3.5, sal: 0 },
   },
   {
     // Foto de la lata del 10 sep: los valores ya coincidían; se añade el tamaño de la lata.

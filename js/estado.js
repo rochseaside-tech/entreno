@@ -203,18 +203,29 @@ async function aplicarRegistros() {
   const metidos = [];
   for (const r of REGISTROS_PENDIENTES) {
     if (hechos.includes(r.id) || L.hoyISO() > r.hasta) continue;
-    const mismoDia = (await db.todos('sesiones')).filter((s) => s.fecha === r.sesion.fecha && s.id !== r.sesion.id);
-    for (const s of mismoDia) {
-      for (const x of await db.porIndice('series', 'sesionId', s.id)) await db.borrar('series', x.id);
-      await db.borrar('sesiones', s.id);
+    if (r.sesion) {
+      const mismoDia = (await db.todos('sesiones')).filter((s) => s.fecha === r.sesion.fecha && s.id !== r.sesion.id);
+      for (const s of mismoDia) {
+        for (const x of await db.porIndice('series', 'sesionId', s.id)) await db.borrar('series', x.id);
+        await db.borrar('sesiones', s.id);
+      }
+      await db.guardar('sesiones', r.sesion);
+      await db.guardarVarios('series', r.series);
+      const cfg = await db.leerMeta('config', {});
+      if (!cfg.primeraSesion || cfg.primeraSesion > r.sesion.fecha) await db.escribirMeta('config', { ...cfg, primeraSesion: r.sesion.fecha });
+      metidos.push(`Tu entreno del ${L.fechaLarga(r.sesion.fecha)} ya está registrado`);
     }
-    await db.guardar('sesiones', r.sesion);
-    await db.guardarVarios('series', r.series);
-    const cfg = await db.leerMeta('config', {});
-    if (!cfg.primeraSesion || cfg.primeraSesion > r.sesion.fecha) await db.escribirMeta('config', { ...cfg, primeraSesion: r.sesion.fecha });
+    if (r.comidas) {
+      // Si mientras tanto ya apuntaste algo en esa toma ese día, no se añade: evita duplicados.
+      const propios = new Set(r.comidas.map((c) => c.id));
+      const yaHay = (await db.porIndice('comidas', 'fecha', r.fecha)).some((c) => c.toma === r.toma && !propios.has(c.id));
+      if (!yaHay) {
+        await db.guardarVarios('comidas', r.comidas);
+        metidos.push(`Tu ${r.nombreToma} del ${L.fechaLarga(r.fecha)} ya está apuntada`);
+      }
+    }
     hechos.push(r.id);
     await db.escribirMeta('registrosAplicados', hechos);
-    metidos.push(`Tu entreno del ${L.fechaLarga(r.sesion.fecha)} ya está registrado`);
   }
   for (const c of CAMBIOS_PENDIENTES) {
     if (hechos.includes(c.id)) continue;

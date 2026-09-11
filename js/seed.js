@@ -467,6 +467,8 @@ export const DESPENSA = [
 export const RECETAS = [
   {
     nombre: 'Escalivada casera', raciones: 8, tiempo: 60, tags: ['batch', 'guarnición'],
+    // Macros por ración que dio Rocío el 11 sep 2026: mandan sobre el cálculo por ingredientes.
+    macrosRacion: { kcal: 110, prot: 2.5, grasa: 4, hc: 8.8, fibra: 3.5, sal: 0 },
     nota: 'Asada al horno. Se conserva 4 días en nevera.',
     ingredientes: [
       { nombre: 'Berenjena', cantidad: 1000 }, { nombre: 'Pimiento', cantidad: 800 },
