@@ -211,6 +211,8 @@ h1, h2, h3, p { margin: 0; }
 .hoja .lista, .hoja .tarjeta { background: var(--superficie2); }
 .hoja .lista > * + * { border-top-color: var(--superficie3); }
 .hoja .entrada, .hoja .buscador { background: var(--superficie2); }
+/* Dentro de una tarjeta de una hoja, la tarjeta ya es superficie2: las casillas un tono más claro. */
+.hoja .tarjeta .entrada, .hoja .tarjeta .caja { background: var(--superficie3); }
 
 /* aviso flotante */
 .toast {

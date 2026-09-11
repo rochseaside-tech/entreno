@@ -6,7 +6,7 @@ import * as L from '../logica.js';
 import * as db from '../db.js';
 import { Icono, Hoja, GraficaLinea, GraficaBarras, ir, n0, n1, aNum } from '../comunes.js';
 import { HojaPeso } from './hoy.js';
-import { textoEntrenos, copiar } from '../informe.js';
+import { textoTodo, copiar } from '../informe.js';
 
 const MEDIDAS = [['cintura', 'Cintura'], ['cadera', 'Cadera'], ['pecho', 'Pecho'], ['muslo', 'Muslo'], ['brazo', 'Brazo']];
 
@@ -131,24 +131,38 @@ function Fuerza() {
 
 // ---------------------------------------------------------------- pasar a Claude
 
+// El texto se prepara al elegir el periodo, no al pulsar: el iPhone solo deja copiar o
+// compartir justo en el momento del toque, sin esperas de por medio.
 function PasarAClaude() {
-  const todas = sesionesTerminadas();
-  const hace28 = L.sumarDias(L.hoyISO(), -27);
-  const opciones = [
-    ['Último entreno', todas.slice(-1), 'último entreno'],
-    ['Últimas 4 semanas', todas.filter((s) => s.fecha >= hace28), 'últimas 4 semanas'],
-    ['Todo', todas, 'todos'],
-  ];
-  const pasar = async (lista, alcance) => {
-    const ok = await copiar(textoEntrenos(lista, alcance));
-    toast(ok ? `Copiado (${lista.length} ${lista.length === 1 ? 'entreno' : 'entrenos'}): pégalo en Claude` : 'No se ha podido copiar', 3000);
+  const [alcance, ponerAlcance] = useState(28);
+  const [datos, ponerDatos] = useState(null);
+  useEffect(() => { ponerDatos(null); textoTodo(alcance).then(ponerDatos); }, [alcance, E.sesiones.length, E.series.length]);
+
+  const copiarlo = async () => {
+    const ok = await copiar(datos.texto);
+    toast(ok ? 'Copiado: pégalo en Claude y pídele que lo analice' : 'No se ha podido copiar', 3000);
   };
+  const compartir = async () => {
+    const archivo = new File([datos.texto], `mis-datos-${L.hoyISO()}.txt`, { type: 'text/plain' });
+    try {
+      if (navigator.canShare?.({ files: [archivo] })) await navigator.share({ files: [archivo], title: 'Mis datos de Entreno' });
+      else await copiarlo();
+    } catch (e) { if (e?.name !== 'AbortError') toast('No se ha podido compartir'); }
+  };
+
   return html`
     <div class="seccion"><h2 class="titulo">Pasar a Claude</h2></div>
     <div class="tarjeta pila">
-      <p class="t2 peq">Copia tus entrenos con todas las series tal cual las hiciste: peso, repeticiones y RIR de cada una. Luego lo pegas en Claude.</p>
-      ${opciones.map(([texto, lista, alcance]) => html`<button class="boton suave" disabled=${!lista.length} onClick=${() => pasar(lista, alcance)}>
-        <${Icono} n="compartir" t=${20} g=${2.2} />${texto}${lista.length ? ` · ${lista.length}` : ''}</button>`)}
+      <p class="t2 peq">Todo lo que has apuntado, día a día: cada comida con sus macros y el total frente a tu objetivo, cada entreno con todas sus series, el peso, los pasos y las medidas. Pégalo en Claude y pídele que lo analice.</p>
+      <div class="segmentado">
+        ${[[7, 'Última semana'], [28, '4 semanas'], [0, 'Todo']].map(([d, t]) => html`<button class=${alcance === d ? 'activo' : ''} onClick=${() => ponerAlcance(d)}>${t}</button>`)}
+      </div>
+      <p class="t2 peq">${datos ? `${datos.dias} ${datos.dias === 1 ? 'día' : 'días'} con datos · ${datos.comidas} ${datos.comidas === 1 ? 'comida' : 'comidas'} · ${datos.entrenos} ${datos.entrenos === 1 ? 'entreno' : 'entrenos'}` : 'Preparando el texto…'}</p>
+      <div class="dos-botones">
+        <button class="boton" disabled=${!datos} onClick=${copiarlo}><${Icono} n="compartir" t=${20} g=${2.2} />Copiar</button>
+        <button class="boton suave" disabled=${!datos} onClick=${compartir}><${Icono} n="guardar" t=${20} g=${2.2} />Archivo</button>
+      </div>
+      <p class="t2 peq">«Archivo» sirve cuando el texto es muy largo para pegarlo: lo mandas a Claude como archivo adjunto.</p>
     </div>`;
 }
 

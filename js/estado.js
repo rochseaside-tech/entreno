@@ -73,7 +73,9 @@ async function sembrar() {
     const nuevas = filas.map((f) => ({ ...f, id: hacerId(f) })).filter((f) => !existentes.has(f.id));
     if (nuevas.length) await db.guardarVarios(almacen, nuevas);
   };
-  await meter('alimentos', S.ALIMENTOS, (a) => idDe(a.nombre));
+  // Los que borraste tú no vuelven aunque sigan en la semilla.
+  const quitados = new Set(await db.leerMeta('alimentosQuitados', []));
+  await meter('alimentos', S.ALIMENTOS.filter((a) => !quitados.has(idDe(a.nombre))), (a) => idDe(a.nombre));
   await meter('recetas', S.RECETAS, (r) => idDe(r.nombre));
   await meter('despensa', S.DESPENSA, (d) => idDe(d.nombre));
   for (const [almacen, ids] of Object.entries(S.RETIRADOS || {})) {
@@ -144,11 +146,12 @@ function adaptarSeries(series, sesiones) {
 // ---------------------------------------------------------------- carga
 
 export async function recargar() {
-  const [ejercicios, alimentos, recetas, despensa, uso, sesiones, series, habituales, fotos, rutina, config] = await Promise.all([
+  const [ejercicios, alimentos, recetas, despensa, uso, sesiones, series, habituales, fotos, rutina, config, quitados] = await Promise.all([
     db.todos('ejercicios'), db.todos('alimentos'), db.todos('recetas'), db.todos('despensa'),
     db.todos('uso'), db.todos('sesiones'), db.todos('series'), db.todos('habituales'), db.todos('fotos'),
-    db.leerMeta('rutina', S.RUTINA), db.leerMeta('config', {}),
+    db.leerMeta('rutina', S.RUTINA), db.leerMeta('config', {}), db.leerMeta('alimentosQuitados', []),
   ]);
+  const fuera = new Set(quitados);
 
   E.ejercicios = mezclarEjercicios(ejercicios);
   E.ejercicioPorId = new Map(E.ejercicios.map((e) => [e.id, e]));
@@ -158,8 +161,8 @@ export async function recargar() {
   }
 
   const es = (a, b) => a.nombre.localeCompare(b.nombre, 'es');
-  E.misAlimentos = alimentos.sort(es);
-  const base = ALIMENTOS_BASE.map((a) => ({ ...a, id: 'b-' + idDe(a.nombre), base: true }));
+  E.misAlimentos = alimentos.filter((a) => !fuera.has(a.id)).sort(es);
+  const base = ALIMENTOS_BASE.map((a) => ({ ...a, id: 'b-' + idDe(a.nombre), base: true })).filter((a) => !fuera.has(a.id));
   const nombresMios = new Set(E.misAlimentos.map((a) => a.nombre.toLowerCase()));
   E.alimentos = [...E.misAlimentos, ...base.filter((a) => !nombresMios.has(a.nombre.toLowerCase()))];
   E.alimentoPorNombre = new Map(E.alimentos.map((a) => [a.nombre, a]));

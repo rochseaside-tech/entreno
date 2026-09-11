@@ -8,6 +8,7 @@ import * as db from '../db.js';
 import * as S from '../seed.js';
 import { cargarDia, registrarComida, borrarComida } from '../dia.js';
 import { Icono, Hoja, Anillo, Vacio, n0, n1, aNum } from '../comunes.js';
+import { ALIMENTOS_BASE } from '../datos/alimentos-base.js';
 import { fechaBonita } from './hoy.js';
 
 const sinTildes = (t) => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -37,6 +38,7 @@ export function Comida({ params }) {
         <h1 class="titulo">Comida</h1>
       </div>
       <div class="fila-f" style="gap:6px">
+        <button class="icono-btn" onClick=${() => ponerHoja({ tipo: 'alimentos' })} aria-label="Mis alimentos"><${Icono} n="nota" t=${18} g=${2.2} /></button>
         <button class="icono-btn" onClick=${() => moverDia(-1)} aria-label="Día anterior"><${Icono} n="atras" t=${18} g=${2.4} /></button>
         <button class="icono-btn" onClick=${() => moverDia(1)} disabled=${fecha >= hoy} style=${fecha >= hoy ? 'opacity:.3' : ''} aria-label="Día siguiente"><${Icono} n="chevron" t=${18} g=${2.4} /></button>
       </div>
@@ -72,7 +74,8 @@ export function Comida({ params }) {
 
     ${hoja?.tipo === 'anadir' && html`<${HojaAnadir} fecha=${fecha} toma=${hoja.toma} alCerrar=${() => ponerHoja(null)} alCambiar=${refrescar} />`}
     ${hoja?.tipo === 'item' && html`<${HojaItem} item=${hoja.item} alCerrar=${() => ponerHoja(null)} alCambiar=${refrescar} />`}
-    ${hoja?.tipo === 'guardar' && html`<${HojaGuardarHabitual} toma=${hoja.toma} lista=${hoja.lista} alCerrar=${() => ponerHoja(null)} />`}`;
+    ${hoja?.tipo === 'guardar' && html`<${HojaGuardarHabitual} toma=${hoja.toma} lista=${hoja.lista} alCerrar=${() => ponerHoja(null)} />`}
+    ${hoja?.tipo === 'alimentos' && html`<${HojaAlimentos} alCerrar=${() => ponerHoja(null)} />`}`;
 }
 
 function cantidadTexto(c) {
@@ -231,28 +234,150 @@ function FormAlimento({ nombre, alGuardar }) {
 
 // ---------------------------------------------------------------- editar una entrada
 
+// Cambiar la cantidad recalcula los macros; si tocas un macro a mano, manda lo que escribas.
 function HojaItem({ item, alCerrar, alCambiar }) {
+  const txt = (x) => String(Math.round((x || 0) * 10) / 10).replace('.', ',');
   const [valor, ponerValor] = useState(String(item.cantidad).replace('.', ','));
+  const [m, ponerM] = useState({});
+  const factor = (aNum(valor) || 0) / (item.cantidad || 1);
+  const mostrado = (k) => m[k] ?? txt((item[k] || 0) * factor);
+  const cambiarM = (k) => (e) => { const x = e.currentTarget.value; ponerM((p) => ({ ...p, [k]: x })); };
+
   const guardar = async () => {
     const c = aNum(valor);
     if (!c) { toast('Pon una cantidad'); return; }
     const f = c / (item.cantidad || 1);
     const nuevo = { ...item, cantidad: c };
     for (const k of L.CAMPOS_MACRO) nuevo[k] = Math.round((item[k] || 0) * f * 10) / 10;
+    for (const k of ['kcal', 'prot', 'grasa', 'hc']) { const n = aNum(m[k]); if (m[k] !== undefined && n != null) nuevo[k] = n; }
     await db.guardar('comidas', nuevo); alCambiar(); toast('Cambiado'); alCerrar();
   };
   const borrar = async () => { await borrarComida(item.id); alCambiar(); toast('Borrado'); alCerrar(); };
+  const campo = (k, t) => html`<label class="campo"><span>${t}</span>
+    <input class="entrada num" inputmode="decimal" value=${mostrado(k)} onInput=${cambiarM(k)} onFocus=${(e) => e.currentTarget.select()} /></label>`;
+
   return html`<${Hoja} titulo=${item.nombre} alCerrar=${alCerrar}>
     <div class="cantidad-grande">
       <input class="caja num" inputmode="decimal" value=${valor} onInput=${(e) => ponerValor(e.currentTarget.value)} onFocus=${(e) => e.currentTarget.select()} />
       <span class="unidad" style="font-size:18px">${cantidadTexto({ ...item, cantidad: aNum(valor) || 0 }).split(' ').slice(1).join(' ')}</span>
     </div>
-    <p class="t2" style="text-align:center;margin-bottom:14px">${kcalProt(item)} ahora</p>
+    <div class="tarjeta pila" style="margin-bottom:14px">
+      <div class="t2 peq" style="font-weight:600">Macros de esta comida</div>
+      <div class="rejilla-2">${campo('kcal', 'Kcal')}${campo('prot', 'Proteína (g)')}</div>
+      <div class="rejilla-2">${campo('grasa', 'Grasa (g)')}${campo('hc', 'Hidratos (g)')}</div>
+      <p class="t2 peq">Al cambiar la cantidad se recalculan solos. Si corriges uno a mano, se guarda lo que escribas.</p>
+    </div>
     <div class="pila">
-      <button class="boton" onClick=${guardar}>Guardar cantidad</button>
+      <button class="boton" onClick=${guardar}>Guardar cambios</button>
       <button class="boton peligro" onClick=${borrar}>Borrar de la toma</button>
     </div>
   <//>`;
+}
+
+// ---------------------------------------------------------------- tus alimentos: corregir o borrar
+
+// Quitados: ids que no deben volver (tuyos borrados, para que la actualización de datos
+// no los reponga) y de la tabla que no quieres ver en las búsquedas.
+async function anotarQuitado(id, quitar = true) {
+  const q = await db.leerMeta('alimentosQuitados', []);
+  const nuevo = quitar ? [...new Set([...q, id])] : q.filter((x) => x !== id);
+  await db.escribirMeta('alimentosQuitados', nuevo);
+}
+
+function HojaAlimentos({ alCerrar }) {
+  const [texto, ponerTexto] = useState('');
+  const [editando, ponerEditando] = useState(null);
+  const [ocultosTabla, ponerOcultosTabla] = useState([]);
+  useEffect(() => { db.leerMeta('alimentosQuitados', []).then((q) => ponerOcultosTabla(q.filter((x) => x.startsWith('b-')))); }, [E.alimentos.length, editando]);
+
+  if (editando) {
+    return html`<${Hoja} titulo=${editando.nombre} alCerrar=${alCerrar}
+        accion=${html`<button class="icono-btn" onClick=${() => ponerEditando(null)} aria-label="Volver"><${Icono} n="atras" t=${18} g=${2.4} /></button>`}>
+      <${EditorAlimento} a=${editando} alHecho=${() => ponerEditando(null)} />
+    <//>`;
+  }
+  const q = sinTildes(texto.trim());
+  const lista = q ? E.alimentos.filter((a) => sinTildes(a.nombre).includes(q)).slice(0, 100) : E.misAlimentos;
+  const recuperar = async () => {
+    const quitados = await db.leerMeta('alimentosQuitados', []);
+    await db.escribirMeta('alimentosQuitados', quitados.filter((x) => !x.startsWith('b-')));
+    await recargar(); avisar(); ponerOcultosTabla([]); toast('Recuperados');
+  };
+
+  return html`<${Hoja} titulo="Alimentos" alCerrar=${alCerrar}>
+    <div class="buscador" style="margin-bottom:10px">
+      <${Icono} n="buscar" t=${18} g=${2.2} />
+      <input type="search" placeholder="Busca el que quieras corregir" value=${texto} onInput=${(e) => ponerTexto(e.currentTarget.value)} />
+    </div>
+    <p class="t2 peq" style="margin:0 4px 10px">${q ? 'Tuyos y de la tabla.' : 'Tus alimentos. Escribe para buscar también en la tabla.'} Toca uno para cambiar sus macros o borrarlo.</p>
+    ${lista.length
+      ? html`<div class="lista">${lista.map((a) => html`<button class="item" key=${a.id} onClick=${() => ponerEditando(a)}>
+          <div class="crece"><div class="nombre">${a.nombre}</div>
+            <div class="meta">${a.medida === 'ud' ? 'por unidad' : `por 100 ${a.medida === 'ml' ? 'ml' : 'g'}`}: ${kcalProt(a)} · ${a.base ? 'tabla' : 'tuyo'}</div></div>
+          <${Icono} n="chevron" t=${18} g=${2.2} clase="chevron" />
+        </button>`)}</div>`
+      : html`<${Vacio} titulo="Nada con ese nombre">Si no existe, créalo desde «Añadir» en cualquier toma.<//>`}
+    ${ocultosTabla.length > 0 && html`<button class="boton suave" style="margin-top:12px" onClick=${recuperar}>Recuperar ${ocultosTabla.length === 1 ? 'el alimento' : `los ${ocultosTabla.length} alimentos`} de la tabla que quitaste</button>`}
+  <//>`;
+}
+
+function EditorAlimento({ a, alHecho }) {
+  const txt = (x) => (x == null ? '' : String(x).replace('.', ','));
+  const [v, ponerV] = useState({
+    medida: a.medida || 'g', kcal: txt(a.kcal), prot: txt(a.prot), grasa: txt(a.grasa), hc: txt(a.hc),
+    fibra: txt(a.fibra), sal: txt(a.sal), gramosUnidad: txt(a.gramosUnidad), nota: a.nota || '',
+  });
+  const [borrando, ponerBorrando] = useState(false);
+  const poner = (k) => (e) => { const x = e.currentTarget.value; ponerV((p) => ({ ...p, [k]: x })); };
+  const esTabla = !!a.base;
+  const haySuTabla = !esTabla && ALIMENTOS_BASE.some((b) => b.nombre.toLowerCase() === a.nombre.toLowerCase());
+  const enRecetas = E.recetas.filter((r) => (r.ingredientes || []).some((i) => i.nombre === a.nombre)).length;
+
+  const guardar = async () => {
+    const kcal = aNum(v.kcal);
+    if (kcal == null) { toast('Faltan las kcal'); return; }
+    // Uno de la tabla se guarda como tuyo con el mismo nombre: tu versión tapa a la de la tabla.
+    const { base, fuente, ...resto } = a;
+    const nuevo = {
+      ...resto, id: esTabla ? idDe(a.nombre) : a.id, medida: v.medida,
+      kcal, prot: aNum(v.prot) ?? 0, grasa: aNum(v.grasa) ?? 0, hc: aNum(v.hc) ?? 0, fibra: aNum(v.fibra) ?? 0, sal: aNum(v.sal) ?? 0,
+      racion: a.racion || (v.medida === 'ud' ? 1 : 100), exacto: true, aprox: false,
+    };
+    const gu = aNum(v.gramosUnidad);
+    if (gu) nuevo.gramosUnidad = gu; else delete nuevo.gramosUnidad;
+    if (v.nota.trim()) nuevo.nota = v.nota.trim(); else delete nuevo.nota;
+    await anotarQuitado(nuevo.id, false);
+    await db.guardar('alimentos', nuevo);
+    await recargar(); avisar(); toast('Alimento guardado'); alHecho();
+  };
+  const borrar = async () => {
+    if (!esTabla) await db.borrar('alimentos', a.id);
+    await anotarQuitado(a.id);
+    await recargar(); avisar();
+    toast(esTabla ? 'Quitado de las búsquedas' : haySuTabla ? 'Vuelven los valores de la tabla' : 'Alimento borrado');
+    alHecho();
+  };
+  const textoBorrar = esTabla ? 'Quitar de las búsquedas' : haySuTabla ? 'Volver a los valores de la tabla' : 'Borrar alimento';
+  const campo = (k, t, modo = 'decimal') => html`<label class="campo"><span>${t}</span>
+    <input class="entrada num" inputmode=${modo} value=${v[k]} onInput=${poner(k)} /></label>`;
+
+  return html`<div class="pila">
+    <p class="t2 peq">${esTabla ? 'De la tabla general. Si lo cambias, se guarda tu versión y es la que usará la app.' : 'Tuyo.'}</p>
+    <div class="segmentado">
+      ${[['g', 'Por 100 g'], ['ml', 'Por 100 ml'], ['ud', 'Por unidad']].map(([m, t]) => html`<button class=${v.medida === m ? 'activo' : ''} onClick=${() => ponerV((p) => ({ ...p, medida: m }))}>${t}</button>`)}
+    </div>
+    <div class="rejilla-2">${campo('kcal', 'Kcal')}${campo('prot', 'Proteína (g)')}</div>
+    <div class="rejilla-2">${campo('grasa', 'Grasa (g)')}${campo('hc', 'Hidratos (g)')}</div>
+    <div class="rejilla-2">${campo('fibra', 'Fibra (g)')}${campo('sal', 'Sal (g)')}</div>
+    ${v.medida !== 'ud' && campo('gramosUnidad', 'Una unidad o lata pesa (g), si quieres apuntarlo por unidades')}
+    <label class="campo"><span>Nota</span><input class="entrada" value=${v.nota} onInput=${poner('nota')} /></label>
+    <p class="t2 peq">Lo que ya tienes apuntado en el diario no cambia: cada comida guarda sus propios macros. Para corregir una comida ya apuntada, tócala en su toma.</p>
+    <button class="boton" onClick=${guardar}>Guardar cambios</button>
+    ${enRecetas > 0 && !esTabla && !haySuTabla && html`<p class="t2 peq">Está en ${enRecetas} ${enRecetas === 1 ? 'receta' : 'recetas'}: si lo borras, esas recetas dejarán de contarlo.</p>`}
+    ${borrando
+      ? html`<button class="boton peligro" onClick=${borrar}>Sí, ${textoBorrar.charAt(0).toLowerCase() + textoBorrar.slice(1)}</button>`
+      : html`<button class="boton peligro" style="background:none" onClick=${() => ponerBorrando(true)}>${textoBorrar}</button>`}
+  </div>`;
 }
 
 // ---------------------------------------------------------------- guardar como habitual
