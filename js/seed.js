@@ -380,6 +380,7 @@ export const ALIMENTOS = [
   { nombre: 'Muslitos de pollo (fiambre La Carloteña)', cat: 'Carne', kcal: 150, prot: 17.5, grasa: 8.5, hc: 1, fibra: 0, sal: 1.8, medida: 'g', racion: 40 },
   { nombre: 'Lomo de cerdo adobado', cat: 'Carne', kcal: 141, prot: 20.9, grasa: 5.5, hc: 0.6, fibra: 0, sal: 1.1, medida: 'g', racion: 120 },
   { nombre: 'Chuleta de pavo', cat: 'Carne', kcal: 120, prot: 22, grasa: 3.5, hc: 0, fibra: 0, sal: 0.15, medida: 'g', racion: 180 },
+  { nombre: 'Carne picada de ternera (11 % grasa)', cat: 'Carne', kcal: 180, prot: 19.5, grasa: 11, hc: 0, fibra: 0, sal: 0.15, medida: 'g', racion: 200 },
   { nombre: 'Lomo de cerdo', cat: 'Carne', kcal: 130, prot: 22, grasa: 4.5, hc: 0, fibra: 0, sal: 0.15, medida: 'g', racion: 180 },
   { nombre: 'Entrecot de ternera', cat: 'Carne', kcal: 250, prot: 20, grasa: 19, hc: 0, fibra: 0, sal: 0.15, medida: 'g', racion: 200 },
   { nombre: 'Jamón serrano en taquitos', cat: 'Carne', kcal: 240, prot: 30, grasa: 13, hc: 0.5, fibra: 0, sal: 4.5, medida: 'g', racion: 30 },
@@ -400,6 +401,8 @@ export const ALIMENTOS = [
 
   // --- Grasas y frutos secos ---
   { nombre: 'AOVE', cat: 'Grasas', kcal: 900, prot: 0, grasa: 100, hc: 0, fibra: 0, sal: 0, medida: 'g', gramosUnidad: 15, racion: 10, nota: '1 cucharada = 15 g = 135 kcal.' },
+  { nombre: 'Tahini', cat: 'Grasas', kcal: 670, prot: 17, grasa: 62.4, hc: 10, fibra: 9, sal: 0.05, medida: 'g', racion: 50,
+    nota: 'Kcal del bote (670/100 g). La grasa está estimada para que cuadre: si tienes la tabla del bote delante, gana la tabla.' },
   { nombre: 'Aceite de sésamo', cat: 'Grasas', kcal: 900, prot: 0, grasa: 100, hc: 0, fibra: 0, sal: 0, medida: 'g', racion: 5 },
   { nombre: 'Aguacate', cat: 'Grasas', kcal: 160, prot: 2, grasa: 15, hc: 2, fibra: 6.5, sal: 0, medida: 'g', racion: 80, nota: 'A ojo en vez de pesado son +65 kcal al día.' },
   { nombre: 'Nueces', cat: 'Grasas', kcal: 650, prot: 15, grasa: 65, hc: 7, fibra: 6, sal: 0, medida: 'g', racion: 20 },
@@ -437,6 +440,7 @@ export const ALIMENTOS = [
   { nombre: 'Vinagre de arroz', cat: 'Salsas', kcal: 20, prot: 0, grasa: 0, hc: 5, fibra: 0, sal: 0, medida: 'g', racion: 15 },
   { nombre: 'Mostaza de Dijon', cat: 'Salsas', kcal: 150, prot: 8, grasa: 10, hc: 4, fibra: 3, sal: 6, medida: 'g', racion: 10 },
   { nombre: 'Sirope de arce', cat: 'Salsas', kcal: 260, prot: 0, grasa: 0, hc: 67, fibra: 0, sal: 0, medida: 'g', racion: 15 },
+  { nombre: 'Sirope de agave', cat: 'Salsas', kcal: 310, prot: 0, grasa: 0, hc: 76, fibra: 0, sal: 0.05, medida: 'g', racion: 10 },
   { nombre: 'Ketchup cero', cat: 'Salsas', kcal: 25, prot: 1, grasa: 0.1, hc: 4, fibra: 1, sal: 2.5, medida: 'g', racion: 20 },
   { nombre: 'Ligeresa', cat: 'Salsas', kcal: 250, prot: 0.5, grasa: 25, hc: 5, fibra: 0, sal: 1.5, medida: 'g', racion: 20 },
   { nombre: 'Gochujang', cat: 'Salsas', kcal: 200, prot: 5, grasa: 1, hc: 42, fibra: 3, sal: 6, medida: 'g', racion: 20 },

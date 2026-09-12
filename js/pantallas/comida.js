@@ -6,7 +6,7 @@ import { E, useEstado, avisar, toast, recargar, idDe } from '../estado.js';
 import * as L from '../logica.js';
 import * as db from '../db.js';
 import * as S from '../seed.js';
-import { cargarDia, registrarComida, borrarComida } from '../dia.js';
+import { cargarDia, registrarComida, borrarComida, marcarDiaGym } from '../dia.js';
 import { Icono, Hoja, Anillo, Vacio, n0, n1, aNum } from '../comunes.js';
 import { ALIMENTOS_BASE } from '../datos/alimentos-base.js';
 import { fechaBonita } from './hoy.js';
@@ -54,6 +54,9 @@ export function Comida({ params }) {
         <div><div class="t">Hidratos <b>${n0(t.hc)} / ${o.hc} g</b></div><div class="barra-fina"><i style=${`width:${Math.min(100, (t.hc / Math.max(1, o.hc)) * 100)}%`}></i></div></div>
       </div>
       <p class="t2 peq" style="margin-top:12px">${dia.huboGym ? 'Día de gimnasio' : 'Día sin gimnasio'}: objetivo de ${n0(o.kcal)} kcal. Quedan ${n0(Math.max(0, o.kcal - t.kcal))} kcal y ${n0(Math.max(0, o.prot - t.prot))} g de proteína.</p>
+      ${dia.sesiones.length === 0 && html`<button class="boton suave chico" style="margin-top:10px"
+          onClick=${async () => { await marcarDiaGym(fecha, !dia.gymMarcado); refrescar(); toast(dia.gymMarcado ? 'Objetivo de día sin gimnasio' : 'Objetivo de día de gimnasio'); }}>
+          ${dia.gymMarcado ? 'Quitar día de gimnasio' : fecha === hoy ? 'Hoy entreno: objetivo de gimnasio' : 'Marcar como día de gimnasio'}</button>`}
     </div>
     ${dia.avisos.map((a) => html`<div class="aviso" style="margin-top:10px">${a.texto}</div>`)}
 

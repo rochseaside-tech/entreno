@@ -22,10 +22,11 @@ export function Progreso() {
     const dias = L.diasDeSemana(hoy);
     Promise.all([
       db.porRangoFecha('comidas', dias[0], dias[6]), db.todos('peso'), db.todos('pasos'),
-      db.todos('medidas'), db.obtener('semanas', L.semanaISO(hoy)),
-    ]).then(([comidas, pesos, pasos, medidas, semana]) => {
+      db.todos('medidas'), db.obtener('semanas', L.semanaISO(hoy)), db.leerMeta('diasGym', []),
+    ]).then(([comidas, pesos, pasos, medidas, semana, diasGym]) => {
       const comidasPorDia = new Map(dias.map((f) => [f, comidas.filter((c) => c.fecha === f)]));
-      const sesionesPorDia = new Map(dias.map((f) => [f, sesionesTerminadas().filter((s) => s.fecha === f)]));
+      // Día de gimnasio para el objetivo: con entreno (aunque esté en marcha) o marcado por ti.
+      const sesionesPorDia = new Map(dias.map((f) => [f, [...E.sesiones.filter((s) => s.fecha === f), ...(diasGym.includes(f) ? [{ marcado: true }] : [])]]));
       const resumen = L.resumenSemana({ dias, comidasPorDia, sesionesPorDia, pesos: new Map(pesos.map((p) => [p.fecha, p.kg])), ajustePorDia: semana?.ajustePorDia || 0 });
       ponerD({ dias, resumen, pesos, pasos, medidas: medidas.sort((a, b) => (a.fecha < b.fecha ? -1 : 1)), semana });
     });
@@ -59,7 +60,7 @@ export function Progreso() {
       <div class="rejilla-3">
         <div class="tarjeta dato"><small>Media</small><div class="num">${media('kcal') != null ? n0(media('kcal')) : '—'} <span>kcal</span></div></div>
         <div class="tarjeta dato"><small>Proteína</small><div class="num">${media('prot') != null ? n0(media('prot')) : '—'} <span>g</span></div></div>
-        <div class="tarjeta dato"><small>Entrenos</small><div class="num">${r.sesiones} <span>de 4</span></div></div>
+        <div class="tarjeta dato"><small>Entrenos</small><div class="num">${sesionesTerminadas().filter((s) => s.fecha >= d.dias[0] && s.fecha <= d.dias[6]).length} <span>de 4</span></div></div>
       </div>
       <div class="tarjeta">
         <div class="dato"><small>Kcal por día · la línea es el objetivo de un día de gimnasio</small></div>

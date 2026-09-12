@@ -11,7 +11,7 @@ import { REGISTROS_PENDIENTES, CAMBIOS_PENDIENTES } from './datos/registros.js';
 
 // Sube este número cuando añadas datos nuevos a seed.js: la app los incorpora
 // sin tocar lo que tú hayas editado.
-const VERSION_SEMILLA = 7; // 7: melocotón light en lata (10 sep 2026)
+const VERSION_SEMILLA = 8; // 7: melocotón light en lata (10 sep) · 8: carne picada 11 %, tahini del bote, sirope de agave (12 sep)
 
 export const E = {
   listo: false,
@@ -223,6 +223,10 @@ async function aplicarRegistros() {
         await db.guardarVarios('comidas', r.comidas);
         metidos.push(`Tu ${r.nombreToma} del ${L.fechaLarga(r.fecha)} ya está apuntada`);
       }
+    }
+    if (r.diaGym) {
+      const g = await db.leerMeta('diasGym', []);
+      if (!g.includes(r.fecha)) await db.escribirMeta('diasGym', [...g, r.fecha]);
     }
     hechos.push(r.id);
     await db.escribirMeta('registrosAplicados', hechos);

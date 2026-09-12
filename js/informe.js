@@ -112,8 +112,8 @@ const MEDIDAS = ['cintura', 'cadera', 'pecho', 'muslo', 'brazo'];
 // Devuelve el texto y cuántos días, comidas y entrenos lleva.
 export async function textoTodo(dias = 0) {
   const hoy = L.hoyISO();
-  const [comidas, pesos, pasos, medidas, semanas] = await Promise.all([
-    db.todos('comidas'), db.todos('peso'), db.todos('pasos'), db.todos('medidas'), db.todos('semanas'),
+  const [comidas, pesos, pasos, medidas, semanas, diasGym] = await Promise.all([
+    db.todos('comidas'), db.todos('peso'), db.todos('pasos'), db.todos('medidas'), db.todos('semanas'), db.leerMeta('diasGym', []),
   ]);
   const sesiones = E.sesiones.filter((s) => s.fin);
   const conDatos = [...comidas, ...sesiones, ...pesos, ...pasos, ...medidas].map((x) => x.fecha).filter(Boolean);
@@ -151,8 +151,9 @@ export async function textoTodo(dias = 0) {
     const ses = sesionesR.filter((s) => s.fecha === f);
     const sem = semanas.find((s) => s.semana === L.semanaISO(f));
     const ajuste = sem?.ajustePorDia && f >= (sem.desde || f) ? sem.ajustePorDia : 0;
-    const obj = L.objetivoDia({ huboGym: ses.length > 0, ajustePorDia: ajuste });
-    const l = [`### ${mayuscula(fechaCompleta(f))}${f === hoy ? ' (hoy, sin terminar)' : ''} — ${ses.length ? 'día de gimnasio' : 'día sin gimnasio'}`];
+    const gym = ses.length > 0 || diasGym.includes(f) || E.sesiones.some((s) => s.fecha === f);
+    const obj = L.objetivoDia({ huboGym: gym, ajustePorDia: ajuste });
+    const l = [`### ${mayuscula(fechaCompleta(f))}${f === hoy ? ' (hoy, sin terminar)' : ''} — ${gym ? 'día de gimnasio' : 'día sin gimnasio'}`];
     if (deDia.length) {
       l.push(`Objetivo: ${macrosTexto(obj)}.`);
       for (const t of S.TOMAS) {

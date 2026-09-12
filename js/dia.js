@@ -6,15 +6,19 @@ import * as L from './logica.js';
 import { E as estado } from './estado.js';
 
 export async function cargarDia(fecha) {
-  const [comidas, sesiones, peso, pasos, semana] = await Promise.all([
+  const [comidas, sesiones, peso, pasos, semana, diasGym] = await Promise.all([
     db.porIndice('comidas', 'fecha', fecha),
     db.porIndice('sesiones', 'fecha', fecha),
     db.obtener('peso', fecha),
     db.obtener('pasos', fecha),
     db.obtener('semanas', L.semanaISO(fecha)),
+    db.leerMeta('diasGym', []),
   ]);
 
-  const huboGym = sesiones.some((s) => s.fin);
+  // Día de gimnasio: hay un entreno (terminado o en marcha) o lo marcaste tú por
+  // adelantado con «Hoy entreno», para planificar la comida antes de ir.
+  const gymMarcado = diasGym.includes(fecha);
+  const huboGym = sesiones.length > 0 || gymMarcado;
   const ajustePorDia = semana?.ajustePorDia && fecha >= (semana.desde || fecha) ? semana.ajustePorDia : 0;
   const objetivo = L.objetivoDia({ huboGym, ajustePorDia });
   const totales = L.sumarMacros(comidas);
@@ -28,8 +32,15 @@ export async function cargarDia(fecha) {
   });
 
   comidas.sort((a, b) => (a.ts || 0) - (b.ts || 0));
-  return { fecha, comidas, sesiones, huboGym, peso: peso?.kg ?? null, pasos: pasos?.pasos ?? null,
+  return { fecha, comidas, sesiones, huboGym, gymMarcado, peso: peso?.kg ?? null, pasos: pasos?.pasos ?? null,
     objetivo, totales, avisos, esHoy, ajusteSemanal: semana || null };
+}
+
+// Marcar o desmarcar un día como de gimnasio (objetivo de kcal de entreno).
+export async function marcarDiaGym(fecha, si) {
+  const dias = await db.leerMeta('diasGym', []);
+  const nuevos = si ? [...new Set([...dias, fecha])] : dias.filter((d) => d !== fecha);
+  await db.escribirMeta('diasGym', nuevos);
 }
 
 export function comidasPorToma(comidas) {

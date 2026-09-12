@@ -32,7 +32,29 @@ export const REGISTROS_PENDIENTES = [
     series: HECHO_9_SEP.flatMap(serie(S1, '2026-09-09', INICIO_9_SEP)),
   },
   CENA_9_SEP(),
+  COMIDA_12_SEP(),
 ];
+
+// Comida del sábado 12 sep, día de gimnasio (se marca también el día, para el objetivo
+// de 1815 kcal aunque aún no haya entreno). Macros de cada línea tal como los dio Rocío.
+function COMIDA_12_SEP() {
+  const fecha = '2026-09-12', id = 'reg-comida-2026-09-12';
+  const base = Date.parse('2026-09-12T12:00:00Z'); // 14:00 en España, aproximada
+  const L = [
+    // nombre, cantidad, medida, origen, refId, kcal, prot, grasa, hc, fibra, sal, nota
+    ['Carne picada de ternera (11 % grasa)', 200, 'g', 'alimento', 'carne-picada-de-ternera-11-grasa', 360, 39, 22, 0, 0, 0.3],
+    ['Fideos de arroz, secos', 70, 'g', 'alimento', 'fideos-de-arroz-secos', 252, 2.8, 0.4, 57.4, 1.1, 0, 'Peso en seco.'],
+    ['Tahini', 50, 'g', 'alimento', 'tahini', 335, 8.5, 31.2, 5, 4.5, 0.03, 'Su parte: 50 g de los 100 g usados. Bote: 670 kcal/100 g.'],
+    ['Sirope de agave', 10, 'g', 'alimento', 'sirope-de-agave', 31, 0, 0, 7.6, 0, 0.01],
+  ];
+  return {
+    id, hasta: '2026-09-30', fecha, toma: 'comida', nombreToma: 'comida', diaGym: true,
+    comidas: L.map(([nombre, cantidad, medida, origen, refId, kcal, prot, grasa, hc, fibra, sal, nota = null], i) => ({
+      id: `${id}-${i + 1}`, fecha, toma: 'comida', nombre, cantidad, medida, origen, refId, nota,
+      kcal, prot, grasa, hc, fibra, sal, ts: base + i * 1000,
+    })),
+  };
+}
 
 // Cena del 9 sep, que quedó sin apuntar. Macros de cada línea tal como los dio Rocío el
 // 11 sep (cuadran con su biblioteca); fibra y sal calculadas con la biblioteca.
