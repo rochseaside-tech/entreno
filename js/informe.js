@@ -102,7 +102,7 @@ export function textoEntrenos(sesiones, alcance) {
 // ---------------------------------------------------------------- todo: comida y entreno
 
 const mayuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
-const cantidadDe = (c) => (c.origen === 'receta'
+const cantidadDe = (c) => (c.origen === 'libre' ? 'sin desglosar, a ojo' : c.origen === 'receta'
   ? `${n1(c.cantidad)} ${c.cantidad === 1 ? 'ración' : 'raciones'}`
   : c.medida === 'ud' ? `${n1(c.cantidad)} ud` : `${n0(c.cantidad)} ${c.medida === 'ml' ? 'ml' : 'g'}`);
 const macrosTexto = (m) => `${n0(m.kcal)} kcal · ${n1(m.prot)} g prot · ${n1(m.grasa)} g grasa · ${n1(m.hc)} g hidratos`;

@@ -82,6 +82,7 @@ export function Comida({ params }) {
 }
 
 function cantidadTexto(c) {
+  if (c.origen === 'libre') return 'a ojo';
   if (c.origen === 'receta') return `${n1(c.cantidad)} ${c.cantidad === 1 ? 'ración' : 'raciones'}`;
   if (c.medida === 'ud') return `${n1(c.cantidad)} ud`;
   return `${n0(c.cantidad)} ${c.medida === 'ml' ? 'ml' : 'g'}`;
@@ -94,6 +95,7 @@ function HojaAnadir({ fecha, toma, alCerrar, alCambiar }) {
   const [texto, ponerTexto] = useState('');
   const [elegido, ponerElegido] = useState(null); // { tipo: 'alimento'|'receta', x }
   const [creando, ponerCreando] = useState(false);
+  const [aOjo, ponerAOjo] = useState(false);
   const nombreToma = S.TOMAS.find((t) => t.id === toma)?.nombre || '';
 
   const apuntar = async (datos) => {
@@ -106,6 +108,10 @@ function HojaAnadir({ fecha, toma, alCerrar, alCambiar }) {
     await recargar(); avisar(); alCambiar(); toast(`${h.nombre}: añadido`); alCerrar();
   };
 
+  if (aOjo) return html`<${Hoja} titulo="Añadir a ojo" alCerrar=${alCerrar}
+      accion=${html`<button class="icono-btn" onClick=${() => ponerAOjo(false)} aria-label="Volver"><${Icono} n="atras" t=${18} g=${2.4} /></button>`}>
+    <${FormAOjo} alGuardar=${async (d) => { await apuntar(d); ponerAOjo(false); }} />
+  <//>`;
   if (creando) return html`<${Hoja} titulo="Nuevo alimento" alCerrar=${alCerrar}><${FormAlimento} nombre=${texto} alGuardar=${(a) => { ponerCreando(false); ponerElegido({ tipo: 'alimento', x: a }); }} /><//>`;
   if (elegido) return html`<${Hoja} titulo=${elegido.x.nombre} alCerrar=${alCerrar}
       accion=${html`<button class="icono-btn" onClick=${() => ponerElegido(null)} aria-label="Volver"><${Icono} n="atras" t=${18} g=${2.4} /></button>`}>
@@ -138,6 +144,8 @@ function HojaAnadir({ fecha, toma, alCerrar, alCambiar }) {
     </div>
 
     ${pestana === 'alimentos' && html`
+      <button class="boton suave" style="min-height:44px;font-size:15px;margin-bottom:12px" onClick=${() => ponerAOjo(true)}>
+        <${Icono} n="nota" t=${18} g=${2.2} />Añadir a ojo: solo los macros</button>
       ${!q && html`<p class="t2 peq" style="margin:0 4px 8px">${alimentos.length ? 'Lo que más apuntas en esta toma' : 'Escribe para buscar entre más de 250 alimentos.'}</p>`}
       ${alimentos.length > 0 && html`<div class="lista">${alimentos.map((a) => html`
         <button class="item" key=${a.id} onClick=${() => ponerElegido({ tipo: 'alimento', x: a })}>
@@ -178,7 +186,9 @@ function ElegirCantidad({ tipo, x, toma, nombreToma, alApuntar }) {
     ? L.escalarMacros(L.macrosReceta(x, E.alimentoPorNombre), cant)
     : L.macrosDe(x, porUnidad ? cant : gramos);
   const unidad = esReceta ? (cant === 1 ? 'ración' : 'raciones') : porUnidad || modoUd ? 'ud' : x.medida === 'ml' ? 'ml' : 'g';
-  const paso = esReceta || porUnidad || modoUd ? 0.5 : (x.racion && x.racion < 30 ? 5 : 10);
+  // Lo que se come en pocos gramos (aceite, frutos secos, cremas, salsas) va de 1 en 1.
+  const racion = x.racion || 100;
+  const paso = esReceta || porUnidad || modoUd ? 0.5 : racion <= 30 || (x.kcal || 0) >= 350 ? 1 : racion < 100 ? 5 : 10;
   const mover = (d) => ponerValor(String(Math.max(0, Math.round((cant + d * paso) * 10) / 10)).replace('.', ','));
 
   const apuntar = () => {
@@ -193,7 +203,7 @@ function ElegirCantidad({ tipo, x, toma, nombreToma, alApuntar }) {
   return html`
     ${puedeUd && html`<div class="segmentado" style="margin-bottom:6px">
       <button class=${!modoUd ? 'activo' : ''} onClick=${() => { ponerModoUd(false); ponerValor(String(Math.round(cant * x.gramosUnidad))); }}>Gramos</button>
-      <button class=${modoUd ? 'activo' : ''} onClick=${() => { ponerModoUd(true); ponerValor(String(Math.max(1, Math.round(cant / x.gramosUnidad)))); }}>Unidades (${x.gramosUnidad} g)</button>
+      <button class=${modoUd ? 'activo' : ''} onClick=${() => { ponerModoUd(true); ponerValor(String(Math.max(0.5, Math.round((cant / x.gramosUnidad) * 2) / 2)).replace('.', ',')); }}>Unidades (${x.gramosUnidad} g)</button>
     </div>`}
     <div class="cantidad-grande">
       <button class="paso-btn" onClick=${() => mover(-1)} aria-label="Menos"><${Icono} n="menos" t=${22} g=${2.4} /></button>
@@ -235,6 +245,31 @@ function FormAlimento({ nombre, alGuardar }) {
   </div>`;
 }
 
+// Algo sin desglosar: el nombre (si quieres) y los macros que calcules a ojo.
+function FormAOjo({ alGuardar }) {
+  const [v, ponerV] = useState({ nombre: '', kcal: '', prot: '', grasa: '', hc: '' });
+  const poner = (k) => (e) => { const x = e.currentTarget.value; ponerV((p) => ({ ...p, [k]: x })); };
+  const p = aNum(v.prot) ?? 0, g = aNum(v.grasa) ?? 0, h = aNum(v.hc) ?? 0;
+  const kcalCalc = Math.round(p * 4 + h * 4 + g * 9);
+  const guardar = () => {
+    const kcal = aNum(v.kcal) ?? (kcalCalc || null);
+    if (!kcal) { toast('Pon las kcal, o los macros para calcularlas'); return; }
+    alGuardar({
+      nombre: v.nombre.trim() || 'Algo sin desglosar', origen: 'libre', refId: null, cantidad: 1, medida: 'libre',
+      macros: { kcal, prot: p, grasa: g, hc: h, fibra: 0, sal: 0 },
+    });
+  };
+  const campo = (k, t, ph = '') => html`<label class="campo"><span>${t}</span>
+    <input class="entrada num" inputmode="decimal" placeholder=${ph} value=${v[k]} onInput=${poner(k)} /></label>`;
+  return html`<div class="pila">
+    <label class="campo"><span>Qué es (si quieres)</span><input class="entrada" placeholder="Algo sin desglosar" value=${v.nombre} onInput=${poner('nombre')} /></label>
+    <div class="rejilla-2">${campo('kcal', 'Kcal', kcalCalc ? String(kcalCalc) : '')}${campo('prot', 'Proteína (g)')}</div>
+    <div class="rejilla-2">${campo('grasa', 'Grasa (g)')}${campo('hc', 'Hidratos (g)')}</div>
+    <p class="t2 peq">Para lo que da pereza desglosar. Si dejas las kcal vacías, se calculan con los macros${kcalCalc ? ` (${kcalCalc} kcal)` : ''}.</p>
+    <button class="boton" onClick=${guardar}>Añadir</button>
+  </div>`;
+}
+
 // ---------------------------------------------------------------- editar una entrada
 
 // Cambiar la cantidad recalcula los macros; si tocas un macro a mano, manda lo que escribas.
@@ -242,15 +277,17 @@ function HojaItem({ item, alCerrar, alCambiar }) {
   const txt = (x) => String(Math.round((x || 0) * 10) / 10).replace('.', ',');
   const [valor, ponerValor] = useState(String(item.cantidad).replace('.', ','));
   const [m, ponerM] = useState({});
+  const libre = item.origen === 'libre';
+  const [nombre, ponerNombre] = useState(item.nombre);
   const factor = (aNum(valor) || 0) / (item.cantidad || 1);
   const mostrado = (k) => m[k] ?? txt((item[k] || 0) * factor);
   const cambiarM = (k) => (e) => { const x = e.currentTarget.value; ponerM((p) => ({ ...p, [k]: x })); };
 
   const guardar = async () => {
-    const c = aNum(valor);
+    const c = libre ? item.cantidad : aNum(valor);
     if (!c) { toast('Pon una cantidad'); return; }
     const f = c / (item.cantidad || 1);
-    const nuevo = { ...item, cantidad: c };
+    const nuevo = { ...item, cantidad: c, nombre: libre ? (nombre.trim() || item.nombre) : item.nombre };
     for (const k of L.CAMPOS_MACRO) nuevo[k] = Math.round((item[k] || 0) * f * 10) / 10;
     for (const k of ['kcal', 'prot', 'grasa', 'hc']) { const n = aNum(m[k]); if (m[k] !== undefined && n != null) nuevo[k] = n; }
     await db.guardar('comidas', nuevo); alCambiar(); toast('Cambiado'); alCerrar();
@@ -260,15 +297,18 @@ function HojaItem({ item, alCerrar, alCambiar }) {
     <input class="entrada num" inputmode="decimal" value=${mostrado(k)} onInput=${cambiarM(k)} onFocus=${(e) => e.currentTarget.select()} /></label>`;
 
   return html`<${Hoja} titulo=${item.nombre} alCerrar=${alCerrar}>
-    <div class="cantidad-grande">
-      <input class="caja num" inputmode="decimal" value=${valor} onInput=${(e) => ponerValor(e.currentTarget.value)} onFocus=${(e) => e.currentTarget.select()} />
-      <span class="unidad" style="font-size:18px">${cantidadTexto({ ...item, cantidad: aNum(valor) || 0 }).split(' ').slice(1).join(' ')}</span>
-    </div>
+    ${libre
+      ? html`<label class="campo" style="margin-bottom:12px"><span>Qué es</span>
+          <input class="entrada" value=${nombre} onInput=${(e) => { const x = e.currentTarget.value; ponerNombre(x); }} /></label>`
+      : html`<div class="cantidad-grande">
+          <input class="caja num" inputmode="decimal" value=${valor} onInput=${(e) => ponerValor(e.currentTarget.value)} onFocus=${(e) => e.currentTarget.select()} />
+          <span class="unidad" style="font-size:18px">${cantidadTexto({ ...item, cantidad: aNum(valor) || 0 }).split(' ').slice(1).join(' ')}</span>
+        </div>`}
     <div class="tarjeta pila" style="margin-bottom:14px">
       <div class="t2 peq" style="font-weight:600">Macros de esta comida</div>
       <div class="rejilla-2">${campo('kcal', 'Kcal')}${campo('prot', 'Proteína (g)')}</div>
       <div class="rejilla-2">${campo('grasa', 'Grasa (g)')}${campo('hc', 'Hidratos (g)')}</div>
-      <p class="t2 peq">Al cambiar la cantidad se recalculan solos. Si corriges uno a mano, se guarda lo que escribas.</p>
+      <p class="t2 peq">${libre ? 'Los macros que calculaste a ojo. Cámbialos si quieres.' : 'Al cambiar la cantidad se recalculan solos. Si corriges uno a mano, se guarda lo que escribas.'}</p>
     </div>
     <div class="pila">
       <button class="boton" onClick=${guardar}>Guardar cambios</button>

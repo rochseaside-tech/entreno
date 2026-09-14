@@ -1,7 +1,7 @@
 // sw.js — guarda la app en el móvil para que funcione sin cobertura en el gimnasio.
 // Los datos no pasan por aquí: viven en IndexedDB.
 
-const VERSION = 'v18';
+const VERSION = 'v19';
 const CACHE = `entreno-${VERSION}`;
 const FOTOS = 'entreno-fotos-v1'; // aparte: no se vuelven a bajar en cada versión
 
@@ -11,7 +11,7 @@ const ARCHIVOS = [
   './js/db.js', './js/seed.js', './js/logica.js', './js/dia.js', './js/informe.js',
   './js/vendor/preact-htm.js', './js/datos/registros.js',
   './js/datos/catalogo-ejercicios.js', './js/datos/alimentos-base.js',
-  './js/pantallas/hoy.js', './js/pantallas/entreno.js', './js/pantallas/ejercicios.js',
+  './js/pantallas/hoy.js', './js/pantallas/entreno.js', './js/pantallas/editar-entreno.js', './js/pantallas/ejercicios.js',
   './js/pantallas/comida.js', './js/pantallas/progreso.js', './js/pantallas/ajustes.js',
   './icons/icono-192.png', './icons/icono-512.png', './icons/icono-maskable-512.png', './icons/apple-touch-icon.png',
 ];

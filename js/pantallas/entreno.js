@@ -140,7 +140,8 @@ function HojaSesion({ s, alCerrar }) {
         </div>`)}
       </div>`)}
       ${s.cinta && html`<div class="tarjeta"><b>Caminata en cinta</b><div class="t2 peq" style="margin-top:4px">${textoCinta(s.cinta)}</div></div>`}
-      <button class="boton" onClick=${pasar}><${Icono} n="compartir" t=${20} g=${2.2} />Copiar para Claude</button>
+      <button class="boton" onClick=${() => { alCerrar(); ir('editar-entreno/' + s.id); }}><${Icono} n="nota" t=${20} g=${2.2} />Editar entreno</button>
+      <button class="boton suave" onClick=${pasar}><${Icono} n="compartir" t=${20} g=${2.2} />Copiar para Claude</button>
       ${borrando
         ? html`<button class="boton peligro" onClick=${borrar}>Sí, borrar este entreno y sus series</button>`
         : html`<button class="boton peligro" style="background:none" onClick=${() => ponerBorrando(true)}>Borrar este entreno</button>`}
@@ -243,11 +244,11 @@ function EntrenoActivo({ sesion }) {
       </div>
       <button class="boton chico" onClick=${() => ponerHoja({ tipo: 'terminar' })}>Terminar</button>
     </div>
-    <div class=${`crono ${seg > limite ? 'pasado' : ''}`}>
+    <button class=${`crono ${seg > limite ? 'pasado' : ''}`} onClick=${() => ponerHoja({ tipo: 'inicio' })} aria-label="Cambiar la hora de inicio">
       <span class="num">${L.mmss(seg)}</span>
       <span class="barra-fina"><i style=${`width:${Math.min(100, (seg / limite) * 100)}%`}></i></span>
       <span class="t2">${limite / 60} min</span>
-    </div>
+    </button>
     ${E.fase?.motivo && html`<div class="sugerencia" style="margin-bottom:12px"><${Icono} n="reloj" t=${18} g=${2} />${E.fase.motivo}</div>`}
 
     <div class="pila">
@@ -284,7 +285,8 @@ function EntrenoActivo({ sesion }) {
           await cambiarPlan((l) => [...l, { id: ej.id, series: 3 }]); ponerHoja(null); ponerAbierto(sesion.ejercicios.length);
         }} />
       <//>`}
-    ${hoja?.tipo === 'terminar' && html`<${HojaTerminar} sesion=${sesion} series=${seriesSesion} seg=${seg} alCerrar=${() => ponerHoja(null)} />`}`;
+    ${hoja?.tipo === 'terminar' && html`<${HojaTerminar} sesion=${sesion} series=${seriesSesion} seg=${seg} alCerrar=${() => ponerHoja(null)} />`}
+    ${hoja?.tipo === 'inicio' && html`<${HojaInicio} sesion=${sesion} alCerrar=${() => ponerHoja(null)} />`}`;
 }
 
 // ---------------------------------------------------------------- un ejercicio con sus series
@@ -367,13 +369,36 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar,
   const nAprox = Math.max(item.calent || 0, ...mias.filter((s) => s.calent).map((s) => (s.indice ?? 0) + 1));
   const aproxs = Array.from({ length: nAprox }, (_, f) => f);
 
+  const editarHecha = async (h, c, texto, k) => {
+    ponerBorrador((p) => { const n = { ...p }; delete n[k]; return n; });
+    const n = aNum(texto);
+    if (n == null || (c === 'reps' && n <= 0) || n === h[c]) return; // vacía o igual: se queda como estaba
+    const nueva = { ...h, [c]: n };
+    await db.guardar('series', nueva);
+    E.series = E.series.map((s) => (s.id === h.id ? nueva : s));
+    avisar();
+    toast('Serie cambiada');
+  };
+
   const fila = (tipo, f, lado) => {
     const h = buscar(tipo, f, lado);
     const sug = sugerencia(tipo, f, lado);
     const ant = tipo === 't' ? anterior(f, lado) : null;
-    const campo = (c, ph) => html`<input class="caja num" inputmode="decimal" enterkeyhint="done"
-      value=${h ? String(h[c] ?? '').replace('.', ',') : (valor(tipo, f, lado, c) ?? '')} placeholder=${ph ?? '–'} readOnly=${!!h}
-      onInput=${(e) => poner(tipo, f, lado, c, e.currentTarget.value)} onFocus=${(e) => e.currentTarget.select()} />`;
+    const campo = (c, ph) => {
+      if (h) {
+        // Serie ya hecha: se corrige tocando el número; se guarda al salir de la casilla.
+        const k = `h${h.id}-${c}`;
+        return html`<input class="caja num" inputmode="decimal" enterkeyhint="done"
+          value=${borrador[k] ?? String(h[c] ?? '').replace('.', ',')}
+          onInput=${(e) => { const x = e.currentTarget.value; ponerBorrador((p) => ({ ...p, [k]: x })); }}
+          onBlur=${(e) => editarHecha(h, c, e.currentTarget.value, k)}
+          onKeyDown=${(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+          onFocus=${(e) => e.currentTarget.select()} />`;
+      }
+      return html`<input class="caja num" inputmode="decimal" enterkeyhint="done"
+        value=${valor(tipo, f, lado, c) ?? ''} placeholder=${ph ?? '–'}
+        onInput=${(e) => poner(tipo, f, lado, c, e.currentTarget.value)} onFocus=${(e) => e.currentTarget.select()} />`;
+    };
     return html`<div class=${`fila-serie ${tipo === 'a' ? 'calent' : ''} ${h ? 'hecha' : ''}`} key=${tipo + f + (lado || '')}>
       <span class="n">${tipo === 'a' ? `A${f + 1}` : f + 1}${lado ? html`<small>${lado === 'izq' ? 'Izq' : 'Der'}</small>` : null}</span>
       <span class="ant">${tipo === 'a' ? 'Aprox.' : ant ? `${n1(ant.peso)} × ${ant.reps}` : '–'}</span>
@@ -416,6 +441,7 @@ function TarjetaCalentamiento({ sesion }) {
   const [, tic] = useState(0);
   const [marcados, ponerMarcados] = useState({});
   const [abierta, ponerAbierta] = useState(false);
+  const [minTxt, ponerMinTxt] = useState(null);
   const cal = sesion.calentamiento || {};
   const plan = CALENTAMIENTOS[sesion.plan] || CALENTAMIENTOS.L;
   const enMarcha = !!cal.inicio && !cal.fin;
@@ -431,6 +457,13 @@ function TarjetaCalentamiento({ sesion }) {
     toast('Calentamiento hecho: a por las series de aproximación');
   };
   const minutos = (a, b) => Math.max(1, Math.round((new Date(b) - new Date(a)) / 60000));
+  const cambiarMin = async (texto) => {
+    ponerMinTxt(null);
+    const n = aNum(texto);
+    if (!n || n <= 0 || n > 120 || n === minutos(cal.inicio, cal.fin)) return;
+    await guardarSesion({ ...sesion, calentamiento: { ...cal, fin: new Date(new Date(cal.inicio).getTime() + n * 60000).toISOString() } });
+    toast('Calentamiento cambiado');
+  };
 
   if (cal.fin && !abierta) {
     return html`<button class="tarjeta plegada" onClick=${() => ponerAbierta(true)}>
@@ -449,7 +482,11 @@ function TarjetaCalentamiento({ sesion }) {
         <i>${marcados[k] ? html`<${Icono} n="check" t=${14} g=${3} />` : null}</i><span>${p}</span>
       </button>`)}
     </div>
-    ${cal.fin ? html`<button class="boton suave" onClick=${() => ponerAbierta(false)}>Plegar</button>`
+    ${cal.fin ? html`<label class="campo" style="margin-bottom:10px"><span>Duración (min)</span>
+        <input class="entrada num" inputmode="numeric" value=${minTxt ?? String(minutos(cal.inicio, cal.fin))}
+          onInput=${(e) => { const x = e.currentTarget.value; ponerMinTxt(x); }} onBlur=${(e) => cambiarMin(e.currentTarget.value)}
+          onKeyDown=${(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} /></label>
+      <button class="boton suave" onClick=${() => ponerAbierta(false)}>Plegar</button>`
       : enMarcha ? html`<button class="boton" onClick=${terminar}>Terminar calentamiento</button>`
       : html`<button class="boton" onClick=${empezar}>Empezar calentamiento</button>`}
   </div>`;
@@ -582,6 +619,30 @@ function HojaTerminar({ sesion, series, seg, alCerrar }) {
       ${descartar
         ? html`<button class="boton peligro" onClick=${borrarTodo}>Sí, borrar este entreno y sus series</button>`
         : html`<button class="boton peligro" style="background:none" onClick=${() => ponerDescartar(true)}>Descartar entreno</button>`}
+    </div>
+  <//>`;
+}
+
+// ---------------------------------------------------------------- hora de inicio del entreno en marcha
+
+function HojaInicio({ sesion, alCerrar }) {
+  const d0 = new Date(sesion.inicio);
+  const [hora, ponerHora] = useState(`${String(d0.getHours()).padStart(2, '0')}:${String(d0.getMinutes()).padStart(2, '0')}`);
+  const guardar = async () => {
+    const [h, m] = hora.split(':').map(Number);
+    if (!Number.isFinite(h) || !Number.isFinite(m)) { toast('Pon una hora, por ejemplo 18:30'); return; }
+    const d = L.desdeISO(sesion.fecha);
+    d.setHours(h, m, 0, 0);
+    if (d > new Date()) { toast('La hora de inicio no puede ser más tarde que ahora'); return; }
+    await guardarSesion({ ...sesion, inicio: d.toISOString() });
+    toast('Hora de inicio cambiada');
+    alCerrar();
+  };
+  return html`<${Hoja} titulo="Hora de inicio" alCerrar=${alCerrar}>
+    <div class="pila">
+      <p class="t2">El cronómetro cuenta desde esta hora. Cámbiala si empezaste antes de darle a «Empezar».</p>
+      <input class="entrada num" type="time" value=${hora} onInput=${(e) => { const x = e.currentTarget.value; ponerHora(x); }} />
+      <button class="boton" onClick=${guardar}>Guardar hora</button>
     </div>
   <//>`;
 }

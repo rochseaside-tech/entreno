@@ -5,6 +5,7 @@ import { E, useEstado, arrancarDatos, toast } from './estado.js';
 import { Tabs, Toast, ponerTema } from './comunes.js';
 import { Hoy } from './pantallas/hoy.js';
 import { Entreno, BarraDescanso } from './pantallas/entreno.js';
+import { EditarEntreno } from './pantallas/editar-entreno.js';
 import { Ejercicios, Ejercicio } from './pantallas/ejercicios.js';
 import { Comida } from './pantallas/comida.js';
 import { Progreso } from './pantallas/progreso.js';
@@ -21,6 +22,7 @@ function leerRuta() {
 const PANTALLAS = {
   hoy: { C: Hoy, tab: 'hoy' },
   entreno: { C: Entreno, tab: 'entreno' },
+  'editar-entreno': { C: EditarEntreno, tab: 'entreno', detalle: true },
   ejercicios: { C: Ejercicios, tab: 'ejercicios' },
   ejercicio: { C: Ejercicio, tab: 'ejercicios', detalle: true },
   comida: { C: Comida, tab: 'comida' },
