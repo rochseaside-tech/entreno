@@ -7,7 +7,7 @@ import { html, useState } from '../vendor/preact-htm.js';
 import { E, useEstado, avisar, toast, recargar, guardarConfig } from '../estado.js';
 import * as L from '../logica.js';
 import * as db from '../db.js';
-import { ORDEN_SESIONES } from '../seed.js';
+import { ORDEN_SESIONES, PLAN_ANTERIOR } from '../seed.js';
 import { Icono, FotoEj, Hoja, Vacio, Interruptor, atras, n2, aNum } from '../comunes.js';
 import { ListaEjercicios } from './ejercicios.js';
 import { seriesCompletas } from './entreno.js';
@@ -191,7 +191,7 @@ export function EditarEntreno({ id }) {
     <div class="pila">
       <div class="tarjeta pila">
         <div class="segmentado">
-          ${[...ORDEN_SESIONES, 'L'].map((p) => html`<button class=${b.plan === p ? 'activo' : ''} onClick=${() => actualizar((n) => { n.plan = p; })}>${p === 'L' ? 'Libre' : p}</button>`)}
+          ${[...(PLAN_ANTERIOR[s.plan] ? [s.plan] : []), ...ORDEN_SESIONES, 'L'].map((p) => html`<button class=${b.plan === p ? 'activo' : ''} onClick=${() => actualizar((n) => { n.plan = p; })}>${p === 'L' ? 'Libre' : PLAN_ANTERIOR[p] ? p : E.rutina[p]?.nombre.replace('Torso ', 'T').replace('Pierna ', 'P') ?? p}</button>`)}
         </div>
         <div class="rejilla-2">
           <label class="campo"><span>Día</span><input class="entrada" type="date" max=${L.hoyISO()} value=${b.fecha} onInput=${al((n, v) => { n.fecha = v; })} /></label>

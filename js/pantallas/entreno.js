@@ -2,10 +2,11 @@
 // y terminar con el resumen. Las reglas de progresión están en logica.js.
 
 import { html, useState, useEffect } from '../vendor/preact-htm.js';
-import { E, useEstado, avisar, toast, recargar, guardarConfig, seriesDe, siguientePlan, sesionesTerminadas, unaRM } from '../estado.js';
+import { E, useEstado, avisar, toast, recargar, guardarConfig, seriesDe, siguientePlan, sesionesTerminadas, unaRM,
+  tituloSesion, tituloCorto, ajustesDe, conAjustes, previasPara } from '../estado.js';
 import * as L from '../logica.js';
 import * as db from '../db.js';
-import { ORDEN_SESIONES, CALENTAMIENTOS } from '../seed.js';
+import { ORDEN_SESIONES, CALENTAMIENTOS, PLAN_ANTERIOR } from '../seed.js';
 import { Icono, FotoEj, Hoja, Interruptor, ir, n0, n1, n2, aNum } from '../comunes.js';
 import * as D from '../descanso.js';
 import { ListaEjercicios } from './ejercicios.js';
@@ -15,7 +16,7 @@ import { ejerciciosDeSesion, textoSerie, etiquetaSerie, textoCinta, textoEntreno
 
 export function minutosEstimados(plan) {
   const seg = plan.ejercicios.reduce((t, x) => {
-    const ej = E.ejercicioPorId.get(x.id);
+    const ej = conAjustes(E.ejercicioPorId.get(x.id), x);
     return t + x.series * (40 + (ej?.descanso ?? 90));
   }, 0);
   return Math.max(5, Math.round(seg / 60 / 5) * 5);
@@ -54,7 +55,8 @@ export async function iniciarSesion(plan) {
     id: db.nuevoId('s'), fecha: hoy, plan, nombre: def.nombre,
     inicio: new Date().toISOString(), fin: null,
     // El primer ejercicio trae dos series de aproximación propuestas (50 % y 75 % del peso).
-    ejercicios: def.ejercicios.map((x, i) => ({ id: x.id, series: L.seriesObjetivo(x.series, E.fase), calent: i === 0 ? 2 : 0 })),
+    // Lo que un ejercicio lleve distinto en esta sesión (rango, descanso…) viaja con él.
+    ejercicios: def.ejercicios.map((x, i) => ({ id: x.id, series: L.seriesObjetivo(x.series, E.fase), ...ajustesDe(x), calent: i === 0 ? 2 : 0 })),
   });
   if (E.config.pantallaEncendida !== false) D.pantallaEncendida(true);
 }
@@ -79,11 +81,11 @@ function ElegirSesion() {
         const s = E.rutina[plan];
         const ejs = s.ejercicios.map((x) => E.ejercicioPorId.get(x.id)).filter(Boolean);
         return html`<button class="tarjeta" style="display:block;width:100%;text-align:left" onClick=${() => empezar(plan)}>
-          <div class="fila-f" style="justify-content:space-between">
-            <span class="pastilla">Sesión ${plan}</span>
+          ${(s.nota || plan === toca) && html`<div class="fila-f" style="justify-content:space-between;margin-bottom:8px">
+            ${s.nota ? html`<span class="pastilla">${s.nota}</span>` : html`<span></span>`}
             ${plan === toca && html`<span class="t2 peq" style="font-weight:700">Te toca</span>`}
-          </div>
-          <h3 class="titulo" style="font-size:20px;margin:8px 0 2px">${s.nombre}</h3>
+          </div>`}
+          <h3 class="titulo" style="font-size:20px;margin:0 0 2px">${s.nombre}</h3>
           <div class="t2 peq">${ejs.length} ejercicios · unos ${minutosEstimados(s)} min</div>
           <div style="display:flex;gap:6px;margin-top:12px">${ejs.slice(0, 5).map((ej) => html`<${FotoEj} ej=${ej} clase="mini" quieta />`)}</div>
         </button>`;
@@ -105,7 +107,7 @@ function FilaHistorial({ s, alPulsar }) {
   const min = Math.round((new Date(s.fin) - new Date(s.inicio)) / 60000);
   return html`<button class="item" onClick=${alPulsar}>
     <div class="crece">
-      <div class="nombre">${s.plan === 'L' ? '' : `Sesión ${s.plan} · `}${s.nombre}</div>
+      <div class="nombre">${tituloSesion(s)}</div>
       <div class="meta">${L.fechaLarga(s.fecha)} · ${min} min · ${trabajo(series).length} series · ${n0(volumenDe(series))} kg${s.cinta ? ' · cinta' : ''}</div>
     </div>
     <${Icono} n="chevron" t=${18} g=${2.2} clase="chevron" />
@@ -122,10 +124,10 @@ function HojaSesion({ s, alCerrar }) {
     await recargar(); avisar(); toast('Entreno borrado'); alCerrar();
   };
   const pasar = async () => {
-    const ok = await copiar(textoEntrenos([s], `${s.plan === 'L' ? 'entreno libre' : 'sesión ' + s.plan} del ${L.fechaLarga(s.fecha)}`));
+    const ok = await copiar(textoEntrenos([s], `${tituloSesion(s)} del ${L.fechaLarga(s.fecha)}`));
     toast(ok ? 'Copiado: pégalo en Claude' : 'No se ha podido copiar');
   };
-  return html`<${Hoja} titulo=${`${s.plan === 'L' ? 'Entreno libre' : 'Sesión ' + s.plan} · ${L.fechaLarga(s.fecha)}`} alCerrar=${alCerrar}>
+  return html`<${Hoja} titulo=${`${tituloCorto(s)} · ${L.fechaLarga(s.fecha)}`} alCerrar=${alCerrar}>
     <div class="pila">
       ${s.aprox && html`<p class="t2 peq">Apuntado después con pesos estándar: no son los que levantaste. No cuenta para récords ni para la progresión.</p>`}
       ${s.calentamiento?.fin && html`<p class="t2 peq">Calentamiento: ${Math.max(1, Math.round((new Date(s.calentamiento.fin) - new Date(s.calentamiento.inicio)) / 60000))} min</p>`}
@@ -159,7 +161,7 @@ function HojaEntrenoPasado({ alCerrar }) {
   const [plan, ponerPlan] = useState(siguientePlan());
   const [valores, ponerValores] = useState({});
   const def = E.rutina[plan];
-  const items = def.ejercicios.map((x, i) => ({ x, i, ej: E.ejercicioPorId.get(x.id) })).filter((o) => o.ej);
+  const items = def.ejercicios.map((x, i) => ({ x, i, ej: conAjustes(E.ejercicioPorId.get(x.id), x) })).filter((o) => o.ej);
   const yaHay = E.sesiones.some((s) => s.fecha === fecha && s.fin);
 
   const val = (ej, c) => valores[ej.id]?.[c] ?? (c === 'peso' ? (ej.pesoInicial != null ? String(ej.pesoInicial).replace('.', ',') : '') : String(ej.repMin));
@@ -171,7 +173,7 @@ function HojaEntrenoPasado({ alCerrar }) {
     const sesion = {
       id: db.nuevoId('s'), fecha, plan, nombre: def.nombre, aprox: true,
       inicio: inicio.toISOString(), fin: new Date(inicio.getTime() + 50 * 60000).toISOString(),
-      ejercicios: def.ejercicios.map((x) => ({ id: x.id, series: x.series })),
+      ejercicios: def.ejercicios.map((x) => ({ id: x.id, series: x.series, ...ajustesDe(x) })),
     };
     const filas = [];
     for (const { x, i, ej } of items) {
@@ -186,7 +188,7 @@ function HojaEntrenoPasado({ alCerrar }) {
     await db.guardarVarios('series', filas);
     if (!E.config.primeraSesion || E.config.primeraSesion > fecha) await guardarConfig({ primeraSesion: fecha });
     await recargar(); avisar();
-    toast(`Sesión ${plan} del ${L.fechaLarga(fecha)} apuntada`, 3000);
+    toast(`${def.nombre} del ${L.fechaLarga(fecha)} apuntado`, 3000);
     alCerrar();
   };
 
@@ -194,7 +196,7 @@ function HojaEntrenoPasado({ alCerrar }) {
     <div class="pila">
       <label class="campo"><span>Día</span>
         <input class="entrada" type="date" max=${hoy} value=${fecha} onInput=${(e) => ponerFecha(e.currentTarget.value)} /></label>
-      <div class="segmentado">${ORDEN_SESIONES.map((p) => html`<button class=${p === plan ? 'activo' : ''} onClick=${() => { ponerPlan(p); ponerValores({}); }}>Sesión ${p}</button>`)}</div>
+      <div class="segmentado">${ORDEN_SESIONES.map((p) => html`<button class=${p === plan ? 'activo' : ''} onClick=${() => { ponerPlan(p); ponerValores({}); }}>${E.rutina[p].nombre}</button>`)}</div>
       ${yaHay && html`<div class="aviso">Ese día ya tiene un entreno guardado. Si guardas, habrá dos.</div>`}
       <p class="t2 peq">Con valores estándar: tu peso de partida y las repeticiones mínimas. Cámbialos si te acuerdas. Contará como día de gimnasio y para la rotación, pero no para récords ni para las subidas de peso.</p>
       <div class="tarjeta">
@@ -239,7 +241,9 @@ function EntrenoActivo({ sesion }) {
   return html`
     <div class="cab-entreno">
       <div class="crece">
-        <span class="pastilla">${sesion.plan === 'L' ? 'Libre' : `Sesión ${sesion.plan}`}</span>
+        ${sesion.plan === 'L' ? html`<span class="pastilla">Libre</span>`
+          : PLAN_ANTERIOR[sesion.plan] ? html`<span class="pastilla">Sesión ${sesion.plan}</span>`
+          : E.rutina[sesion.plan]?.nota ? html`<span class="pastilla">${E.rutina[sesion.plan].nota}</span>` : null}
         <h1 class="titulo">${sesion.nombre}</h1>
       </div>
       <button class="boton chico" onClick=${() => ponerHoja({ tipo: 'terminar' })}>Terminar</button>
@@ -254,7 +258,7 @@ function EntrenoActivo({ sesion }) {
     <div class="pila">
       <${TarjetaCalentamiento} sesion=${sesion} />
       ${sesion.ejercicios.map((item, i) => {
-        const ej = E.ejercicioPorId.get(item.id);
+        const ej = conAjustes(E.ejercicioPorId.get(item.id), item);
         if (!ej) return null;
         return i === actual
           ? html`<${TarjetaEjercicio} key=${item.id + i} sesion=${sesion} item=${item} i=${i} ej=${ej}
@@ -296,8 +300,8 @@ function EntrenoActivo({ sesion }) {
 function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar, alAnadirSerie, alAnadirAprox }) {
   const [borrador, ponerBorrador] = useState({});
   // Los entrenos apuntados después con pesos estándar no guían la progresión.
-  const previas = seriesDe(ej.id).filter((s) => s.sesionId !== sesion.id && !s.aprox);
-  const analisis = L.analizarEjercicio(ej, previas, E.fase || L.faseActual(null));
+  const { previas, arranque } = previasPara(ej.id, sesion);
+  const analisis = L.analizarEjercicio(ej, previas, E.fase || L.faseActual(null), { arranque });
   const ultima = analisis.ultima;
   const mias = E.series.filter((s) => s.sesionId === sesion.id && s.item === i && s.ejercicioId === ej.id);
   const hechas = trabajo(mias);
@@ -317,9 +321,12 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar,
       return { peso, reps: f === 0 ? 10 : 6, rir: null };
     }
     const previa = hechas.filter((s) => (s.lado ?? null) === lado && s.indice < f).sort((a, b) => b.indice - a.indice)[0];
+    // Con la rutina nueva, las reps de la anterior se ajustan al rango de ahora.
+    const repsAntes = anterior(f, lado)?.reps ?? ej.repMin;
     return {
       peso: previa?.peso ?? base ?? (corporal ? 0 : null),
-      reps: analisis.aviso?.tipo === 'subir' ? ej.repMin : (anterior(f, lado)?.reps ?? ej.repMin),
+      reps: analisis.aviso?.tipo === 'subir' ? ej.repMin
+        : arranque ? Math.min(ej.repMax, Math.max(ej.repMin, repsAntes)) : repsAntes,
       rir: rirPorDefecto(rirObj),
     };
   };
@@ -420,7 +427,7 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar,
       <button class="mas" onClick=${alMenu} aria-label="Opciones del ejercicio"><${Icono} n="puntos" t=${22} /></button>
     </div>
 
-    ${analisis.aviso && html`<div class="sugerencia" style="margin-top:12px"><${Icono} n=${analisis.aviso.tipo === 'subir' ? 'subir' : 'cambiar'} t=${18} g=${2.4} />${analisis.aviso.texto}</div>`}
+    ${analisis.aviso && html`<div class="sugerencia" style="margin-top:12px"><${Icono} n=${{ subir: 'subir', arranque: 'nota' }[analisis.aviso.tipo] || 'cambiar'} t=${18} g=${2.4} />${analisis.aviso.texto}</div>`}
     ${ej.aviso && html`<div class="aviso" style="margin-top:8px"><${Icono} n="aviso" t=${17} g=${2} />${ej.aviso}</div>`}
 
     <div class="series">
@@ -443,7 +450,7 @@ function TarjetaCalentamiento({ sesion }) {
   const [abierta, ponerAbierta] = useState(false);
   const [minTxt, ponerMinTxt] = useState(null);
   const cal = sesion.calentamiento || {};
-  const plan = CALENTAMIENTOS[sesion.plan] || CALENTAMIENTOS.L;
+  const plan = CALENTAMIENTOS[sesion.plan] || CALENTAMIENTOS[PLAN_ANTERIOR[sesion.plan]] || CALENTAMIENTOS.L;
   const enMarcha = !!cal.inicio && !cal.fin;
   useEffect(() => {
     if (!enMarcha) return undefined;
@@ -542,13 +549,14 @@ function HojaCambiar({ sesion, i, cambiarPlan, alCerrar, alHecho }) {
     // Las aproximaciones hechas eran del ejercicio de antes: fuera, para que no pasen al nuevo.
     for (const s of E.series.filter((x) => x.sesionId === sesion.id && x.item === i && x.calent)) await db.borrar('series', s.id);
     E.series = E.series.filter((x) => !(x.sesionId === sesion.id && x.item === i && x.calent));
-    await cambiarPlan((l) => { l[i].id = ej.id; return l; });
+    // Lo que el ejercicio de antes llevaba distinto en esta sesión (rango, descanso…) no pasa al nuevo.
+    await cambiarPlan((l) => { l[i] = { id: ej.id, series: l[i].series, ...(l[i].calent ? { calent: l[i].calent } : {}) }; return l; });
     if (tambien && enRutina) {
       const r = JSON.parse(JSON.stringify(E.rutina));
-      r[sesion.plan].ejercicios = r[sesion.plan].ejercicios.map((x) => (x.id === actual.id ? { ...x, id: ej.id } : x));
+      r[sesion.plan].ejercicios = r[sesion.plan].ejercicios.map((x) => (x.id === actual.id ? { id: ej.id, series: x.series } : x));
       await db.escribirMeta('rutina', r);
       E.rutina = r; avisar();
-      toast(`Cambiado también en tu Sesión ${sesion.plan}`);
+      toast(`Cambiado también en tu ${r[sesion.plan].nombre}`);
     }
     alHecho();
   };

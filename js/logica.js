@@ -115,9 +115,21 @@ export function agruparPorSesion(series) {
 }
 
 // Devuelve qué hiciste la última vez y si toca subir o desatascar.
-export function analizarEjercicio(ejercicio, series, fase) {
+// arranque = primera vez con la rutina nueva: manda el peso de arranque de la tabla
+// (o tantear, si no tiene), no lo que hiciste con la rutina anterior.
+export function analizarEjercicio(ejercicio, series, fase, { arranque = false } = {}) {
   const grupos = agruparPorSesion(series);
   const ultima = grupos[grupos.length - 1] || null;
+
+  if (arranque) {
+    const p = ejercicio.pesoInicial ?? null;
+    return {
+      ultima, sesionesRegistradas: grupos.length, pesoSugerido: p, grupos, arranque: true,
+      aviso: { tipo: 'arranque', texto: p != null
+        ? `Rutina nueva: arrancas con ${formatoPeso(p)}.`
+        : 'Rutina nueva: tantea el peso en la primera serie.' },
+    };
+  }
 
   let pesoSugerido = ultima ? ultima.pesoMax : (ejercicio.pesoInicial ?? null);
   let aviso = null;
@@ -127,7 +139,7 @@ export function analizarEjercicio(ejercicio, series, fase) {
     const todasAlTope = ultima.series.length > 0 && ultima.series.every(
       (s) => (s.reps || 0) >= ejercicio.repMax && (s.rir ?? -1) >= 1);
     if (todasAlTope) {
-      pesoSugerido = redondearCarga(ultima.pesoMax + ejercicio.incremento, ejercicio.incremento);
+      pesoSugerido = subirCarga(ultima.pesoMax, ejercicio.incremento);
       aviso = { tipo: 'subir',
         texto: `Toca subir a ${formatoPeso(pesoSugerido)}. La última vez hiciste todas las series a ${ejercicio.repMax} repeticiones con RIR 1 o más.` };
     }
@@ -138,7 +150,7 @@ export function analizarEjercicio(ejercicio, series, fase) {
     const [a, b, c] = grupos.slice(-3);
     if (a.pesoMax === b.pesoMax && b.pesoMax === c.pesoMax &&
         a.repsTotal === b.repsTotal && b.repsTotal === c.repsTotal && c.pesoMax > 0) {
-      const bajado = redondearCarga(c.pesoMax * 0.9, ejercicio.incremento);
+      const bajado = bajarCarga(c.pesoMax, ejercicio.incremento);
       aviso = { tipo: 'estancado',
         texto: `Tres sesiones clavado en ${formatoPeso(c.pesoMax)}. Baja a ${formatoPeso(bajado)} y vuelve a subir desde ahí.` };
       pesoSugerido = bajado;
@@ -154,7 +166,19 @@ export function analizarEjercicio(ejercicio, series, fase) {
   };
 }
 
-// Redondea al múltiplo del incremento del ejercicio (las máquinas no tienen decimales raros).
+// Subir y bajar se hace en saltos del incremento desde el peso que llevas, sin redondear
+// a múltiplos: en las máquinas en libras (22,7 kg = 50 lb) el siguiente peso es 25,2, no 25.
+const dosDecimales = (x) => Math.round(x * 100) / 100;
+export const subirCarga = (peso, incremento) => dosDecimales(peso + (incremento || 0));
+
+// Estancamiento: bajar alrededor de un 10 %, en saltos enteros del incremento (al menos uno).
+export function bajarCarga(peso, incremento) {
+  if (!incremento) return Math.round(peso * 0.9 * 10) / 10;
+  const saltos = Math.max(1, Math.round((peso * 0.1) / incremento));
+  return Math.max(0, dosDecimales(peso - saltos * incremento));
+}
+
+// Redondea al múltiplo del incremento del ejercicio. Solo para las aproximaciones, que son a ojo.
 export function redondearCarga(peso, incremento) {
   if (!incremento) return Math.round(peso * 10) / 10;
   return Math.round(peso / incremento) * incremento;
@@ -163,7 +187,7 @@ export function redondearCarga(peso, incremento) {
 export function formatoPeso(kg) {
   if (kg === null || kg === undefined) return '—';
   if (kg === 0) return 'peso corporal';
-  return `${Number(kg.toFixed(2))} kg`;
+  return `${String(Number(kg.toFixed(2))).replace('.', ',')} kg`;
 }
 
 export function resumenUltimaVez(ultima) {
@@ -185,12 +209,14 @@ export function progresionEjercicio(series) {
   return { puntos, mejora, inicio, fin };
 }
 
-// ---------------------------------------------------------------- rotación A-B-C-D
+// ---------------------------------------------------------------- rotación
 
-export function siguienteSesion(historial, orden) {
-  if (!historial.length) return orden[0];
-  const ultima = historial[historial.length - 1].plan;
-  const i = orden.indexOf(ultima);
+// equivalente: sesiones de una rutina anterior y la nueva que las sustituye ({ A: 'T1' }),
+// para que la rotación siga donde la dejaste. Los entrenos libres no cuentan.
+export function siguienteSesion(historial, orden, equivalente = {}) {
+  const planes = historial.map((s) => equivalente[s.plan] || s.plan).filter((p) => orden.includes(p));
+  if (!planes.length) return orden[0];
+  const i = orden.indexOf(planes[planes.length - 1]);
   return orden[(i + 1) % orden.length];
 }
 

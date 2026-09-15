@@ -107,11 +107,10 @@ function normalizar(e) {
 function mezclarEjercicios(guardados) {
   const porId = new Map(guardados.map((g) => [g.id, g]));
   // Tus pesos de partida viven en seed.js: sin ellos, una instalación nueva no sugeriría peso.
-  const semilla = new Map(S.EJERCICIOS.map((e) => [e.id, e]));
   const lista = CATALOGO.map((c) => {
     const g = porId.get(c.id);
     const ajustes = g ? Object.fromEntries(AJUSTABLES.filter((k) => g[k] !== undefined).map((k) => [k, g[k]])) : {};
-    return normalizar({ pesoInicial: semilla.get(c.id)?.pesoInicial ?? null, ...c, ...ajustes });
+    return normalizar({ pesoInicial: S.PESOS_INICIALES[c.id] ?? null, ...c, ...ajustes });
   });
   const enCatalogo = new Set(CATALOGO.map((c) => c.id));
   for (const g of guardados) if (!enCatalogo.has(g.id) && g.propio) lista.push(normalizar(g));
@@ -126,11 +125,13 @@ const aISO = (t) => (typeof t === 'number' ? new Date(t).toISOString() : t);
 
 function adaptarSesion(s) {
   const plan = E.rutina[s.plan];
+  const anterior = S.RUTINA_ANTERIOR[s.plan];
   return {
     ...s,
     inicio: aISO(s.inicio), fin: aISO(s.fin),
-    nombre: s.nombre ?? plan?.nombre ?? 'Entreno',
-    ejercicios: s.ejercicios ?? (plan?.ejercicios || []).map((x) => ({ id: x.id, series: x.series })),
+    nombre: s.nombre ?? plan?.nombre ?? anterior?.nombre ?? 'Entreno',
+    ejercicios: s.ejercicios ?? (plan?.ejercicios.map((x) => ({ id: x.id, series: x.series }))
+      || anterior?.ejercicios.map((id) => ({ id, series: 3 })) || []),
   };
 }
 
@@ -233,6 +234,20 @@ async function aplicarRegistros() {
   }
   for (const c of CAMBIOS_PENDIENTES) {
     if (hechos.includes(c.id)) continue;
+    if (c.rutina) {
+      // Rutina nueva: sustituye la guardada y quita lo que hubieras cambiado a mano en sus
+      // ejercicios (reps, RIR, descanso, incremento, peso de partida) para que mande la
+      // tabla nueva. Tus notas de cada ejercicio se quedan.
+      await db.escribirMeta('rutina', S.RUTINA);
+      const ids = new Set(Object.values(S.RUTINA).flatMap((d) => d.ejercicios.map((x) => x.id)));
+      for (const id of ids) {
+        const g = await db.obtener('ejercicios', id);
+        if (!g || g.propio) continue;
+        const resto = Object.fromEntries(Object.entries(g).filter(([k]) => k === 'nota' || !AJUSTABLES.includes(k)));
+        if (Object.keys(resto).length > 1) await db.guardar('ejercicios', resto);
+        else await db.borrar('ejercicios', id);
+      }
+    }
     if (c.receta) {
       const r = await db.obtener('recetas', idDe(c.receta));
       if (r) await db.guardar('recetas', { ...r, macrosRacion: c.macrosRacion });
@@ -283,9 +298,47 @@ export const seriesDe = (ejercicioId) => E.series.filter((s) => s.ejercicioId ==
 export const seriesDeSesion = (sesionId) => E.series.filter((s) => s.sesionId === sesionId)
   .sort((a, b) => (a.indice ?? 0) - (b.indice ?? 0));
 export const sesionesTerminadas = () => E.sesiones.filter((s) => s.fin);
-// Los entrenos libres no cuentan para la rotación A → B → C → D.
-export const siguientePlan = () => L.siguienteSesion(
-  sesionesTerminadas().filter((s) => S.ORDEN_SESIONES.includes(s.plan)), S.ORDEN_SESIONES);
+// Rotación Torso 1 → Pierna 1 → Torso 2 → Pierna 2. Los entrenos libres no cuentan; los de
+// la rutina anterior (A-D) cuentan como la sesión nueva que los sustituye.
+export const siguientePlan = () => L.siguienteSesion(sesionesTerminadas(), S.ORDEN_SESIONES, S.PLAN_ANTERIOR);
+
+// ---------------------------------------------------------------- rutina
+
+// Cómo se llama una sesión: las de la rutina anterior llevan su letra delante.
+export function tituloSesion(s) {
+  if (s.plan === 'L') return 'Entreno libre';
+  return S.PLAN_ANTERIOR[s.plan] ? `Sesión ${s.plan} · ${s.nombre}` : s.nombre;
+}
+export function tituloCorto(s) {
+  if (s.plan === 'L') return 'Entreno libre';
+  return S.PLAN_ANTERIOR[s.plan] ? `Sesión ${s.plan}` : s.nombre;
+}
+
+// Lo que un ejercicio lleva distinto en una sesión concreta (el hip thrust de Pierna 2).
+// Va en la línea de la rutina y se copia a la sesión al empezarla.
+const CAMPOS_SESION = ['repMin', 'repMax', 'rir', 'descanso', 'incremento', 'pesoInicial'];
+export const ajustesDe = (item) => Object.fromEntries(CAMPOS_SESION.filter((k) => item?.[k] !== undefined).map((k) => [k, item[k]]));
+export const conAjustes = (ej, item) => (ej ? { ...ej, ...ajustesDe(item) } : ej);
+
+const planNuevo = (plan) => S.PLAN_ANTERIOR[plan] || plan;
+const planDeSesion = (sesionId) => E.sesiones.find((x) => x.id === sesionId)?.plan;
+
+// Las series anteriores que guían la progresión de un ejercicio en una sesión.
+// - Si el ejercicio está en dos sesiones de la rutina con rangos distintos, cada sesión
+//   lleva su propia progresión: si no, las 15 reps de una harían subir el peso en la otra.
+// - arranque: aún no lo has hecho en ninguna sesión de la rutina nueva, así que manda
+//   el peso de arranque de la tabla y no lo que hacías con la anterior.
+export function previasPara(ejercicioId, sesion) {
+  const todas = seriesDe(ejercicioId).filter((s) => s.sesionId !== sesion.id && !s.aprox);
+  const plan = planNuevo(sesion.plan);
+  if (!S.ORDEN_SESIONES.includes(plan)) return { previas: todas, arranque: false };
+  const base = E.ejercicioPorId.get(ejercicioId);
+  const rangos = new Set(Object.values(E.rutina).flatMap((d) => d.ejercicios
+    .filter((x) => x.id === ejercicioId).map((x) => { const e = conAjustes(base, x); return `${e?.repMin}-${e?.repMax}`; })));
+  const previas = rangos.size > 1 ? todas.filter((s) => planNuevo(planDeSesion(s.sesionId)) === plan) : todas;
+  const arranque = !previas.some((s) => S.ORDEN_SESIONES.includes(planDeSesion(s.sesionId)));
+  return { previas, arranque };
+}
 
 // Máximo a una repetición, calculado (fórmula de Epley). Solo con series de 1 a 12 reps.
 export const unaRM = (peso, reps) => (peso > 0 && reps > 0 && reps <= 12 ? peso * (1 + reps / 30) : 0);

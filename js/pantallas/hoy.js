@@ -1,7 +1,7 @@
 // hoy.js — pantalla de inicio: qué entreno toca, cómo vas de comida, la semana y el peso.
 
 import { html, useEffect, useState } from '../vendor/preact-htm.js';
-import { E, useEstado, avisar, toast, sesionesTerminadas, siguientePlan, recargar } from '../estado.js';
+import { E, useEstado, avisar, toast, sesionesTerminadas, siguientePlan, recargar, tituloSesion } from '../estado.js';
 import * as L from '../logica.js';
 import * as db from '../db.js';
 import { cargarDia } from '../dia.js';
@@ -53,7 +53,7 @@ function TarjetaEntreno() {
     const min = Math.floor((Date.now() - new Date(activa.inicio)) / 60000);
     return html`<div class="tarjeta">
       <div class="t2 peq" style="font-weight:700;text-transform:uppercase;letter-spacing:.05em">Entreno en marcha</div>
-      <h3 class="titulo" style="font-size:22px;margin:4px 0 2px">Sesión ${activa.plan} · ${activa.nombre}</h3>
+      <h3 class="titulo" style="font-size:22px;margin:4px 0 2px">${tituloSesion(activa)}</h3>
       <div class="t2" style="margin-bottom:14px">Empezaste hace ${min} min</div>
       <button class="boton" onClick=${() => ir('entreno')}>Volver al entreno</button>
     </div>`;
@@ -67,8 +67,8 @@ function TarjetaEntreno() {
 
   return html`<div class="tarjeta">
     <div class="t2 peq" style="font-weight:700;text-transform:uppercase;letter-spacing:.05em">Te toca</div>
-    <h3 class="titulo" style="font-size:22px;margin:4px 0 2px">Sesión ${plan} · ${sesion.nombre}</h3>
-    <div class="t2">${ejercicios.length} ejercicios · unos ${minutosEstimados(sesion)} min</div>
+    <h3 class="titulo" style="font-size:22px;margin:4px 0 2px">${sesion.nombre}</h3>
+    <div class="t2">${sesion.nota ? `${sesion.nota} · ` : ''}${ejercicios.length} ejercicios · unos ${minutosEstimados(sesion)} min</div>
     <div style="display:flex;gap:8px;margin:14px 0">
       ${visibles.map((ej) => html`<${FotoEj} ej=${ej} clase="mini" quieta />`)}
       ${ejercicios.length > 4 && html`<div class="mini" style="display:grid;place-items:center;background:var(--superficie2);font-weight:700;color:var(--texto2)">+${ejercicios.length - 4}</div>`}

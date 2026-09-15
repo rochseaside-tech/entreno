@@ -121,22 +121,23 @@ export const CATALOGO = [
     ],
   },
   {
-    id: 'remo-sentado', nombre: 'Remo sentado', grupo: 'Espalda', sec: ['Bíceps', 'Hombro posterior'], equipo: 'Polea',
+    id: 'remo-sentado', nombre: 'Remo sentado, agarre neutro', grupo: 'Espalda', sec: ['Bíceps', 'Hombro posterior'], equipo: 'Polea',
     en: 'Seated Cable Rows', rep: [8, 12], rir: '2', descanso: 120, incremento: 2.5, tipo: 'peso',
     claves: [
-      'Pecho alto y espalda neutra: el tronco casi no se mueve.',
+      'Agarre neutro (palmas enfrentadas), pecho alto y espalda neutra: el tronco casi no se mueve.',
       'Codos pegados al cuerpo hasta pasar la línea del torso.',
       'Junta los omóplatos al final y aguanta medio segundo.',
       'Estira los brazos del todo al soltar, sin redondear la espalda.',
     ],
   },
   {
-    id: 'remo-maquina', nombre: 'Remo en máquina', grupo: 'Espalda', sec: ['Bíceps', 'Hombro posterior'], equipo: 'Máquina',
-    en: 'Leverage Iso Row', rep: [8, 12], rir: '2', descanso: 120, incremento: 2.5, tipo: 'peso',
+    id: 'remo-maquina', nombre: 'Remo en máquina con pecho apoyado', grupo: 'Espalda', sec: ['Bíceps', 'Hombro posterior'], equipo: 'Máquina',
+    en: 'Leverage Iso Row', rep: [10, 12], rir: '2', descanso: 120, incremento: 2.5, tipo: 'peso',
     claves: [
-      'Pecho apoyado en el cojín todo el rato.',
-      'Tira llevando los codos hacia atrás y junta los omóplatos.',
-      'Vuelve hasta estirar los brazos sin despegar el pecho.',
+      'Ajusta el asiento para que las asas queden a la altura de la parte baja del pecho, con el pecho entero apoyado en el cojín.',
+      'El pecho no se despega del cojín en ninguna repetición: si tienes que echarte atrás para mover el peso, sobra peso.',
+      'Tira llevando los codos hacia atrás, cerca del cuerpo, y junta los omóplatos al final medio segundo.',
+      'Vuelve despacio hasta estirar los brazos y deja que los omóplatos se separen, sin subir los hombros hacia las orejas.',
     ],
   },
   {
@@ -210,10 +211,10 @@ export const CATALOGO = [
     id: 'elev-laterales', nombre: 'Elevaciones laterales, mancuernas a dos manos', grupo: 'Hombro', sec: [], equipo: 'Mancuernas',
     en: 'Side Lateral Raise', rep: [12, 15], rir: '0-1', descanso: 60, incremento: 1, tipo: 'peso',
     claves: [
+      'Mancuernas a dos manos. Nunca polea a un brazo (te molesta el hombro izquierdo).',
       'Pulgar ligeramente hacia arriba, nunca el meñique alto.',
       'Para a la altura del hombro y no subas más.',
       'Codo semiflexionado y fijo: sube el codo, no la mano.',
-      'Mancuernas a dos manos, no polea a un brazo (te molesta el hombro izquierdo).',
     ],
   },
   {
@@ -268,7 +269,7 @@ export const CATALOGO = [
   // ============================================================ Bíceps
   {
     id: 'curl-biceps-maquina', nombre: 'Curl bíceps en máquina', grupo: 'Bíceps', sec: [], equipo: 'Máquina',
-    en: 'Machine Bicep Curl', rep: [10, 12], rir: '0-1', descanso: 60, incremento: 2.5, tipo: 'peso',
+    en: 'Machine Bicep Curl', rep: [12, 15], rir: '0-1', descanso: 60, incremento: 2.5, tipo: 'peso',
     claves: [
       'Codo alineado con el eje de la máquina y pegado a la almohadilla.',
       'Sube sin despegar el codo ni echar el cuerpo atrás.',
@@ -314,7 +315,7 @@ export const CATALOGO = [
   },
   {
     id: 'curl-predicador', nombre: 'Curl predicador en máquina', grupo: 'Bíceps', sec: [], equipo: 'Máquina',
-    en: 'Machine Preacher Curls', rep: [10, 12], rir: '0-1', descanso: 60, incremento: 2.5, tipo: 'peso',
+    en: 'Machine Preacher Curls', rep: [12, 15], rir: '0-1', descanso: 60, incremento: 2.5, tipo: 'peso',
     claves: [
       'Axilas pegadas al borde del cojín.',
       'Sube sin despegar los codos.',
@@ -402,13 +403,13 @@ export const CATALOGO = [
 
   // ============================================================ Cuádriceps
   {
-    id: 'prensa', nombre: 'Prensa, recorrido hasta 90°', grupo: 'Cuádriceps', sec: ['Glúteo', 'Femoral'], equipo: 'Máquina',
+    id: 'prensa', nombre: 'Prensa', grupo: 'Cuádriceps', sec: ['Glúteo', 'Femoral'], equipo: 'Máquina',
     en: 'Leg Press', rep: [10, 12], rir: '2', descanso: 120, incremento: 5, tipo: 'peso',
     claves: [
-      'Baja solo hasta 90° de flexión de rodilla, ni un grado más, por el menisco.',
-      'Si los talones se despegan de la plataforma, has bajado demasiado.',
-      'Pies a la anchura de la cadera y algo altos en la plataforma: quita recorrido a la rodilla.',
-      'Empuja con mediopié y talón, y no bloquees la rodilla arriba.',
+      'Recorrido por exposición progresiva, sin tope fijo de 90°: empieza en el recorrido que haces ahora y baja un poco más cada 2-3 semanas.',
+      'Si ese día y el siguiente no hay molestia en la rodilla, te quedas con el rango nuevo; si la hay, vuelves al anterior.',
+      'Talón despegado de la plataforma = has bajado de más.',
+      'Pies a la anchura de la cadera; empuja con mediopié y talón, y no bloquees la rodilla arriba.',
     ],
   },
   {
@@ -565,6 +566,18 @@ export const CATALOGO = [
     ],
   },
   {
+    id: 'glute-kick-bioarc', nombre: 'Glute kick en máquina Bio-Arc', grupo: 'Glúteo', sec: ['Femoral'], equipo: 'Máquina',
+    en: 'Glute Kickback', rep: [12, 15], rir: '1-2', descanso: 90, incremento: 2.5, tipo: 'peso',
+    fotoNota: 'La foto es la patada de glúteo en el suelo: la postura es la misma que en la Bio-Arc, que además apoya el pecho.',
+    claves: [
+      'De rodillas en la máquina, con el pecho apoyado en el cojín.',
+      'La rodilla que trabaja, doblada a 90° todo el recorrido. Si se estira, el cuádriceps entra a estabilizar y se nota encima de la rodilla.',
+      'Empuja con el talón hacia arriba y atrás hasta que el muslo quede en línea con el cuerpo, y aprieta el glúteo un segundo.',
+      'Costillas abajo y abdomen firme: la lumbar no se arquea al final para ganar recorrido.',
+      'Baja despacio sin dejar descansar el peso; acaba las repeticiones de una pierna y cambia a la otra.',
+    ],
+  },
+  {
     id: 'abductores', nombre: 'Abductores en máquina', grupo: 'Glúteo', sec: [], equipo: 'Máquina',
     en: 'Thigh Abductor', rep: [15, 15], rir: '0-1', descanso: 60, incremento: 2.5, tipo: 'peso',
     claves: [
@@ -576,11 +589,12 @@ export const CATALOGO = [
   },
   {
     id: 'aductores', nombre: 'Aductores en máquina', grupo: 'Glúteo', sec: [], equipo: 'Máquina',
-    en: 'Thigh Adductor', rep: [12, 15], rir: '0-1', descanso: 60, incremento: 2.5, tipo: 'peso',
+    en: 'Thigh Adductor', rep: [15, 15], rir: '0-1', descanso: 60, incremento: 2.5, tipo: 'peso',
     claves: [
-      'Espalda apoyada, piernas abiertas hasta donde estés cómoda.',
-      'Cierra las piernas y aprieta un segundo.',
-      'Abre despacio, sin que las placas choquen.',
+      'Espalda apoyada en el respaldo y cadera pegada al asiento todo el recorrido.',
+      'Pon la apertura de salida donde notes un estiramiento suave en la ingle, no más: el recorrido se gana poco a poco.',
+      'Cierra las piernas y aprieta un segundo, sin que las almohadillas choquen.',
+      'Abre despacio, en 2-3 segundos, sin impulso ni balanceo del tronco.',
     ],
   },
   {
@@ -597,12 +611,12 @@ export const CATALOGO = [
   // ============================================================ Gemelo
   {
     id: 'gemelo-de-pie', nombre: 'Gemelo de pie', grupo: 'Gemelo', sec: [], equipo: 'Máquina',
-    en: 'Standing Calf Raises', rep: [12, 15], rir: '0-1', descanso: 60, incremento: 2.5, tipo: 'peso',
+    en: 'Standing Calf Raises', rep: [15, 20], rir: '0-1', descanso: 60, incremento: 2.5, tipo: 'peso',
     claves: [
-      'Recorrido completo: baja el talón hasta estirar y sube hasta la punta.',
-      'Un segundo de pausa arriba y otro abajo, sin rebotar.',
-      'Rodilla estirada pero sin bloquear.',
-      'Peso en el dedo gordo, sin dejar caer el tobillo hacia fuera.',
+      'Es trabajo de movilidad para la fascia plantar, no de volumen: poco peso.',
+      'Recorrido completo: baja el talón estirando bien abajo y sube hasta la punta.',
+      'Un segundo de pausa abajo, en el estiramiento, y otro arriba, sin rebotar.',
+      'Rodilla estirada pero sin bloquear, peso en el dedo gordo.',
     ],
   },
   {
@@ -627,12 +641,12 @@ export const CATALOGO = [
   // ============================================================ Abdomen
   {
     id: 'crunch-maquina', nombre: 'Crunch en máquina', grupo: 'Abdomen', sec: [], equipo: 'Máquina',
-    en: 'Ab Crunch Machine', rep: [12, 15], rir: '0-1', descanso: 60, incremento: 2.5, tipo: 'peso',
+    en: 'Ab Crunch Machine', rep: [12, 15], rir: '0-1', descanso: 60, incremento: 5, tipo: 'peso',
     claves: [
+      'Recorrido corto: no te estires del todo hacia atrás, por la molestia bajo el pecho.',
       'Acerca las costillas a la pelvis; no es doblar la cadera.',
-      'Exhala al bajar y mete el abdomen.',
-      'Vuelve solo hasta antes de que la placa descanse, manteniendo la tensión.',
-      'La barbilla no cambia de posición: nada de tirar del cuello.',
+      'Exhala al bajar y mete el abdomen. La barbilla no cambia de posición: nada de tirar del cuello.',
+      'Si vuelve la molestia bajo el pecho, cámbialo por el crunch en polea alta de rodillas (botón ⇄ en el entreno).',
     ],
   },
   {
@@ -692,7 +706,7 @@ export const CATALOGO = [
 ];
 
 // Ejercicios a una mano o una pierna: cada serie se apunta por lado (izquierda y derecha).
-const POR_LADOS = new Set(['remo-mancuerna', 'zancadas', 'bulgara', 'extension-cadera', 'elev-laterales-polea', 'patada-triceps', 'pallof']);
+const POR_LADOS = new Set(['remo-mancuerna', 'zancadas', 'bulgara', 'extension-cadera', 'glute-kick-bioarc', 'elev-laterales-polea', 'patada-triceps', 'pallof']);
 for (const e of CATALOGO) if (POR_LADOS.has(e.id)) e.lados = true;
 
 export const CATALOGO_POR_ID = new Map(CATALOGO.map((e) => [e.id, e]));

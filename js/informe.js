@@ -2,7 +2,7 @@
 // series tal cual las hiciste (peso, repeticiones y RIR de cada una) y, en textoTodo,
 // además cada comida con sus macros, el objetivo de cada día, el peso y los pasos.
 
-import { E } from './estado.js';
+import { E, tituloSesion, conAjustes } from './estado.js';
 import * as db from './db.js';
 import * as L from './logica.js';
 import * as S from './seed.js';
@@ -60,7 +60,7 @@ export function textoSerie(r, ej) {
 
 export function textoSesion(s) {
   const min = s.fin ? Math.round((new Date(s.fin) - new Date(s.inicio)) / 60000) : null;
-  const titulo = s.plan === 'L' ? 'Entreno libre' : `Sesión ${s.plan} · ${s.nombre}`;
+  const titulo = tituloSesion(s);
   const l = [`## ${titulo} — ${fechaCompleta(s.fecha)}`];
   if (s.horaDesconocida) l.push('Hora y duración: no se apuntaron (registrado a mano después; pesos, reps y RIR son los reales).');
   else l.push(`Hora: ${hora(s.inicio)}${s.fin ? `–${hora(s.fin)} (${min} min)` : ' (sin terminar)'}${s.cerradaSola ? ' · se guardó sola al quedarse abierta' : ''}`);
@@ -72,7 +72,7 @@ export function textoSesion(s) {
   }
   let volumen = 0, total = 0;
   for (const g of ejerciciosDeSesion(s)) {
-    const ej = g.ej;
+    const ej = conAjustes(g.ej, g.plan);
     const objetivo = ej ? ` (objetivo: ${g.plan?.series ?? '?'} series${ej.lados ? ' por lado' : ''} de ${ej.repMin}–${ej.repMax} ${ej.segundos ? 'segundos' : 'reps'}, RIR ${ej.rir})` : '';
     if (!g.series.length) { l.push(`- ${g.nombre}${objetivo}: no hecho`); continue; }
     l.push(`- ${g.nombre}${objetivo}:`);
@@ -86,13 +86,18 @@ export function textoSesion(s) {
   return l.join('\n');
 }
 
+const rotacion = () => S.ORDEN_SESIONES.map((p) => E.rutina[p]?.nombre || p).join(' → ');
+const LIMITACIONES = 'menisco (prensa con recorrido por exposición progresiva: bajo un poco más cada 2-3 semanas si no hay molestia ese día ni al siguiente), '
+  + 'hombro izquierdo (elevaciones laterales con mancuernas a dos manos, nunca polea a un brazo), '
+  + 'molestia bajo el pecho (crunch en máquina con recorrido corto) y fascia plantar (gemelo de pie como movilidad, poco peso)';
+
 export function textoEntrenos(sesiones, alcance) {
   const lista = [...sesiones].sort((a, b) => (a.inicio < b.inicio ? -1 : 1));
   const cab = [
     `# Mis entrenos — ${alcance}`,
-    'Rutina en rotación A → B → C → D. Cada serie: peso en kg, repeticiones y RIR (repeticiones que me quedaban en recámara).',
+    `Rutina en rotación ${rotacion()}. Las sesiones con letra (A-D) son de la rutina anterior. Cada serie: peso en kg, repeticiones y RIR (repeticiones que me quedaban en recámara).`,
     'Progresión doble: subo peso cuando hago todas las series al tope del rango con RIR 1 o más.',
-    'Limitaciones: menisco (prensa solo hasta 90°) y hombro izquierdo (elevaciones laterales con mancuernas a dos manos, nunca polea a un brazo).',
+    `Limitaciones: ${LIMITACIONES}.`,
   ];
   if (E.fase?.motivo) cab.push(`Fase actual: ${E.fase.motivo}`);
   if (!lista.length) return cab.join('\n') + '\n\nAún no hay entrenos terminados.';
@@ -132,8 +137,8 @@ export async function textoTodo(dias = 0) {
     `# Mis datos de Entreno — ${dias ? `últimos ${dias} días` : 'todo'} (${fechaCompleta(desde)} a ${fechaCompleta(hoy)})`,
     '## Mi plan',
     `- Comida: ${n0(o.kcalEntreno)} kcal los días de gimnasio y ${n0(o.kcalDescanso)} los días sin; proteína ${o.proteina} g siempre, grasa ${o.grasa} g y los hidratos lo que queda; nunca por debajo de ${n0(o.sueloKcal)} kcal.`,
-    '- Entreno: rutina en rotación A → B → C → D. Cada serie con peso (kg), repeticiones y RIR (repeticiones que me quedaban en recámara). Progresión doble: subo peso cuando hago todas las series al tope del rango con RIR 1 o más.',
-    '- Limitaciones: menisco (prensa solo hasta 90°) y hombro izquierdo (elevaciones laterales con mancuernas a dos manos, nunca polea a un brazo).',
+    `- Entreno: rutina en rotación ${rotacion()} (las sesiones con letra, A-D, son de la rutina anterior). Cada serie con peso (kg), repeticiones y RIR (repeticiones que me quedaban en recámara). Progresión doble: subo peso cuando hago todas las series al tope del rango con RIR 1 o más.`,
+    `- Limitaciones: ${LIMITACIONES}.`,
   ];
   if (E.fase?.motivo) cab.push(`- Fase actual: ${E.fase.motivo}`);
 

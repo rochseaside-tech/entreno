@@ -85,6 +85,12 @@ function CENA_9_SEP() {
 // cambia lo que hay). Se aplican una vez, igual que los registros.
 export const CAMBIOS_PENDIENTES = [
   {
+    // 15 sep 2026: rutina Torso 1 → Pierna 1 → Torso 2 → Pierna 2 en lugar de A-B-C-D.
+    // Sustituye la rutina guardada; los entrenos hechos no se tocan.
+    id: 'rutina-torso-pierna-2026-09-15',
+    rutina: true,
+  },
+  {
     id: 'sopa-pollo-macros-2026-09-10',
     receta: 'Sopa de pollo con col china y miso',
     macrosRacion: { kcal: 445, prot: 36, grasa: 13, hc: 41, fibra: 4, sal: 1.9 },

@@ -1,5 +1,6 @@
 import * as L from './js/logica.js';
 import * as S from './js/seed.js';
+import { CATALOGO } from './js/datos/catalogo-ejercicios.js';
 
 let ok = 0, mal = 0;
 const comprobar = (nombre, cond, extra = '') => {
@@ -7,7 +8,8 @@ const comprobar = (nombre, cond, extra = '') => {
   else { mal++; console.log('  MAL ', nombre, extra); }
 };
 
-const ej = S.EJERCICIOS.find(e => e.id === 'jalon-prono'); // 8-12, +2.5
+const delCatalogo = (id) => { const c = CATALOGO.find(e => e.id === id); return { ...c, repMin: c.rep[0], repMax: c.rep[1], pesoInicial: S.PESOS_INICIALES[id] ?? null }; };
+const ej = delCatalogo('jalon-prono'); // 8-12, +2.5
 const faseNormal = { semana: 5, reacondicionamiento: false, descarga: false, rirForzado: null };
 
 const serie = (sesionId, fecha, i, peso, reps, rir) => ({ sesionId, fecha, indice: i, peso, reps, rir, ejercicioId: ej.id });
@@ -35,6 +37,27 @@ comprobar('3 sesiones clavadas -> bajar 10% (40 -> 35, el múltiplo de 2,5 más 
 s = ['2026-08-20','2026-08-24','2026-08-28'].flatMap((f, k) =>
   [0,1,2].map(i => serie('s'+k, f, i, 40, 9 + k, 1)));
 comprobar('reps mejorando -> NO es estancamiento', L.analizarEjercicio(ej, s, faseNormal).aviso === null);
+
+console.log('\n--- Máquinas en libras (saltos desde el peso real) ---');
+const pecho = delCatalogo('press-pecho-maquina'); // 10-12, +2.5, arranque 22,7
+const sp = (i, peso, reps, rir, ses = 's1', f = '2026-09-20') => ({ sesionId: ses, fecha: f, indice: i, peso, reps, rir, ejercicioId: pecho.id });
+a = L.analizarEjercicio(pecho, [0,1,2].map(i => sp(i, 22.7, 12, 2)), faseNormal);
+comprobar(`22,7 al tope -> sube a 25,2, no a 25 (${a.pesoSugerido})`, a.aviso?.tipo === 'subir' && a.pesoSugerido === 25.2);
+a = L.analizarEjercicio(pecho, ['2026-09-20','2026-09-24','2026-09-28'].flatMap((f, k) => [0,1,2].map(i => sp(i, 22.7, 10, 1, 's'+k, f))), faseNormal);
+comprobar(`22,7 estancado -> baja un salto a 20,2 (${a.pesoSugerido})`, a.aviso?.tipo === 'estancado' && a.pesoSugerido === 20.2);
+comprobar('prensa 95,8 estancada (+5) -> 85,8', L.bajarCarga(95.8, 5) === 85.8);
+
+console.log('\n--- Rutina nueva: peso de arranque ---');
+a = L.analizarEjercicio(pecho, [0,1,2].map(i => sp(i, 30, 12, 2)), faseNormal, { arranque: true });
+comprobar(`primera vez: manda la tabla (22,7), no el historial (${a.pesoSugerido})`, a.pesoSugerido === 22.7 && a.aviso?.tipo === 'arranque');
+a = L.analizarEjercicio(delCatalogo('remo-maquina'), [], faseNormal, { arranque: true });
+comprobar(`tantear: sin peso propuesto (${a.pesoSugerido})`, a.pesoSugerido === null && a.aviso.texto.includes('tantea'));
+comprobar('hip thrust de Pierna 2: 3 series de 12-15 y 90 s',
+  JSON.stringify(S.RUTINA.P2.ejercicios.find(x => x.id === 'hip-thrust')) === '{"id":"hip-thrust","series":3,"repMin":12,"repMax":15,"descanso":90}');
+const todos = Object.values(S.RUTINA).flatMap(d => d.ejercicios.map(x => x.id));
+comprobar('todos los ejercicios de la rutina están en el catálogo', todos.every(id => CATALOGO.some(c => c.id === id)), todos.filter(id => !CATALOGO.some(c => c.id === id)));
+comprobar('la extensión de cadera ya no está en la rutina', !todos.includes('extension-cadera'));
+comprobar('glute kick por pierna', CATALOGO.find(c => c.id === 'glute-kick-bioarc').lados === true);
 
 console.log('\n--- Fases del bloque ---');
 comprobar('sin primera sesión -> reacondicionamiento RIR 3-4', L.faseActual(null).rirForzado === '3-4');
@@ -83,10 +106,14 @@ comprobar('−300/día es imposible con suelo 1600: se recorta a −80 y lo dice
 rep = L.repartoSugerido(1400, 2);
 comprobar('desvío grande -> se recorta al suelo (−80/día)', rep.porDia === -80 && rep.recortado, JSON.stringify(rep));
 
-console.log('\n--- Rotación A-B-C-D ---');
-comprobar('sin historial -> A', L.siguienteSesion([], S.ORDEN_SESIONES) === 'A');
-comprobar('tras D -> A', L.siguienteSesion([{plan:'D'}], S.ORDEN_SESIONES) === 'A');
-comprobar('tras B -> C', L.siguienteSesion([{plan:'A'},{plan:'B'}], S.ORDEN_SESIONES) === 'C');
+console.log('\n--- Rotación Torso 1 → Pierna 1 → Torso 2 → Pierna 2 ---');
+const rot = (h) => L.siguienteSesion(h.map(plan => ({ plan })), S.ORDEN_SESIONES, S.PLAN_ANTERIOR);
+comprobar('sin historial -> Torso 1', rot([]) === 'T1');
+comprobar('tras Pierna 2 -> Torso 1', rot(['P2']) === 'T1');
+comprobar('tras Pierna 1 -> Torso 2', rot(['T1', 'P1']) === 'T2');
+comprobar('sigue desde la rutina anterior: tras D -> Torso 1', rot(['A', 'B', 'C', 'D']) === 'T1');
+comprobar('sigue desde la rutina anterior: tras B -> Torso 2', rot(['A', 'B']) === 'T2');
+comprobar('los entrenos libres no cuentan', rot(['A', 'L']) === 'P1');
 
 console.log('\n--- Semana ISO ---');
 comprobar('lunes de un domingo', L.lunesDe('2026-09-13') === '2026-09-07');

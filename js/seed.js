@@ -48,299 +48,119 @@ export const RAPIDAS = [
   },
 ];
 
-const yt = (n) => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(n + ' técnica ejecución');
+// Tus pesos de arranque (kg), de la tabla del 15 sep 2026. null = tantear: sin peso
+// propuesto la primera vez. La técnica, el rango de repeticiones, el RIR, el descanso y
+// el incremento de cada ejercicio están en datos/catalogo-ejercicios.js.
+export const PESOS_INICIALES = {
+  // Torso 1
+  'jalon-prono': 32.5, 'remo-sentado': 36, 'press-pecho-maquina': 22.7, 'press-hombro-maquina': 16,
+  'triceps-polea': 20, 'curl-biceps-maquina': null,
+  // Pierna 1
+  'hip-thrust': 30, 'glute-kick-bioarc': null, 'curl-femoral-sentado': 59, 'abductores': 34.1,
+  'aductores': null, 'crunch-maquina': 40,
+  // Torso 2
+  'jalon-neutro': 32, 'remo-maquina': null, 'deltoides-posterior': 9.1, 'elev-laterales': 4,
+  'triceps-sobre-cabeza': 24.5, 'curl-predicador': 11.4,
+  // Pierna 2
+  'prensa': 95.8, 'extension-cuadriceps': 40.8, 'curl-femoral-tumbado': 22.7, 'gemelo-de-pie': 22.7,
+  // Fuera de la rutina
+  'hiperextensiones': 0, 'extension-cadera': null,
+};
 
-// tipo: 'peso' = carga en kg | 'corporal' = peso corporal, la carga es lastre | 'tantear' = sin peso inicial
-export const EJERCICIOS = [
-  // ---------- Sesión A ----------
-  {
-    id: 'jalon-prono', nombre: 'Jalón al pecho, agarre prono', repMin: 8, repMax: 12, rir: '2',
-    pesoInicial: 30, incremento: 2.5, descanso: 120, tipo: 'peso',
-    claves: [
-      'Manos algo más anchas que los hombros, agarre prono.',
-      'Pecho alto: la barra baja a la clavícula, nunca a la nuca.',
-      'Piensa en bajar los codos hacia el suelo, no en tirar con las manos.',
-      'Sube controlado y deja que el omóplato se estire arriba, sin encoger el hombro.',
-    ],
-  },
-  {
-    id: 'remo-sentado', nombre: 'Remo sentado', repMin: 8, repMax: 12, rir: '2',
-    pesoInicial: 36, incremento: 2.5, descanso: 120, tipo: 'peso',
-    claves: [
-      'Pecho alto y espalda neutra: el tronco casi no se mueve.',
-      'Codos pegados al cuerpo hasta pasar la línea del torso.',
-      'Junta los omóplatos al final y aguanta medio segundo.',
-      'Estira los brazos del todo al soltar, sin redondear la espalda.',
-    ],
-  },
-  {
-    id: 'press-hombro-maquina', nombre: 'Press hombro en máquina', repMin: 8, repMax: 12, rir: '2',
-    pesoInicial: 16, incremento: 2.5, descanso: 90, tipo: 'peso',
-    claves: [
-      'Asiento a la altura de que las asas queden a la altura del hombro, no más arriba.',
-      'Espalda apoyada y costillas abajo, sin arquear la lumbar.',
-      'Sube sin bloquear el codo de golpe.',
-      'Baja solo hasta que el codo quede un poco por debajo del hombro y para ahí (hombro izquierdo).',
-    ],
-  },
-  {
-    id: 'elev-laterales', nombre: 'Elevaciones laterales, mancuernas a dos manos', repMin: 12, repMax: 15, rir: '0-1',
-    pesoInicial: 3, incremento: 1, descanso: 60, tipo: 'peso',
-    claves: [
-      'Pulgar ligeramente hacia arriba, nunca el meñique alto.',
-      'Para a la altura del hombro y no subas más.',
-      'Codo semiflexionado y fijo: sube el codo, no la mano.',
-      'Mancuernas a dos manos, no polea a un brazo (te molesta el hombro izquierdo).',
-    ],
-  },
-  {
-    id: 'triceps-sobre-cabeza', nombre: 'Extensión de tríceps sobre la cabeza en polea', repMin: 10, repMax: 12, rir: '0-1',
-    pesoInicial: 12, incremento: 2.5, descanso: 60, tipo: 'peso',
-    claves: [
-      'Codos al frente y pegados a la cabeza: no se abren.',
-      'Solo se mueve el antebrazo, el codo se queda quieto.',
-      'Da un paso adelante de la polea para que la tracción venga de detrás.',
-      'Estira del todo arriba sin bloquear de golpe.',
-    ],
-  },
-
-  // ---------- Sesión B ----------
-  {
-    id: 'hip-thrust', nombre: 'Hip thrust en máquina', repMin: 10, repMax: 12, rir: '1-2',
-    pesoInicial: 45, incremento: 5, descanso: 120, tipo: 'peso',
-    claves: [
-      'El borde del respaldo justo debajo del omóplato.',
-      'Barbilla metida y costillas abajo: el movimiento es de cadera, la lumbar no se arquea.',
-      'Sube empujando con los talones hasta alinear hombro, cadera y rodilla, y aprieta un segundo.',
-      'Espinilla vertical arriba: si los pies quedan muy cerca, trabaja el cuádriceps y molesta la rodilla.',
-    ],
-  },
-  {
-    id: 'hiperextensiones', nombre: 'Hiperextensiones en banco de 45°', repMin: 12, repMax: 15, rir: '1-2',
-    pesoInicial: 0, incremento: 2.5, descanso: 90, tipo: 'corporal', alternativa: 'extension-cadera',
-    claves: [
-      'Almohadilla justo por debajo de la cadera, para que la cadera pueda doblarse libre.',
-      'Baja doblando por la cadera con la espalda neutra, hasta notar el femoral.',
-      'Sube solo hasta la línea del cuerpo: nada de hiperextender arriba.',
-      'Empieza a peso corporal y añade disco solo cuando pases de 15 repeticiones limpias.',
-    ],
-  },
-  {
-    id: 'extension-cadera', nombre: 'Extensión de cadera en máquina (patada de glúteo de pie)', repMin: 12, repMax: 15, rir: '1-2',
-    pesoInicial: null, incremento: 2.5, descanso: 90, tipo: 'tantear',
-    claves: [
-      'Tronco apoyado y firme, sin balancearte para ayudarte.',
-      'Empuja con el talón y sube solo hasta la línea del cuerpo.',
-      'Aprieta el glúteo un segundo arriba y baja controlado.',
-      'Rodilla poco flexionada y fija durante todo el recorrido.',
-    ],
-  },
-  {
-    id: 'curl-femoral-sentado', nombre: 'Curl femoral sentado', repMin: 10, repMax: 12, rir: '0-1',
-    pesoInicial: 32, incremento: 2.5, descanso: 90, tipo: 'peso',
-    claves: [
-      'Rodilla alineada con el eje de giro de la máquina.',
-      'Almohadilla justo por encima del tobillo, no sobre el gemelo.',
-      'Baja los talones con fuerza y vuelve lento, 2-3 segundos.',
-      'Glúteo pegado al asiento: si se despega, baja el peso.',
-    ],
-  },
-  {
-    id: 'abductores', nombre: 'Abductores en máquina', repMin: 15, repMax: 15, rir: '0-1',
-    pesoInicial: null, incremento: 2.5, descanso: 60, tipo: 'tantear',
-    claves: [
-      'Espalda apoyada; inclinarte un poco hacia delante lleva el trabajo al glúteo medio.',
-      'Abre hasta el final del recorrido cómodo y aguanta un segundo.',
-      'Vuelve despacio, sin que las placas lleguen a chocar.',
-      'Sin balanceo del tronco para ayudarte.',
-    ],
-  },
-  {
-    id: 'crunch-maquina', nombre: 'Crunch en máquina', repMin: 12, repMax: 15, rir: '0-1',
-    pesoInicial: null, incremento: 2.5, descanso: 60, tipo: 'tantear',
-    claves: [
-      'Acerca las costillas a la pelvis; no es doblar la cadera.',
-      'Exhala al bajar y mete el abdomen.',
-      'Vuelve solo hasta antes de que la placa descanse, manteniendo la tensión.',
-      'La barbilla no cambia de posición: nada de tirar del cuello.',
-    ],
-  },
-
-  // ---------- Sesión C ----------
-  {
-    id: 'jalon-neutro', nombre: 'Jalón agarre neutro', repMin: 10, repMax: 12, rir: '2',
-    pesoInicial: 28, incremento: 2.5, descanso: 120, tipo: 'peso',
-    claves: [
-      'Agarre neutro (palmas enfrentadas), manos a la anchura de los hombros.',
-      'Pecho arriba y ligera inclinación atrás, que se mantiene quieta.',
-      'Lleva los codos hacia las caderas; el agarre baja a la parte alta del pecho.',
-      'Sube en 2 segundos hasta estirar del todo.',
-    ],
-  },
-  {
-    id: 'press-pecho-maquina', nombre: 'Press de pecho en máquina', repMin: 10, repMax: 12, rir: '2',
-    pesoInicial: 22, incremento: 2.5, descanso: 120, tipo: 'peso',
-    claves: [
-      'Asiento de forma que las asas queden a la altura media del pecho, no del cuello.',
-      'Omóplatos juntos y apoyados en el respaldo todo el movimiento.',
-      'Empuja sin bloquear el codo y sin adelantar el hombro al final.',
-      'Vuelve solo hasta que la mano quede en la línea del pecho, no más atrás.',
-    ],
-  },
-  {
-    id: 'deltoides-posterior', nombre: 'Deltoides posterior en máquina (pájaros)', repMin: 12, repMax: 15, rir: '0-1',
-    pesoInicial: null, incremento: 2.5, descanso: 60, tipo: 'tantear',
-    claves: [
-      'Pecho apoyado y hombros bajos, lejos de las orejas.',
-      'Abre con los codos, no con las manos.',
-      'Para cuando los brazos lleguen a la línea del cuerpo.',
-      'Peso bajo y repeticiones limpias: aquí el balanceo no aporta nada.',
-    ],
-  },
-  {
-    id: 'triceps-polea', nombre: 'Extensión de tríceps en polea', repMin: 10, repMax: 12, rir: '0-1',
-    pesoInicial: 18, incremento: 2.5, descanso: 60, tipo: 'peso',
-    claves: [
-      'Codos pegados al costado y fijos: solo se mueve el antebrazo.',
-      'Tronco casi vertical, con una ligera inclinación adelante.',
-      'Estira del todo abajo y aprieta un segundo.',
-      'Sube controlada hasta que el antebrazo pase la horizontal.',
-    ],
-  },
-  {
-    id: 'curl-biceps-maquina', nombre: 'Curl bíceps en máquina', repMin: 10, repMax: 12, rir: '0-1',
-    pesoInicial: null, incremento: 2.5, descanso: 60, tipo: 'tantear',
-    claves: [
-      'Codo alineado con el eje de la máquina y pegado a la almohadilla.',
-      'Sube sin despegar el codo ni echar el cuerpo atrás.',
-      'Baja en 2-3 segundos hasta casi estirar del todo.',
-      'Muñeca neutra, ni doblada hacia atrás.',
-    ],
-  },
-
-  // ---------- Sesión D ----------
-  {
-    id: 'prensa', nombre: 'Prensa, recorrido hasta 90°', repMin: 10, repMax: 12, rir: '2',
-    pesoInicial: 85, incremento: 5, descanso: 120, tipo: 'peso',
-    claves: [
-      'Baja solo hasta 90° de flexión de rodilla, ni un grado más, por el menisco.',
-      'Si los talones se despegan de la plataforma, has bajado demasiado.',
-      'Pies a la anchura de la cadera y algo altos en la plataforma: quita recorrido a la rodilla.',
-      'Empuja con mediopié y talón, y no bloquees la rodilla arriba.',
-    ],
-  },
-  {
-    id: 'extension-cuadriceps', nombre: 'Extensión de cuádriceps', repMin: 12, repMax: 15, rir: '0-1',
-    pesoInicial: 45, incremento: 2.5, descanso: 90, tipo: 'peso',
-    claves: [
-      'Arranca desde 90°, sin dejar caer la pierna más atrás entre repeticiones.',
-      'Ajusta el respaldo para que la rodilla coincida con el eje de giro.',
-      'Sube hasta estirar y aguanta un segundo arriba.',
-      'Baja controlada y frena en los 90°: ahí termina la repetición.',
-    ],
-  },
-  {
-    id: 'curl-femoral-tumbado', nombre: 'Curl femoral tumbado', repMin: 10, repMax: 12, rir: '0-1',
-    pesoInicial: 30, incremento: 2.5, descanso: 90, tipo: 'peso',
-    claves: [
-      'Cadera pegada al banco; si se despega, baja el peso.',
-      'Almohadilla justo por encima del tobillo.',
-      'Sube hasta el final y baja en 2-3 segundos.',
-      'Punta del pie hacia la espinilla para que no se meta el gemelo.',
-    ],
-  },
-  {
-    id: 'gemelo-de-pie', nombre: 'Gemelo de pie', repMin: 12, repMax: 15, rir: '0-1',
-    pesoInicial: null, incremento: 2.5, descanso: 60, tipo: 'tantear',
-    claves: [
-      'Recorrido completo: baja el talón hasta estirar y sube hasta la punta.',
-      'Un segundo de pausa arriba y otro abajo, sin rebotar.',
-      'Rodilla estirada pero sin bloquear.',
-      'Peso en el dedo gordo, sin dejar caer el tobillo hacia fuera.',
-    ],
-  },
-];
-
-for (const e of EJERCICIOS) e.youtube = yt(e.nombre);
-
-// La rutina: qué ejercicios y cuántas series en cada sesión, en orden.
+// La rutina desde el 15 sep 2026, en rotación continua. Cada ejercicio usa su rango, RIR,
+// descanso e incremento del catálogo; si en una sesión lleva otros (el hip thrust de
+// Pierna 2), van en su línea y mandan solo en esa sesión.
 export const RUTINA = {
-  A: {
-    nombre: 'Torso, tirón y hombro',
+  T1: {
+    nombre: 'Torso 1',
     ejercicios: [
       { id: 'jalon-prono', series: 3 },
       { id: 'remo-sentado', series: 3 },
+      { id: 'press-pecho-maquina', series: 3 },
       { id: 'press-hombro-maquina', series: 3 },
-      { id: 'elev-laterales', series: 3 },
-      { id: 'triceps-sobre-cabeza', series: 3 },
+      { id: 'triceps-polea', series: 3 },
+      { id: 'curl-biceps-maquina', series: 2 },
     ],
   },
-  B: {
-    nombre: 'Pierna, cadera',
+  P1: {
+    nombre: 'Pierna 1', nota: 'Dominante de cadera',
     ejercicios: [
       { id: 'hip-thrust', series: 4 },
-      { id: 'hiperextensiones', series: 3 },
+      { id: 'glute-kick-bioarc', series: 3 },
       { id: 'curl-femoral-sentado', series: 3 },
       { id: 'abductores', series: 2 },
+      { id: 'aductores', series: 2 },
       { id: 'crunch-maquina', series: 3 },
     ],
   },
-  C: {
-    nombre: 'Torso, empuje y brazo',
+  T2: {
+    nombre: 'Torso 2',
     ejercicios: [
       { id: 'jalon-neutro', series: 3 },
-      { id: 'press-pecho-maquina', series: 3 },
+      { id: 'remo-maquina', series: 3 },
       { id: 'deltoides-posterior', series: 3 },
-      { id: 'triceps-polea', series: 3 },
-      { id: 'curl-biceps-maquina', series: 3 },
+      { id: 'elev-laterales', series: 3 },
+      { id: 'triceps-sobre-cabeza', series: 3 },
+      { id: 'curl-predicador', series: 2 },
     ],
   },
-  D: {
-    nombre: 'Pierna, rodilla controlada',
+  P2: {
+    nombre: 'Pierna 2', nota: 'Dominante de rodilla',
     ejercicios: [
       { id: 'prensa', series: 4 },
       { id: 'extension-cuadriceps', series: 3 },
       { id: 'curl-femoral-tumbado', series: 3 },
+      { id: 'hip-thrust', series: 3, repMin: 12, repMax: 15, descanso: 90 },
       { id: 'gemelo-de-pie', series: 3 },
       { id: 'crunch-maquina', series: 3 },
     ],
   },
 };
 
-export const ORDEN_SESIONES = ['A', 'B', 'C', 'D'];
+export const ORDEN_SESIONES = ['T1', 'P1', 'T2', 'P2'];
+
+// La rutina anterior (A → B → C → D, hasta el 14 sep 2026). Sus entrenos se quedan como
+// estaban; para la rotación, cada una cuenta como la sesión nueva que la sustituye.
+export const PLAN_ANTERIOR = { A: 'T1', B: 'P1', C: 'T2', D: 'P2' };
+export const RUTINA_ANTERIOR = {
+  A: { nombre: 'Torso, tirón y hombro', ejercicios: ['jalon-prono', 'remo-sentado', 'press-hombro-maquina', 'elev-laterales', 'triceps-sobre-cabeza'] },
+  B: { nombre: 'Pierna, cadera', ejercicios: ['hip-thrust', 'hiperextensiones', 'curl-femoral-sentado', 'abductores', 'crunch-maquina'] },
+  C: { nombre: 'Torso, empuje y brazo', ejercicios: ['jalon-neutro', 'press-pecho-maquina', 'deltoides-posterior', 'triceps-polea', 'curl-biceps-maquina'] },
+  D: { nombre: 'Pierna, rodilla controlada', ejercicios: ['prensa', 'extension-cuadriceps', 'curl-femoral-tumbado', 'gemelo-de-pie', 'crunch-maquina'] },
+};
 
 // Calentamiento de cada sesión, unos 8 minutos. Propuesta del 10 sep 2026 (el plan no
-// traía ninguno): cuida la rodilla (bici con sillín alto, nada por debajo de 90°) y el
-// hombro izquierdo (rotación externa ligera antes de tirar o empujar). Después, las
-// series de aproximación del primer ejercicio.
+// traía ninguno), ajustada el 15 sep a la rutina nueva: cuida la rodilla (bici con sillín
+// alto) y el hombro izquierdo (rotación externa ligera antes de tirar o empujar), y acaba
+// con el primer ejercicio casi sin peso. Después, las series de aproximación.
 export const CALENTAMIENTOS = {
-  A: { min: 8, pasos: [
+  T1: { min: 8, pasos: [
     '4 min de bici o elíptica suave: puedes hablar sin ahogarte.',
     'Rotaciones de hombro con un palo o una goma, brazos estirados: 10 hacia delante y 10 hacia atrás.',
     'Rotación externa en polea muy ligera, codo pegado al cuerpo: 12 con cada brazo, empezando por el izquierdo.',
     'Face pull con la polea muy ligera: 15.',
     'Jalón al pecho casi sin peso: 12, notando cómo bajan los omóplatos.',
   ] },
-  B: { min: 8, pasos: [
+  P1: { min: 8, pasos: [
     '4 min de bici suave, con el sillín alto para que la rodilla no se doble de más.',
     'Puente de glúteo en el suelo: 15, apretando arriba un segundo.',
     'Pasos laterales con goma por encima de las rodillas: 12 hacia cada lado.',
     'Bisagra de cadera con un palo en la espalda: 10, echando la cadera atrás.',
-    'Hiperextensión sin peso y con poco recorrido: 10.',
+    'Patada de glúteo de rodillas en el suelo, sin peso: 10 con cada pierna, con la rodilla doblada a 90°.',
   ] },
-  C: { min: 8, pasos: [
+  T2: { min: 8, pasos: [
     '4 min de bici o elíptica suave.',
     'Rotaciones de hombro con un palo o una goma: 10 hacia delante y 10 hacia atrás.',
-    'Rotación externa en polea muy ligera, codo pegado: 12 con cada brazo.',
-    'Flexiones con las manos apoyadas en un banco: 10, sin llegar a notar el hombro.',
-    'Press de pecho en máquina casi sin peso: 15.',
+    'Rotación externa en polea muy ligera, codo pegado: 12 con cada brazo, empezando por el izquierdo.',
+    'Face pull con la polea muy ligera: 15.',
+    'Jalón agarre neutro casi sin peso: 12, notando cómo bajan los omóplatos.',
   ] },
-  D: { min: 8, pasos: [
+  P2: { min: 8, pasos: [
     '4 min de bici suave, con el sillín alto.',
     'Extensión de cuádriceps casi sin peso: 15, desde 90°, para calentar la rodilla.',
     'Puente de glúteo en el suelo: 15.',
     'Sentarte y levantarte de un banco sin peso: 10, bajando solo hasta 90°.',
-    'Gemelo de pie sin peso: 15.',
+    'Gemelo de pie sin peso: 15, estirando bien abajo.',
   ] },
   L: { min: 6, pasos: [
     '4 min de bici o elíptica suave.',
