@@ -11,7 +11,7 @@ import { REGISTROS_PENDIENTES, CAMBIOS_PENDIENTES } from './datos/registros.js';
 
 // Sube este número cuando añadas datos nuevos a seed.js: la app los incorpora
 // sin tocar lo que tú hayas editado.
-const VERSION_SEMILLA = 8; // 7: melocotón light en lata (10 sep) · 8: carne picada 11 %, tahini del bote, sirope de agave (12 sep)
+const VERSION_SEMILLA = 9; // 7: melocotón light en lata (10 sep) · 8: carne picada 11 %, tahini del bote, sirope de agave (12 sep) · 9: cacahuete desgrasado en polvo y yogur natural 0,0 (16 sep)
 
 export const E = {
   listo: false,

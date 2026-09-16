@@ -180,6 +180,8 @@ export const ALIMENTOS = [
   { nombre: 'Kéfir natural', cat: 'Lácteos', kcal: 65, prot: 3.3, grasa: 3.5, hc: 4.3, fibra: 0, sal: 0.1, medida: 'g', racion: 250 },
   { nombre: 'Leche desnatada sin lactosa', cat: 'Lácteos', kcal: 34, prot: 3.1, grasa: 0.3, hc: 4.7, fibra: 0, sal: 0.13, medida: 'ml', racion: 200, exacto: true },
   { nombre: 'Yogur griego ligero', cat: 'Lácteos', kcal: 60, prot: 5, grasa: 2, hc: 5, fibra: 0, sal: 0.15, medida: 'g', racion: 100 },
+  { nombre: 'Yogur natural 0,0 edulcorado', cat: 'Lácteos', kcal: 36, prot: 4.3, grasa: 0.2, hc: 4, fibra: 0, sal: 0.15, medida: 'g', racion: 125, exacto: true,
+    gramosUnidad: 125, nota: 'Un yogur son 125 g: 45 kcal y 5,4 g de proteína. Los 4 g de hidratos son los azúcares de la leche.' },
   { nombre: 'Whey Prime en polvo', cat: 'Lácteos', kcal: 387, prot: 81, grasa: 5.2, hc: 4.1, fibra: 0, sal: 0.3, medida: 'g', racion: 25, exacto: true, nota: '2 scoops = 25 g de producto, no 50.' },
   { nombre: 'Mozzarella rallada', cat: 'Lácteos', kcal: 260, prot: 22, grasa: 18, hc: 2, fibra: 0, sal: 1.4, medida: 'g', racion: 30 },
   { nombre: 'Huevo M', cat: 'Lácteos', kcal: 75, prot: 6.5, grasa: 5, hc: 0.4, fibra: 0, sal: 0.15, medida: 'ud', racion: 2, nota: 'Unidad de 55 g.' },
@@ -226,6 +228,8 @@ export const ALIMENTOS = [
   { nombre: 'Aceite de sésamo', cat: 'Grasas', kcal: 900, prot: 0, grasa: 100, hc: 0, fibra: 0, sal: 0, medida: 'g', racion: 5 },
   { nombre: 'Aguacate', cat: 'Grasas', kcal: 160, prot: 2, grasa: 15, hc: 2, fibra: 6.5, sal: 0, medida: 'g', racion: 80, nota: 'A ojo en vez de pesado son +65 kcal al día.' },
   { nombre: 'Nueces', cat: 'Grasas', kcal: 650, prot: 15, grasa: 65, hc: 7, fibra: 6, sal: 0, medida: 'g', racion: 20 },
+  { nombre: 'Cacahuete desgrasado en polvo (Just Loading)', cat: 'Grasas', kcal: 412, prot: 48.9, grasa: 12.6, hc: 18.5, fibra: 9, sal: 0, medida: 'g', racion: 15,
+    nota: 'Valores de la marca (fatsecret), no de la etiqueta: si tienes el bote delante, gana la etiqueta. La fibra está estimada y las 412 kcal salen algo altas para esos macros (calculadas, 383).' },
   { nombre: 'Aceitunas negras', cat: 'Grasas', kcal: 150, prot: 1, grasa: 15, hc: 1, fibra: 3, sal: 3, medida: 'g', racion: 25 },
   { nombre: 'Semillas de chía', cat: 'Grasas', kcal: 486, prot: 17, grasa: 31, hc: 42, fibra: 34, sal: 0, medida: 'g', racion: 12 },
 
