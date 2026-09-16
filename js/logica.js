@@ -115,19 +115,20 @@ export function agruparPorSesion(series) {
 }
 
 // Devuelve qué hiciste la última vez y si toca subir o desatascar.
-// arranque = primera vez con la rutina nueva: manda el peso de arranque de la tabla
-// (o tantear, si no tiene), no lo que hiciste con la rutina anterior.
-export function analizarEjercicio(ejercicio, series, fase, { arranque = false } = {}) {
+// arranque = primera vez con la rutina nueva (o con este agarre): manda el peso de
+// arranque de la tabla (o tantear, si no tiene), no lo que hiciste antes.
+// referencia = { peso, texto } para proponer el peso de otro agarre del mismo ejercicio.
+export function analizarEjercicio(ejercicio, series, fase, { arranque = false, referencia = null } = {}) {
   const grupos = agruparPorSesion(series);
   const ultima = grupos[grupos.length - 1] || null;
 
   if (arranque) {
-    const p = ejercicio.pesoInicial ?? null;
+    const p = referencia?.peso ?? ejercicio.pesoInicial ?? null;
     return {
       ultima, sesionesRegistradas: grupos.length, pesoSugerido: p, grupos, arranque: true,
-      aviso: { tipo: 'arranque', texto: p != null
+      aviso: { tipo: 'arranque', texto: referencia?.texto ?? (p != null
         ? `Rutina nueva: arrancas con ${formatoPeso(p)}.`
-        : 'Rutina nueva: tantea el peso en la primera serie.' },
+        : 'Rutina nueva: tantea el peso en la primera serie.') },
     };
   }
 

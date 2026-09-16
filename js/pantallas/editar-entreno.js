@@ -35,7 +35,7 @@ function borradorDe(s) {
     aprox: !!s.aprox,
     calMin: s.calentamiento?.fin ? String(minEntre(s.calentamiento.inicio, s.calentamiento.fin)) : '',
     cinta: { min: txt(s.cinta?.min), kmh: txt(s.cinta?.kmh), incl: txt(s.cinta?.incl), km: txt(s.cinta?.km) },
-    grupos: ejerciciosDeSesion(s).map((g) => ({ clave: clave(), id: g.id, planSeries: g.plan?.series ?? 0, filas: g.series.map(filaDe) })),
+    grupos: ejerciciosDeSesion(s).map((g) => ({ clave: clave(), id: g.id, planSeries: g.plan?.series ?? 0, variante: g.variante, filas: g.series.map(filaDe) })),
   };
 }
 
@@ -81,12 +81,13 @@ async function guardarBorrador(s, b) {
       const indice = cuenta.get(k) || 0;
       cuenta.set(k, indice + 1);
       const base = f.orig ? { ...f.orig } : { id: db.nuevoId('r'), ts: inicio.getTime() + (nuevas.length + 1) * 60000 };
-      delete base.calent; delete base.lado; delete base.aprox;
+      delete base.calent; delete base.lado; delete base.aprox; delete base.variante;
       nuevas.push({
         ...base, sesionId: s.id, ejercicioId: g.id, item: gi, fecha: b.fecha, indice,
         peso: aNum(f.peso) ?? (ej?.tipo === 'corporal' ? 0 : null), reps,
         rir: f.calent ? null : (aNum(f.rir) ?? null),
         ...(f.calent ? { calent: true } : {}), ...(f.lado ? { lado: f.lado } : {}), ...(b.aprox ? { aprox: true } : {}),
+        ...(g.variante && ej?.variantes ? { variante: g.variante } : {}),
       });
     }
   });
@@ -114,7 +115,8 @@ async function guardarBorrador(s, b) {
       const deTrabajo = nuevas.filter((x) => x.item === gi && !x.calent);
       const aprox = nuevas.filter((x) => x.item === gi && x.calent);
       const calent = Math.max(0, ...aprox.map((x) => x.indice + 1));
-      return { id: g.id, series: Math.max(g.planSeries, seriesCompletas(deTrabajo, ej?.lados)) || 1, ...(calent ? { calent } : {}) };
+      return { id: g.id, series: Math.max(g.planSeries, seriesCompletas(deTrabajo, ej?.lados)) || 1,
+        ...(calent ? { calent } : {}), ...(g.variante && ej?.variantes ? { variante: g.variante } : {}) };
     }),
   };
   delete nueva.calentamiento; delete nueva.cinta; delete nueva.aprox; delete nueva.horaDesconocida;
@@ -157,6 +159,7 @@ export function EditarEntreno({ id }) {
   const cambiarEjercicio = (gi, ej) => actualizar((n) => {
     const g = n.grupos[gi];
     g.id = ej.id;
+    g.variante = null; // el agarre era del ejercicio de antes
     if (!ej.lados) g.filas.forEach((f) => { f.lado = null; });
     else g.filas = g.filas.flatMap((f) => (f.lado ? [f] : [{ ...f, lado: 'izq' }, { ...f, clave: clave(), orig: null, lado: 'der' }]));
   });
@@ -219,6 +222,10 @@ export function EditarEntreno({ id }) {
             </button>
             <button class="mas" aria-label=${'Quitar ' + (ej?.nombre || 'ejercicio')} onClick=${() => actualizar((n) => { n.grupos.splice(gi, 1); })}><${Icono} n="basura" t=${20} /></button>
           </div>
+          ${ej?.variantes && html`<div class="chips ej" style="margin:8px 0 0;padding:0">
+            ${ej.variantes.map((v) => html`<button class=${`chip ${g.variante === v ? 'activo' : ''}`} key=${v}
+              onClick=${() => actualizar((n) => { n.grupos[gi].variante = n.grupos[gi].variante === v ? null : v; })}>${v}</button>`)}
+          </div>`}
           <div class="series">
             ${g.filas.length > 0 && html`<div class="fila-edit cabeza"><span>Serie</span><span>Kg</span><span>${ej?.segundos ? 'Seg' : 'Reps'}</span><span>RIR</span><span></span></div>`}
             ${g.filas.map((f, fi) => html`<div class=${`fila-edit ${f.calent ? 'calent' : ''}`} key=${f.clave}>

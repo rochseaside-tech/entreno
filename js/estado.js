@@ -328,24 +328,47 @@ const planDeSesion = (sesionId) => E.sesiones.find((x) => x.id === sesionId)?.pl
 //   lleva su propia progresión: si no, las 15 reps de una harían subir el peso en la otra.
 // - arranque: aún no lo has hecho en ninguna sesión de la rutina nueva, así que manda
 //   el peso de arranque de la tabla y no lo que hacías con la anterior.
-export function previasPara(ejercicioId, sesion) {
+// - variante: con agarres intercambiables (tríceps en polea), cada uno lleva su propia
+//   progresión; si aún no has hecho ninguna serie con este, se propone el peso del
+//   agarre que usaste la última vez, para no arrancar a ciegas.
+export function previasPara(ejercicioId, sesion, variante = null) {
   const todas = seriesDe(ejercicioId).filter((s) => s.sesionId !== sesion.id && !s.aprox);
-  const plan = planNuevo(sesion.plan);
-  if (!S.ORDEN_SESIONES.includes(plan)) return { previas: todas, arranque: false };
   const base = E.ejercicioPorId.get(ejercicioId);
+  const plan = planNuevo(sesion.plan);
+  const porAgarre = (lista) => (base?.variantes ? lista.filter((s) => (s.variante ?? null) === variante) : lista);
+  // Referencia al estrenar un agarre: lo último que levantaste con otro, aunque sea de
+  // hoy mismo (cambiar de barra a mitad de entreno es justo cuando más falta hace).
+  const otroAgarre = () => {
+    if (!base?.variantes) return null;
+    const otras = seriesDe(ejercicioId).filter((s) => !s.aprox && s.peso > 0 && s.variante && s.variante !== variante);
+    const ultima = otras.sort((a, b) => (a.ts || 0) - (b.ts || 0)).pop();
+    return ultima ? { variante: ultima.variante, peso: ultima.peso } : null;
+  };
+  if (!S.ORDEN_SESIONES.includes(plan)) {
+    const previas = porAgarre(todas);
+    return { previas, arranque: false, otroAgarre: previas.length ? null : otroAgarre() };
+  }
   const rangos = new Set(Object.values(E.rutina).flatMap((d) => d.ejercicios
     .filter((x) => x.id === ejercicioId).map((x) => { const e = conAjustes(base, x); return `${e?.repMin}-${e?.repMax}`; })));
-  const previas = rangos.size > 1 ? todas.filter((s) => planNuevo(planDeSesion(s.sesionId)) === plan) : todas;
+  const previas = porAgarre(rangos.size > 1 ? todas.filter((s) => planNuevo(planDeSesion(s.sesionId)) === plan) : todas);
   const arranque = !previas.some((s) => S.ORDEN_SESIONES.includes(planDeSesion(s.sesionId)));
-  return { previas, arranque };
+  return { previas, arranque, otroAgarre: arranque ? otroAgarre() : null };
+}
+
+// El agarre que usaste la última vez en este ejercicio.
+export function ultimaVariante(ejercicioId) {
+  const con = seriesDe(ejercicioId).filter((s) => s.variante);
+  return con.sort((a, b) => (a.ts || 0) - (b.ts || 0)).pop()?.variante ?? null;
 }
 
 // Máximo a una repetición, calculado (fórmula de Epley). Solo con series de 1 a 12 reps.
 export const unaRM = (peso, reps) => (peso > 0 && reps > 0 && reps <= 12 ? peso * (1 + reps / 30) : 0);
 
-export function records(ejercicioId) {
+// variante: con agarres intercambiables, los récords son de ese agarre (undefined = todos).
+export function records(ejercicioId, variante) {
   // Los entrenos apuntados después con pesos estándar no cuentan para récords.
-  const s = seriesDe(ejercicioId).filter((x) => x.peso > 0 && x.reps > 0 && !x.aprox);
+  const s = seriesDe(ejercicioId).filter((x) => x.peso > 0 && x.reps > 0 && !x.aprox
+    && (variante === undefined || (x.variante ?? null) === variante));
   if (!s.length) return null;
   const mejorPeso = s.reduce((m, x) => (x.peso > m.peso || (x.peso === m.peso && x.reps > m.reps) ? x : m));
   const rm = Math.max(...s.map((x) => unaRM(x.peso, x.reps)));

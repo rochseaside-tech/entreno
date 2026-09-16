@@ -23,9 +23,12 @@ export function ejerciciosDeSesion(s) {
   return ids.map((id) => {
     const plan = s.ejercicios.find((x) => x.id === id);
     const ej = E.ejercicioPorId.get(id);
+    const suyas = series.filter((r) => r.ejercicioId === id).sort(ordenSeries);
     return {
       id, ej, plan, nombre: ej?.nombre || id,
-      series: series.filter((r) => r.ejercicioId === id).sort(ordenSeries),
+      // Agarre usado (tríceps en polea): el de la sesión o el que quedó apuntado en las series.
+      variante: plan?.variante ?? suyas.find((r) => r.variante)?.variante ?? null,
+      series: suyas,
     };
   });
 }
@@ -74,8 +77,9 @@ export function textoSesion(s) {
   for (const g of ejerciciosDeSesion(s)) {
     const ej = conAjustes(g.ej, g.plan);
     const objetivo = ej ? ` (objetivo: ${g.plan?.series ?? '?'} series${ej.lados ? ' por lado' : ''} de ${ej.repMin}–${ej.repMax} ${ej.segundos ? 'segundos' : 'reps'}, RIR ${ej.rir})` : '';
-    if (!g.series.length) { l.push(`- ${g.nombre}${objetivo}: no hecho`); continue; }
-    l.push(`- ${g.nombre}${objetivo}:`);
+    const nombre = g.nombre + (g.variante ? ` (${g.variante})` : '');
+    if (!g.series.length) { l.push(`- ${nombre}${objetivo}: no hecho`); continue; }
+    l.push(`- ${nombre}${objetivo}:`);
     g.series.forEach((r) => {
       l.push(`  - ${etiquetaSerie(r)}: ${textoSerie(r, ej)}${r.calent ? ' (no cuenta)' : ''}`);
       if (!r.calent) { volumen += (r.peso || 0) * (r.reps || 0); total++; }

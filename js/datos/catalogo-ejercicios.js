@@ -7,6 +7,8 @@
 // rep:     rango de repeticiones por defecto. descanso en segundos.
 // tipo:    'peso' = carga en kg | 'corporal' = peso corporal, la carga es lastre
 // aviso:   se enseña en rojo suave. Para la rodilla (menisco) y el hombro izquierdo.
+// variantes: agarres o barras intercambiables del mismo ejercicio. Cada una guarda su
+//          propio peso y su propia progresión, porque no son comparables entre sí.
 
 export const GRUPOS = ['Pecho', 'Espalda', 'Hombro', 'Bíceps', 'Tríceps', 'Cuádriceps', 'Femoral', 'Glúteo', 'Gemelo', 'Abdomen'];
 
@@ -336,11 +338,13 @@ export const CATALOGO = [
   {
     id: 'triceps-polea', nombre: 'Extensión de tríceps en polea', grupo: 'Tríceps', sec: [], equipo: 'Polea',
     en: 'Triceps Pushdown', rep: [10, 12], rir: '0-1', descanso: 60, incremento: 2.5, tipo: 'peso',
+    variantes: ['Barra en V', 'Barra recta', 'Cuerda'],
     claves: [
       'Codos pegados al costado y fijos: solo se mueve el antebrazo.',
       'Tronco casi vertical, con una ligera inclinación adelante.',
       'Estira del todo abajo y aprieta un segundo.',
       'Sube controlada hasta que el antebrazo pase la horizontal.',
+      'El agarre se elige en el entreno. La barra en V es la que mejor va de muñeca y codo; con la cuerda se carga menos, así que sus pesos no son comparables.',
     ],
   },
   {

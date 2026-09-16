@@ -2,7 +2,7 @@
 // ejercicio: fotos, técnica, récords, progreso e historial.
 
 import { html, useState } from '../vendor/preact-htm.js';
-import { E, useEstado, avisar, toast, recargar, seriesDe, records, ajustesDe, conAjustes } from '../estado.js';
+import { E, useEstado, avisar, toast, recargar, seriesDe, records, ajustesDe, conAjustes, ultimaVariante } from '../estado.js';
 import * as L from '../logica.js';
 import * as db from '../db.js';
 import { GRUPOS } from '../datos/catalogo-ejercicios.js';
@@ -77,13 +77,22 @@ export function Ejercicio({ id }) {
   useEstado();
   const [ajustando, ponerAjustando] = useState(false);
   const [fotos, ponerFotos] = useState(false);
+  const [agarre, ponerAgarre] = useState('auto');
   const ej = E.ejercicioPorId.get(id);
   if (!ej) return html`<button class="volver" onClick=${() => atras('ejercicios')}><${Icono} n="atras" t=${24} g=${2.4} />Ejercicios</button>
     <${Vacio} titulo="Este ejercicio ya no existe">Vuelve a la biblioteca y elige otro.<//>`;
 
-  const rec = records(ej.id);
-  const prog = L.progresionEjercicio(seriesDe(ej.id));
-  const grupos = L.agruparPorSesion(seriesDe(ej.id)).reverse().slice(0, 8);
+  // Con agarres intercambiables, los récords y el historial son del agarre elegido.
+  const variantes = ej.variantes || null;
+  const sinApuntar = variantes && seriesDe(ej.id).some((s) => !s.variante);
+  const agarres = variantes ? [...variantes.map((v) => ({ etq: v, v })), ...(sinApuntar ? [{ etq: 'Sin apuntar', v: null }] : [])] : [];
+  const ver = !variantes ? undefined
+    : agarre === 'auto' ? (ultimaVariante(ej.id) ?? (sinApuntar ? null : variantes[0])) : agarre;
+  const susSeries = variantes ? seriesDe(ej.id).filter((s) => (s.variante ?? null) === ver) : seriesDe(ej.id);
+
+  const rec = records(ej.id, ver);
+  const prog = L.progresionEjercicio(susSeries);
+  const grupos = L.agruparPorSesion(susSeries).reverse().slice(0, 8);
   const sesiones = enRutina(ej.id);
 
   return html`
@@ -115,6 +124,13 @@ export function Ejercicio({ id }) {
           <${Icono} n="chevron" t=${18} g=${2.2} clase="chevron" />
         </div>
       </button>
+
+      ${variantes && html`<div>
+        <div class="chips ej" style="flex-wrap:wrap;padding:0">
+          ${agarres.map(({ etq, v }) => html`<button class=${`chip ${v === ver ? 'activo' : ''}`} key=${etq} onClick=${() => ponerAgarre(v)}>${etq}</button>`)}
+        </div>
+        <p class="t2 peq" style="margin:6px 2px 0">Cada agarre lleva su propio peso y su propia progresión: aquí ves los de ${ver || 'las series sin agarre apuntado'}.</p>
+      </div>`}
 
       ${rec ? html`
         <div class="dos-botones">

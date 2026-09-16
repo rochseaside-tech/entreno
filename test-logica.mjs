@@ -50,6 +50,11 @@ comprobar('prensa 95,8 estancada (+5) -> 85,8', L.bajarCarga(95.8, 5) === 85.8);
 console.log('\n--- Rutina nueva: peso de arranque ---');
 a = L.analizarEjercicio(pecho, [0,1,2].map(i => sp(i, 30, 12, 2)), faseNormal, { arranque: true });
 comprobar(`primera vez: manda la tabla (22,7), no el historial (${a.pesoSugerido})`, a.pesoSugerido === 22.7 && a.aviso?.tipo === 'arranque');
+a = L.analizarEjercicio(delCatalogo('triceps-polea'), [], faseNormal,
+  { arranque: true, referencia: { peso: 25, texto: 'Primera vez con Cuerda: te propongo los 25 kg de Barra en V.' } });
+comprobar(`agarre nuevo: propone el peso del otro agarre (${a.pesoSugerido})`, a.pesoSugerido === 25 && a.aviso.texto.includes('Barra en V'));
+comprobar('el tríceps en polea tiene los tres agarres',
+  CATALOGO.find(c => c.id === 'triceps-polea').variantes.join() === 'Barra en V,Barra recta,Cuerda');
 a = L.analizarEjercicio(delCatalogo('remo-maquina'), [], faseNormal, { arranque: true });
 comprobar(`tantear: sin peso propuesto (${a.pesoSugerido})`, a.pesoSugerido === null && a.aviso.texto.includes('tantea'));
 comprobar('hip thrust de Pierna 2: 3 series de 12-15 y 90 s',

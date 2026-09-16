@@ -3,7 +3,7 @@
 
 import { html, useState, useEffect } from '../vendor/preact-htm.js';
 import { E, useEstado, avisar, toast, recargar, guardarConfig, seriesDe, siguientePlan, sesionesTerminadas, unaRM,
-  tituloSesion, tituloCorto, ajustesDe, conAjustes, previasPara } from '../estado.js';
+  tituloSesion, tituloCorto, ajustesDe, conAjustes, previasPara, ultimaVariante } from '../estado.js';
 import * as L from '../logica.js';
 import * as db from '../db.js';
 import { ORDEN_SESIONES, CALENTAMIENTOS, PLAN_ANTERIOR } from '../seed.js';
@@ -55,8 +55,12 @@ export async function iniciarSesion(plan) {
     id: db.nuevoId('s'), fecha: hoy, plan, nombre: def.nombre,
     inicio: new Date().toISOString(), fin: null,
     // El primer ejercicio trae dos series de aproximación propuestas (50 % y 75 % del peso).
-    // Lo que un ejercicio lleve distinto en esta sesión (rango, descanso…) viaja con él.
-    ejercicios: def.ejercicios.map((x, i) => ({ id: x.id, series: L.seriesObjetivo(x.series, E.fase), ...ajustesDe(x), calent: i === 0 ? 2 : 0 })),
+    // Lo que un ejercicio lleve distinto en esta sesión (rango, descanso…) viaja con él,
+    // y los de agarre intercambiable arrancan con el que usaste la última vez.
+    ejercicios: def.ejercicios.map((x, i) => {
+      const v = E.ejercicioPorId.get(x.id)?.variantes ? ultimaVariante(x.id) : null;
+      return { id: x.id, series: L.seriesObjetivo(x.series, E.fase), ...ajustesDe(x), ...(v ? { variante: v } : {}), calent: i === 0 ? 2 : 0 };
+    }),
   });
   if (E.config.pantallaEncendida !== false) D.pantallaEncendida(true);
 }
@@ -135,7 +139,7 @@ function HojaSesion({ s, alCerrar }) {
       ${grupos.map((g) => html`<div class="tarjeta">
         <div class="fila-f" style="margin-bottom:8px">
           <${FotoEj} ej=${g.ej} clase="mini" quieta />
-          <b class="crece">${g.nombre}</b>
+          <b class="crece">${g.nombre}${g.variante ? ` · ${g.variante}` : ''}</b>
         </div>
         ${g.series.map((r, i) => html`<div class="fila-f peq" style="justify-content:space-between;padding:5px 2px;border-top:1px solid var(--superficie3)">
           <span class="t2">${etiquetaSerie(r)}</span><span class="num" style="font-size:15px">${textoSerie(r, g.ej)}</span>
@@ -263,6 +267,7 @@ function EntrenoActivo({ sesion }) {
         return i === actual
           ? html`<${TarjetaEjercicio} key=${item.id + i} sesion=${sesion} item=${item} i=${i} ej=${ej}
               alMenu=${() => ponerHoja({ tipo: 'menu', i })}
+              alAgarre=${(v) => cambiarPlan((l) => { if (v) l[i].variante = v; else delete l[i].variante; return l; })}
               alCompletar=${() => ponerAbierto(sesion.ejercicios.findIndex((x, j) => j > i && hechasDe(j) < x.series))}
               alAnadirSerie=${() => cambiarPlan((l) => { l[i].series++; return l; })}
               alAnadirAprox=${() => cambiarPlan((l) => { l[i].calent = (l[i].calent || 0) + 1; return l; })}
@@ -272,7 +277,7 @@ function EntrenoActivo({ sesion }) {
           : html`<button class="tarjeta plegada ej" key=${item.id + i} onClick=${() => ponerAbierto(i)}>
               <${FotoEj} ej=${ej} clase="mini" quieta />
               <div class="crece"><div class="ej-nombre">${ej.nombre}</div>
-                <div class="ej-meta">${hechasDe(i)} de ${item.series} series · ${ej.repMin}–${ej.repMax} ${ej.segundos ? 'seg' : 'reps'}</div></div>
+                <div class="ej-meta">${hechasDe(i)} de ${item.series} series${item.variante ? ` · ${item.variante}` : ''} · ${ej.repMin}–${ej.repMax} ${ej.segundos ? 'seg' : 'reps'}</div></div>
               ${hechasDe(i) >= item.series && html`<span class="hecho-marca"><${Icono} n="check" t=${16} g=${3} /></span>`}
             </button>`;
       })}
@@ -297,11 +302,17 @@ function EntrenoActivo({ sesion }) {
 
 // tipo 'a' = serie de aproximación (calent: no cuenta), 't' = serie de trabajo.
 // lado 'izq' | 'der' en ejercicios por lados; null en el resto.
-function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar, alAnadirSerie, alAnadirAprox }) {
+function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar, alAnadirSerie, alAnadirAprox, alAgarre }) {
   const [borrador, ponerBorrador] = useState({});
+  // Agarre intercambiable (tríceps en polea): cada uno lleva su propia progresión.
+  const variantes = ej.variantes || null;
+  const variante = item.variante ?? null;
   // Los entrenos apuntados después con pesos estándar no guían la progresión.
-  const { previas, arranque } = previasPara(ej.id, sesion);
-  const analisis = L.analizarEjercicio(ej, previas, E.fase || L.faseActual(null), { arranque });
+  const { previas, arranque, otroAgarre } = previasPara(ej.id, sesion, variante);
+  const referencia = otroAgarre && variante
+    ? { peso: otroAgarre.peso, texto: `Primera vez con ${variante}: te propongo los ${L.formatoPeso(otroAgarre.peso)} de ${otroAgarre.variante}. Ajústalo si no te va.` }
+    : null;
+  const analisis = L.analizarEjercicio(ej, previas, E.fase || L.faseActual(null), { arranque: arranque || !!referencia, referencia });
   const ultima = analisis.ultima;
   const mias = E.series.filter((s) => s.sesionId === sesion.id && s.item === i && s.ejercicioId === ej.id);
   const hechas = trabajo(mias);
@@ -352,11 +363,12 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar,
     if (peso == null) { toast('Falta el peso: escríbelo en la casilla de kg'); return; }
     if (!reps) { toast('Falta el número de repeticiones'); return; }
 
-    const mejorAntes = Math.max(0, ...seriesDe(ej.id).map((s) => unaRM(s.peso, s.reps)));
+    const mejorAntes = Math.max(0, ...seriesDe(ej.id)
+      .filter((s) => !variantes || (s.variante ?? null) === variante).map((s) => unaRM(s.peso, s.reps)));
     const nueva = {
       id: db.nuevoId('r'), sesionId: sesion.id, ejercicioId: ej.id, item: i, fecha: sesion.fecha,
       indice: f, peso, reps, rir, ts: Date.now(),
-      ...(tipo === 'a' ? { calent: true } : {}), ...(lado ? { lado } : {}),
+      ...(tipo === 'a' ? { calent: true } : {}), ...(lado ? { lado } : {}), ...(variante ? { variante } : {}),
     };
     await db.guardar('series', nueva);
     E.series.push(nueva);
@@ -426,6 +438,11 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar,
       <button class="mas" onClick=${alCambiar} aria-label="Cambiar por otro ejercicio"><${Icono} n="cambiar" t=${21} g=${2.2} /></button>
       <button class="mas" onClick=${alMenu} aria-label="Opciones del ejercicio"><${Icono} n="puntos" t=${22} /></button>
     </div>
+
+    ${variantes && html`<div class="chips ej" style="margin-top:10px;padding:0">
+      ${variantes.map((v) => html`<button class=${`chip ${v === variante ? 'activo' : ''}`} key=${v}
+        onClick=${() => alAgarre(v === variante ? null : v)}>${v}</button>`)}
+    </div>`}
 
     ${analisis.aviso && html`<div class="sugerencia" style="margin-top:12px"><${Icono} n=${{ subir: 'subir', arranque: 'nota' }[analisis.aviso.tipo] || 'cambiar'} t=${18} g=${2.4} />${analisis.aviso.texto}</div>`}
     ${ej.aviso && html`<div class="aviso" style="margin-top:8px"><${Icono} n="aviso" t=${17} g=${2} />${ej.aviso}</div>`}
