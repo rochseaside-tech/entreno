@@ -181,7 +181,7 @@ export const ALIMENTOS = [
   { nombre: 'Leche desnatada sin lactosa', cat: 'Lácteos', kcal: 34, prot: 3.1, grasa: 0.3, hc: 4.7, fibra: 0, sal: 0.13, medida: 'ml', racion: 200, exacto: true },
   { nombre: 'Yogur griego ligero', cat: 'Lácteos', kcal: 60, prot: 5, grasa: 2, hc: 5, fibra: 0, sal: 0.15, medida: 'g', racion: 100 },
   { nombre: 'Yogur natural 0,0 edulcorado', cat: 'Lácteos', kcal: 36, prot: 4.3, grasa: 0.2, hc: 4, fibra: 0, sal: 0.15, medida: 'g', racion: 125, exacto: true,
-    gramosUnidad: 125, nota: 'Un yogur son 125 g: 45 kcal y 5,4 g de proteína. Los 4 g de hidratos son los azúcares de la leche.' },
+    gramosUnidad: 125, nota: 'Un yogur son 125 g: 45 kcal y 5,4 g de proteína. Los hidratos son los azúcares de la leche: 4 g por cada 100 g.' },
   { nombre: 'Whey Prime en polvo', cat: 'Lácteos', kcal: 387, prot: 81, grasa: 5.2, hc: 4.1, fibra: 0, sal: 0.3, medida: 'g', racion: 25, exacto: true, nota: '2 scoops = 25 g de producto, no 50.' },
   { nombre: 'Mozzarella rallada', cat: 'Lácteos', kcal: 260, prot: 22, grasa: 18, hc: 2, fibra: 0, sal: 1.4, medida: 'g', racion: 30 },
   { nombre: 'Huevo M', cat: 'Lácteos', kcal: 75, prot: 6.5, grasa: 5, hc: 0.4, fibra: 0, sal: 0.15, medida: 'ud', racion: 2, nota: 'Unidad de 55 g.' },

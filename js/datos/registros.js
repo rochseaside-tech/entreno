@@ -102,6 +102,13 @@ export const CAMBIOS_PENDIENTES = [
     macrosRacion: { kcal: 110, prot: 2.5, grasa: 4, hc: 8.8, fibra: 3.5, sal: 0 },
   },
   {
+    // La nota hablaba de «los 4 g de hidratos» y en el panel de una ración se ven 5 (los de
+    // 125 g): se aclara que los 4 g son por cada 100 g.
+    id: 'yogur-00-nota-2026-09-16',
+    alimento: 'Yogur natural 0,0 edulcorado',
+    campos: { nota: 'Un yogur son 125 g: 45 kcal y 5,4 g de proteína. Los hidratos son los azúcares de la leche: 4 g por cada 100 g.' },
+  },
+  {
     // Foto de la lata del 10 sep: los valores ya coincidían; se añade el tamaño de la lata.
     id: 'berberechos-lata-2026-09-10',
     alimento: 'Berberechos, escurridos',
