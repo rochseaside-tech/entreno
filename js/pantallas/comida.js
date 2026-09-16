@@ -94,6 +94,7 @@ function HojaAnadir({ fecha, toma, alCerrar, alCambiar }) {
   const [pestana, ponerPestana] = useState('alimentos');
   const [texto, ponerTexto] = useState('');
   const [elegido, ponerElegido] = useState(null); // { tipo: 'alimento'|'receta', x }
+  const [editando, ponerEditando] = useState(null); // { tipo: 'alimento'|'receta'|'habitual', x }
   const [creando, ponerCreando] = useState(false);
   const [aOjo, ponerAOjo] = useState(false);
   const nombreToma = S.TOMAS.find((t) => t.id === toma)?.nombre || '';
@@ -113,9 +114,26 @@ function HojaAnadir({ fecha, toma, alCerrar, alCambiar }) {
     <${FormAOjo} alGuardar=${async (d) => { await apuntar(d); ponerAOjo(false); }} />
   <//>`;
   if (creando) return html`<${Hoja} titulo="Nuevo alimento" alCerrar=${alCerrar}><${FormAlimento} nombre=${texto} alGuardar=${(a) => { ponerCreando(false); ponerElegido({ tipo: 'alimento', x: a }); }} /><//>`;
+
+  // Corregir los macros de lo que estás mirando, sin salir de aquí. Al volver, la hoja
+  // de la cantidad ya enseña los valores nuevos.
+  const volverDeEditar = (tipo, nombre) => {
+    ponerEditando(null);
+    const x = tipo === 'alimento' ? E.alimentos.find((a) => a.nombre === nombre)
+      : tipo === 'receta' ? E.recetas.find((r) => r.nombre === nombre) : null;
+    if (x) ponerElegido({ tipo, x });
+  };
+  if (editando) return html`<${Hoja} titulo=${editando.x.nombre} alCerrar=${alCerrar}
+      accion=${html`<button class="icono-btn" onClick=${() => volverDeEditar(editando.tipo, editando.x.nombre)} aria-label="Volver"><${Icono} n="atras" t=${18} g=${2.4} /></button>`}>
+    ${editando.tipo === 'alimento' ? html`<${EditorAlimento} a=${editando.x} alHecho=${() => volverDeEditar('alimento', editando.x.nombre)} />`
+      : editando.tipo === 'receta' ? html`<${EditorReceta} r=${editando.x} alHecho=${() => volverDeEditar('receta', editando.x.nombre)} />`
+      : html`<${EditorHabitual} h=${editando.x} alHecho=${() => ponerEditando(null)} />`}
+  <//>`;
+
   if (elegido) return html`<${Hoja} titulo=${elegido.x.nombre} alCerrar=${alCerrar}
       accion=${html`<button class="icono-btn" onClick=${() => ponerElegido(null)} aria-label="Volver"><${Icono} n="atras" t=${18} g=${2.4} /></button>`}>
     <${ElegirCantidad} tipo=${elegido.tipo} x=${elegido.x} toma=${toma} nombreToma=${nombreToma}
+      alEditar=${() => ponerEditando({ tipo: elegido.tipo, x: elegido.x })}
       alApuntar=${async (d) => { await apuntar(d); ponerElegido(null); ponerTexto(''); }} />
   <//>`;
 
@@ -161,6 +179,7 @@ function HojaAnadir({ fecha, toma, alCerrar, alCambiar }) {
               <div class="nombre">${h.nombre}</div>
               <div class="meta">${h.rapida ? h.nota : h.items.map((i) => i.nombre).join(', ')} · ${kcalProt(L.sumarMacros(h.items.map((i) => ({ ...L.CERO(), ...i.macros }))))}</div>
             </button>
+            ${!h.rapida && html`<button class="mas" aria-label=${'Corregir ' + h.nombre} onClick=${() => ponerEditando({ tipo: 'habitual', x: h })}><${Icono} n="nota" t=${18} /></button>`}
             ${!h.rapida && html`<button class="mas" aria-label=${'Borrar ' + h.nombre} onClick=${async () => { await db.borrar('habituales', h.id); await recargar(); avisar(); toast('Habitual borrada'); }}><${Icono} n="basura" t=${18} /></button>`}
           </div>`)}</div>`
       : html`<${Vacio} titulo="Sin comidas habituales">Apunta una comida y pulsa «Guardar como habitual» debajo de la toma. La próxima vez la añades de un toque.<//>`)}
@@ -172,7 +191,7 @@ function HojaAnadir({ fecha, toma, alCerrar, alCambiar }) {
   <//>`;
 }
 
-function ElegirCantidad({ tipo, x, toma, nombreToma, alApuntar }) {
+function ElegirCantidad({ tipo, x, toma, nombreToma, alApuntar, alEditar }) {
   const esReceta = tipo === 'receta';
   const porUnidad = !esReceta && x.medida === 'ud';
   const puedeUd = !esReceta && !porUnidad && x.gramosUnidad;
@@ -219,7 +238,9 @@ function ElegirCantidad({ tipo, x, toma, nombreToma, alApuntar }) {
     </div>
     ${x.nota && html`<p class="t2 peq" style="margin-bottom:12px">${x.nota}</p>`}
     ${x.aprox && html`<p class="t2 peq" style="margin-bottom:12px">Valores típicos de etiqueta. Si tienes el envase delante, gana la etiqueta.</p>`}
-    <button class="boton" onClick=${apuntar}>Añadir a ${nombreToma.toLowerCase()}</button>`;
+    <button class="boton" onClick=${apuntar}>Añadir a ${nombreToma.toLowerCase()}</button>
+    ${alEditar && html`<button class="boton suave" style="margin-top:8px;min-height:44px;font-size:15px" onClick=${alEditar}>
+      <${Icono} n="nota" t=${18} g=${2.2} />${esReceta ? 'Corregir macros por ración' : 'Corregir macros de este alimento'}</button>`}`;
 }
 
 function FormAlimento({ nombre, alGuardar }) {
@@ -420,6 +441,109 @@ function EditorAlimento({ a, alHecho }) {
     ${borrando
       ? html`<button class="boton peligro" onClick=${borrar}>Sí, ${textoBorrar.charAt(0).toLowerCase() + textoBorrar.slice(1)}</button>`
       : html`<button class="boton peligro" style="background:none" onClick=${() => ponerBorrando(true)}>${textoBorrar}</button>`}
+  </div>`;
+}
+
+// ---------------------------------------------------------------- corregir una receta
+
+// Los macros por ración que pongas aquí mandan sobre el cálculo por ingredientes
+// (que sigue ahí debajo por si quieres volver a él).
+function EditorReceta({ r, alHecho }) {
+  const txt = (x) => (x == null ? '' : String(Math.round(x * 10) / 10).replace('.', ','));
+  const calc = L.macrosReceta(r, E.alimentoPorNombre);
+  const propios = !calc.calculado;
+  const [v, ponerV] = useState({
+    raciones: String(r.raciones || 1), nota: r.nota || '',
+    ...Object.fromEntries(L.CAMPOS_MACRO.map((k) => [k, txt(calc[k])])),
+  });
+  const poner = (k) => (e) => { const x = e.currentTarget.value; ponerV((p) => ({ ...p, [k]: x })); };
+
+  const guardar = async () => {
+    const kcal = aNum(v.kcal);
+    const raciones = aNum(v.raciones);
+    if (kcal == null) { toast('Faltan las kcal por ración'); return; }
+    if (!raciones || raciones <= 0) { toast('Pon en cuántas raciones sale'); return; }
+    const nuevo = { ...r, raciones, macrosRacion: Object.fromEntries(L.CAMPOS_MACRO.map((k) => [k, aNum(v[k]) ?? 0])) };
+    if (v.nota.trim()) nuevo.nota = v.nota.trim(); else delete nuevo.nota;
+    await db.guardar('recetas', nuevo);
+    await recargar(); avisar(); toast('Receta guardada'); alHecho();
+  };
+  const volverAlCalculo = async () => {
+    const { macrosRacion, ...resto } = r;
+    await db.guardar('recetas', { ...resto, raciones: aNum(v.raciones) || r.raciones });
+    await recargar(); avisar(); toast('Vuelve el cálculo por ingredientes'); alHecho();
+  };
+  const campo = (k, t) => html`<label class="campo"><span>${t}</span>
+    <input class="entrada num" inputmode="decimal" value=${v[k]} onInput=${poner(k)} onFocus=${(e) => e.currentTarget.select()} /></label>`;
+
+  return html`<div class="pila">
+    <p class="t2 peq">${propios ? 'Ahora manda lo que pusiste tú por ración, no los ingredientes.' : 'Ahora se calcula sumando los ingredientes. Si cambias algo aquí, mandará lo que pongas tú.'}</p>
+    <label class="campo"><span>Sale en (raciones)</span>
+      <input class="entrada num" inputmode="decimal" value=${v.raciones} onInput=${poner('raciones')} /></label>
+    <div class="tarjeta pila">
+      <div class="t2 peq" style="font-weight:600">Macros de una ración</div>
+      <div class="rejilla-2">${campo('kcal', 'Kcal')}${campo('prot', 'Proteína (g)')}</div>
+      <div class="rejilla-2">${campo('grasa', 'Grasa (g)')}${campo('hc', 'Hidratos (g)')}</div>
+      <div class="rejilla-2">${campo('fibra', 'Fibra (g)')}${campo('sal', 'Sal (g)')}</div>
+    </div>
+    <label class="campo"><span>Nota</span><input class="entrada" value=${v.nota} onInput=${poner('nota')} /></label>
+    <p class="t2 peq">Lo que ya tienes apuntado en el diario no cambia: cada comida guarda sus propios macros.</p>
+    <button class="boton" onClick=${guardar}>Guardar cambios</button>
+    ${propios && html`<button class="boton suave" onClick=${volverAlCalculo}>Volver al cálculo por ingredientes</button>`}
+  </div>`;
+}
+
+// ---------------------------------------------------------------- corregir una habitual
+
+// Cada alimento de la habitual, con su cantidad y sus macros. Cambiar la cantidad
+// recalcula; si tocas un macro a mano, manda lo que escribas.
+function EditorHabitual({ h, alHecho }) {
+  const txt = (x) => String(Math.round((x || 0) * 10) / 10).replace('.', ',');
+  const [nombre, ponerNombre] = useState(h.nombre);
+  const [filas, ponerFilas] = useState(() => h.items.map((it, i) => ({
+    clave: 'i' + i, it, fuera: false, cantidad: String(it.cantidad ?? 1).replace('.', ','), m: {},
+  })));
+  const cambiar = (i, fn) => ponerFilas((p) => p.map((f, j) => (j === i ? fn({ ...f }) : f)));
+  const macroBase = (f, k) => ({ ...L.CERO(), ...f.it.macros })[k];
+  const factor = (f) => (aNum(f.cantidad) || 0) / (f.it.cantidad || 1);
+  const mostrado = (f, k) => f.m[k] ?? txt(macroBase(f, k) * factor(f));
+  const vivas = filas.filter((f) => !f.fuera);
+  const suma = L.sumarMacros(vivas.map((f) => Object.fromEntries(L.CAMPOS_MACRO.map((k) => [k, aNum(mostrado(f, k)) ?? 0]))));
+
+  const guardar = async () => {
+    if (!nombre.trim()) { toast('Ponle un nombre'); return; }
+    if (!vivas.length) { toast('No queda ningún alimento'); return; }
+    const items = vivas.map((f) => ({
+      ...f.it, cantidad: aNum(f.cantidad) ?? f.it.cantidad,
+      macros: Object.fromEntries(L.CAMPOS_MACRO.map((k) => [k, aNum(mostrado(f, k)) ?? 0])),
+    }));
+    await db.guardar('habituales', { ...h, nombre: nombre.trim(), items });
+    await recargar(); avisar(); toast('Habitual guardada'); alHecho();
+  };
+  const campo = (f, i, k, t) => html`<label class="campo"><span>${t}</span>
+    <input class="entrada num" inputmode="decimal" value=${mostrado(f, k)}
+      onInput=${(e) => { const x = e.currentTarget.value; cambiar(i, (n) => { n.m = { ...n.m, [k]: x }; return n; }); }}
+      onFocus=${(e) => e.currentTarget.select()} /></label>`;
+
+  return html`<div class="pila">
+    <label class="campo"><span>Nombre</span>
+      <input class="entrada" value=${nombre} onInput=${(e) => { const x = e.currentTarget.value; ponerNombre(x); }} /></label>
+    ${filas.map((f, i) => (f.fuera ? null : html`<div class="tarjeta pila" key=${f.clave}>
+      <div class="fila-f">
+        <div class="crece"><b class="peq">${f.it.nombre}</b>
+          <div class="t2 peq">${cantidadTexto({ ...f.it, cantidad: aNum(f.cantidad) || 0 })}</div></div>
+        <button class="mas" aria-label=${'Quitar ' + f.it.nombre} onClick=${() => cambiar(i, (n) => { n.fuera = true; return n; })}><${Icono} n="basura" t=${18} /></button>
+      </div>
+      ${f.it.origen !== 'libre' && f.it.origen !== 'rapida' && html`<label class="campo"><span>Cantidad</span>
+        <input class="entrada num" inputmode="decimal" value=${f.cantidad}
+          onInput=${(e) => { const x = e.currentTarget.value; cambiar(i, (n) => { n.cantidad = x; return n; }); }}
+          onFocus=${(e) => e.currentTarget.select()} /></label>`}
+      <div class="rejilla-2">${campo(f, i, 'kcal', 'Kcal')}${campo(f, i, 'prot', 'Proteína (g)')}</div>
+      <div class="rejilla-2">${campo(f, i, 'grasa', 'Grasa (g)')}${campo(f, i, 'hc', 'Hidratos (g)')}</div>
+    </div>`))}
+    <div class="tarjeta"><div class="t2 peq">En total: ${kcalProt(suma)} · ${n1(suma.grasa)} g grasa · ${n1(suma.hc)} g hidratos</div></div>
+    <p class="t2 peq">Al cambiar la cantidad se recalculan solos. Si corriges un macro a mano, se guarda lo que escribas. Lo que ya apuntaste en el diario no cambia.</p>
+    <button class="boton" onClick=${guardar}>Guardar cambios</button>
   </div>`;
 }
 
