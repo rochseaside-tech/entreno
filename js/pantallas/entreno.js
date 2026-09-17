@@ -204,7 +204,7 @@ function HojaEntrenoPasado({ alCerrar }) {
       ${yaHay && html`<div class="aviso">Ese día ya tiene un entreno guardado. Si guardas, habrá dos.</div>`}
       <p class="t2 peq">Con valores estándar: tu peso de partida y las repeticiones mínimas. Cámbialos si te acuerdas. Contará como día de gimnasio y para la rotación, pero no para récords ni para las subidas de peso.</p>
       <div class="tarjeta">
-        <div style="display:grid;grid-template-columns:1fr 64px 52px;gap:6px;font-size:11px;font-weight:700;color:var(--texto2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">
+        <div style="display:grid;grid-template-columns:1fr 64px 52px;gap:6px;font-size:11.5px;font-weight:700;color:var(--texto3);margin-bottom:8px">
           <span>${def.nombre}</span><span style="text-align:center">Kg</span><span style="text-align:center">Reps</span></div>
         ${items.map(({ x, ej }) => html`<div style="display:grid;grid-template-columns:1fr 64px 52px;gap:6px;align-items:center;padding:5px 0">
           <div class="crece"><div class="peq corta" style="font-weight:600">${ej.nombre}</div><div class="t2" style="font-size:12px">${x.series} series</div></div>
@@ -486,7 +486,7 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar,
       <button class="anadir-serie" style="margin-top:0" onClick=${alAnadirSerie}>+ Serie</button>
       <button class="anadir-serie" style="margin-top:0" onClick=${alAnadirAprox}>+ Aproximación</button>
     </div>
-    <p class="t2 peq" style="margin:8px 0 0;text-align:center">Toca el número de una serie para quitarla.</p>
+    ${hechas.length === 0 && html`<p class="t3 peq" style="margin:8px 0 0;text-align:center">Toca el número de una serie para quitarla.</p>`}
 
     ${filaMenu && html`<${HojaFila} ej=${ej} tipo=${filaMenu.tipo} f=${filaMenu.f}
       hechas=${mias.filter((s) => !!s.calent === (filaMenu.tipo === 'a') && (s.indice ?? 0) === filaMenu.f)}

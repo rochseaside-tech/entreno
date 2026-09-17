@@ -5,7 +5,7 @@ import { E, useEstado, avisar, toast, sesionesTerminadas, records } from '../est
 import * as L from '../logica.js';
 import * as db from '../db.js';
 import * as S from '../seed.js';
-import { Icono, Hoja, GraficaLinea, GraficaBarras, ir, n0, n1, aNum } from '../comunes.js';
+import { Icono, Hoja, GraficaLinea, GraficaBarras, Vacio, ir, n0, n1, aNum } from '../comunes.js';
 import { HojaPeso } from './hoy.js';
 import { textoTodo, copiar } from '../informe.js';
 
@@ -59,16 +59,18 @@ export function Progreso() {
 
     <div class="seccion"><h2 class="titulo">Esta semana</h2></div>
     <div class="pila">
-      <div class="rejilla-3">
-        <div class="tarjeta dato"><small>Media</small><div class="num">${media('kcal') != null ? n0(media('kcal')) : '—'} <span>kcal</span></div></div>
-        <div class="tarjeta dato"><small>Proteína</small><div class="num">${media('prot') != null ? n0(media('prot')) : '—'} <span>g</span></div></div>
+      ${cerrados.length > 0 && html`<div class="rejilla-3">
+        <div class="tarjeta dato"><small>Media</small><div class="num">${n0(media('kcal'))} <span>kcal</span></div></div>
+        <div class="tarjeta dato"><small>Proteína</small><div class="num">${n0(media('prot'))} <span>g</span></div></div>
         <div class="tarjeta dato"><small>Entrenos</small><div class="num">${sesionesTerminadas().filter((s) => s.fecha >= d.dias[0] && s.fecha <= d.dias[6]).length} <span>de 4</span></div></div>
-      </div>
+      </div>`}
       <div class="tarjeta">
-        <div class="dato"><small>Kcal por día · la línea es el objetivo de un día de gimnasio</small></div>
-        <${GraficaBarras} datos=${r.filas.map((f, i) => ({ etq: LETRAS[i], v: f.total.kcal, si: f.huboGym }))} objetivo=${E.config.objetivos.kcalEntreno} />
-        <p class="t2 peq" style="margin-top:8px">${cerrados.length === 0 ? 'Las medias salen cuando termine el primer día con comidas apuntadas.'
-          : `En ${cerrados.length} ${cerrados.length === 1 ? 'día completo' : 'días completos'}: ${desvio > 0 ? `${n0(desvio)} kcal por encima` : `${n0(-desvio)} kcal por debajo`} de tu objetivo.`}</p>
+        ${r.filas.every((f) => f.total.kcal === 0)
+          ? html`<${Vacio} titulo="Sin comidas esta semana">Apunta lo que comas en Comida y aquí verás cada día frente a tu objetivo.<//>`
+          : html`<div class="dato"><small>Kcal por día · la línea es el objetivo de un día de gimnasio</small></div>
+            <${GraficaBarras} datos=${r.filas.map((f, i) => ({ etq: LETRAS[i], v: f.total.kcal, si: f.huboGym }))} objetivo=${E.config.objetivos.kcalEntreno} />
+            <p class="t2 peq" style="margin-top:8px">${cerrados.length === 0 ? 'Las medias salen cuando termine el primer día con comidas apuntadas.'
+              : `En ${cerrados.length} ${cerrados.length === 1 ? 'día completo' : 'días completos'}: ${desvio > 0 ? `${n0(desvio)} kcal por encima` : `${n0(-desvio)} kcal por debajo`} de tu objetivo.`}</p>`}
         ${d.semana?.ajustePorDia
           ? html`<div class="sugerencia" style="margin-top:10px">Repartiendo ${d.semana.ajustePorDia} kcal al día hasta el domingo.</div>
               <button class="boton suave" style="margin-top:8px" onClick=${quitarReparto}>Quitar el reparto</button>`
@@ -146,12 +148,16 @@ function Fuerza() {
     <div class="pila">
       <div class="tarjeta"><div class="dato"><small>Entrenos por semana</small></div><${GraficaBarras} datos=${porSemana} objetivo=${4} /></div>
       ${filas.length
-        ? html`<div class="lista">${filas.map(({ ej, rec, prog }) => html`
+        ? html`<div class="lista">${filas.slice(0, 5).map(({ ej, rec, prog }) => html`
             <button class="item" onClick=${() => ir('ejercicio/' + ej.id)}>
               <div class="crece"><div class="nombre corta">${ej.nombre}</div>
                 <div class="meta">Mejor: ${n1(rec.mejorPeso.peso)} kg × ${rec.mejorPeso.reps}${rec.rm > 0 ? ` · máximo calculado ${n0(rec.rm)} kg` : ''}</div></div>
               ${prog.mejora != null && html`<span class="pastilla">${prog.mejora >= 0 ? '+' : ''}${n0(prog.mejora)} %</span>`}
-            </button>`)}</div>`
+            </button>`)}
+            ${filas.length > 5 && html`<button class="item" onClick=${() => ir('ejercicios')}>
+              <span class="crece" style="color:var(--enlace);font-weight:600">Ver los ${filas.length} ejercicios</span>
+              <${Icono} n="chevron" t=${18} g=${2.2} clase="chevron" /></button>`}
+          </div>`
         : html`<div class="tarjeta t2">Cuando termines tu primer entreno, aquí verás cuánto sube cada ejercicio.</div>`}
     </div>`;
 }

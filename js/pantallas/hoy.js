@@ -52,9 +52,9 @@ function TarjetaEntreno() {
   if (activa) {
     const min = Math.floor((Date.now() - new Date(activa.inicio)) / 60000);
     return html`<div class="tarjeta">
-      <div class="t2 peq" style="font-weight:700;text-transform:uppercase;letter-spacing:.05em">Entreno en marcha</div>
-      <h3 class="titulo" style="font-size:22px;margin:4px 0 2px">${tituloSesion(activa)}</h3>
-      <div class="t2" style="margin-bottom:14px">Empezaste hace ${min} min</div>
+      <div class="peq" style="font-weight:700;color:var(--acento)">Entreno en marcha</div>
+      <h3 class="titulo" style="font-size:23px;margin:5px 0 3px">${tituloSesion(activa)}</h3>
+      <div class="t3 peq" style="margin-bottom:16px">Empezaste hace ${min} min</div>
       <button class="boton" onClick=${() => ir('entreno')}>Volver al entreno</button>
     </div>`;
   }
@@ -66,9 +66,9 @@ function TarjetaEntreno() {
   const empezar = async () => { await iniciarSesion(plan); ir('entreno'); };
 
   return html`<div class="tarjeta">
-    <div class="t2 peq" style="font-weight:700;text-transform:uppercase;letter-spacing:.05em">Te toca</div>
-    <h3 class="titulo" style="font-size:22px;margin:4px 0 2px">${sesion.nombre}</h3>
-    <div class="t2">${sesion.nota ? `${sesion.nota} · ` : ''}${ejercicios.length} ejercicios · unos ${minutosEstimados(sesion)} min</div>
+    <div class="peq" style="font-weight:700;color:var(--acento)">Te toca</div>
+    <h3 class="titulo" style="font-size:23px;margin:5px 0 3px">${sesion.nombre}</h3>
+    <div class="t3 peq">${sesion.nota ? `${sesion.nota} · ` : ''}${ejercicios.length} ejercicios · unos ${minutosEstimados(sesion)} min</div>
     <div style="display:flex;gap:8px;margin:14px 0">
       ${visibles.map((ej) => html`<${FotoEj} ej=${ej} clase="mini" quieta />`)}
       ${ejercicios.length > 4 && html`<div class="mini" style="display:grid;place-items:center;background:var(--superficie2);font-weight:700;color:var(--texto2)">+${ejercicios.length - 4}</div>`}
@@ -90,7 +90,7 @@ function TarjetaComida({ dia }) {
         <div class="num">${n0(t.kcal)}</div><small>de ${n0(o.kcal)} kcal</small>
       <//>
       <${Anillo} valor=${t.prot} max=${o.prot} color="var(--anillo2)">
-        <div class="num">${n0(t.prot)} g</div><small>de ${o.prot} g proteína</small>
+        <div class="num">${n0(t.prot)} g</div><small>de ${o.prot} g prot.</small>
       <//>
     </div>
     <div class="macros">
@@ -108,15 +108,14 @@ function AvisoCopia() {
   const dias = E.ultimaCopia ? L.diasEntre(E.ultimaCopia, L.hoyISO()) : null;
   const hayDatos = E.sesiones.length > 0 || E.uso.size > 0;
   if (!hayDatos || (dias !== null && dias < 7)) return null;
-  return html`<div class="tarjeta">
-    <div class="fila-f" style="align-items:flex-start">
-      <${Icono} n="guardar" t=${22} g=${2} />
-      <div class="crece">
-        <b>${dias === null ? 'Aún no tienes copia de tus datos' : `Hace ${dias} días de tu última copia`}</b>
-        <p class="t2 peq" style="margin-top:2px">Tus datos solo están en este iPhone. Un toque y se guarda en Archivos o iCloud.</p>
-      </div>
+  // Banner fino: avisa sin robarle protagonismo al entreno del día.
+  return html`<div class="tarjeta fila-f" style="padding:12px 14px">
+    <span class="icono-btn" style="background:var(--superficie2);box-shadow:none"><${Icono} n="guardar" t=${19} g=${2} /></span>
+    <div class="crece">
+      <b style="font-size:15px;font-weight:650">${dias === null ? 'Sin copia de tus datos' : `Última copia hace ${dias} días`}</b>
+      <p class="t3 peq" style="margin-top:2px">Solo están en este iPhone.</p>
     </div>
-    <button class="boton suave" style="margin-top:12px" onClick=${() => guardarCopia().catch(() => toast('No se ha podido guardar la copia'))}>Guardar copia</button>
+    <button class="boton chico" onClick=${() => guardarCopia().catch(() => toast('No se ha podido guardar la copia'))}>Guardar</button>
   </div>`;
 }
 
@@ -129,7 +128,7 @@ function TarjetaSemana({ hoy }) {
   const LETRAS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
   return html`<div class="tarjeta">
     <div class="fila-f" style="justify-content:space-between;margin-bottom:10px">
-      <b>Esta semana</b><span class="t2 peq">${hechas} de 4 sesiones</span>
+      <b style="font-size:15.5px;font-weight:650">Esta semana</b><span class="t3 peq">${hechas} de 4 sesiones</span>
     </div>
     <div class="semana">
       ${dias.map((d, i) => html`<div class=${`${conSesion.has(d) ? 'si' : ''} ${d === hoy ? 'hoy' : ''}`}>
