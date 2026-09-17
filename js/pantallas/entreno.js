@@ -271,6 +271,11 @@ function EntrenoActivo({ sesion }) {
               alCompletar=${() => ponerAbierto(sesion.ejercicios.findIndex((x, j) => j > i && hechasDe(j) < x.series))}
               alAnadirSerie=${() => cambiarPlan((l) => { l[i].series++; return l; })}
               alAnadirAprox=${() => cambiarPlan((l) => { l[i].calent = (l[i].calent || 0) + 1; return l; })}
+              alQuitarFila=${(esAprox) => cambiarPlan((l) => {
+                if (esAprox) l[i].calent = Math.max(0, (l[i].calent || 0) - 1);
+                else l[i].series = Math.max(1, l[i].series - 1);
+                return l;
+              })}
               alCambiar=${() => (seriesSesion.some((s) => s.item === i && !s.calent)
                 ? toast('Ya tienes series de este ejercicio. Para hacer otro, usa «Añadir ejercicio».', 3500)
                 : ponerHoja({ tipo: 'cambiar', i }))} />`
@@ -302,8 +307,9 @@ function EntrenoActivo({ sesion }) {
 
 // tipo 'a' = serie de aproximación (calent: no cuenta), 't' = serie de trabajo.
 // lado 'izq' | 'der' en ejercicios por lados; null en el resto.
-function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar, alAnadirSerie, alAnadirAprox, alAgarre }) {
+function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar, alAnadirSerie, alAnadirAprox, alQuitarFila, alAgarre }) {
   const [borrador, ponerBorrador] = useState({});
+  const [filaMenu, ponerFilaMenu] = useState(null); // { tipo: 'a'|'t', f }
   // Agarre intercambiable (tríceps en polea): cada uno lleva su propia progresión.
   const variantes = ej.variantes || null;
   const variante = item.variante ?? null;
@@ -383,6 +389,28 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar,
     if (seriesCompletas([...hechas, nueva], ej.lados) >= item.series) setTimeout(alCompletar, 350);
   };
 
+  // Quitar una serie entera a mitad de entreno: borra lo que hubieras marcado en esa fila
+  // (los dos lados, si el ejercicio va por lados), sube un puesto a las de debajo para que
+  // no queden huecos y baja el objetivo del ejercicio.
+  const quitarFila = async (tipo, f) => {
+    const esAprox = tipo === 'a';
+    const suyas = mias.filter((s) => !!s.calent === esAprox);
+    for (const s of suyas.filter((s) => (s.indice ?? 0) === f)) {
+      await db.borrar('series', s.id);
+      E.series = E.series.filter((x) => x.id !== s.id);
+    }
+    for (const s of suyas.filter((s) => (s.indice ?? 0) > f)) {
+      const nueva = { ...s, indice: (s.indice ?? 0) - 1 };
+      await db.guardar('series', nueva);
+      E.series = E.series.map((x) => (x.id === s.id ? nueva : x));
+    }
+    ponerBorrador({});
+    await alQuitarFila(esAprox);
+    ponerFilaMenu(null);
+    avisar();
+    toast(esAprox ? 'Aproximación quitada' : 'Serie quitada');
+  };
+
   const ultimoIndice = Math.max(-1, ...hechas.map((s) => s.indice ?? 0));
   const filas = Array.from({ length: Math.max(item.series, ultimoIndice + 1) }, (_, f) => f);
   const nAprox = Math.max(item.calent || 0, ...mias.filter((s) => s.calent).map((s) => (s.indice ?? 0) + 1));
@@ -419,7 +447,9 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar,
         onInput=${(e) => poner(tipo, f, lado, c, e.currentTarget.value)} onFocus=${(e) => e.currentTarget.select()} />`;
     };
     return html`<div class=${`fila-serie ${tipo === 'a' ? 'calent' : ''} ${h ? 'hecha' : ''}`} key=${tipo + f + (lado || '')}>
-      <span class="n">${tipo === 'a' ? `A${f + 1}` : f + 1}${lado ? html`<small>${lado === 'izq' ? 'Izq' : 'Der'}</small>` : null}</span>
+      <button class="n" onClick=${() => ponerFilaMenu({ tipo, f })}
+        aria-label=${`Opciones de la ${tipo === 'a' ? 'aproximación' : 'serie'} ${f + 1}`}>
+        ${tipo === 'a' ? `A${f + 1}` : f + 1}${lado ? html`<small>${lado === 'izq' ? 'Izq' : 'Der'}</small>` : null}</button>
       <span class="ant">${tipo === 'a' ? 'Aprox.' : ant ? `${n1(ant.peso)} × ${ant.reps}` : '–'}</span>
       ${campo('peso', sug.peso != null ? n1(sug.peso) : '–')}
       ${campo('reps', sug.reps)}
@@ -456,7 +486,32 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar,
       <button class="anadir-serie" style="margin-top:0" onClick=${alAnadirSerie}>+ Serie</button>
       <button class="anadir-serie" style="margin-top:0" onClick=${alAnadirAprox}>+ Aproximación</button>
     </div>
+    <p class="t2 peq" style="margin:8px 0 0;text-align:center">Toca el número de una serie para quitarla.</p>
+
+    ${filaMenu && html`<${HojaFila} ej=${ej} tipo=${filaMenu.tipo} f=${filaMenu.f}
+      hechas=${mias.filter((s) => !!s.calent === (filaMenu.tipo === 'a') && (s.indice ?? 0) === filaMenu.f)}
+      ultima=${filaMenu.tipo === 't' && item.series <= 1}
+      alQuitar=${() => quitarFila(filaMenu.tipo, filaMenu.f)} alCerrar=${() => ponerFilaMenu(null)} />`}
   </div>`;
+}
+
+// Lo que se puede hacer con una fila de series durante el entreno: de momento, quitarla.
+// Dice antes qué se borra, porque una serie marcada ya está guardada.
+function HojaFila({ ej, tipo, f, hechas, ultima, alQuitar, alCerrar }) {
+  const esAprox = tipo === 'a';
+  const nombre = esAprox ? `Aproximación ${f + 1}` : `Serie ${f + 1}`;
+  return html`<${Hoja} titulo=${nombre} alCerrar=${alCerrar}>
+    <div class="pila">
+      <p class="t2">${ej.nombre}</p>
+      ${hechas.length > 0
+        ? html`<p class="t2 peq">Se borra lo que marcaste: ${hechas.map((s) => `${s.lado ? (s.lado === 'izq' ? 'izq ' : 'der ') : ''}${n1(s.peso)} kg × ${s.reps}`).join(' · ')}.</p>`
+        : html`<p class="t2 peq">Esta ${esAprox ? 'aproximación' : 'serie'} está vacía.</p>`}
+      ${ultima
+        ? html`<p class="t2 peq">Es la única serie del ejercicio: si no vas a hacerlo, quítalo entero desde el menú de los tres puntos.</p>`
+        : html`<button class="boton peligro" onClick=${alQuitar}>Quitar esta ${esAprox ? 'aproximación' : 'serie'}</button>`}
+      <button class="boton suave" onClick=${alCerrar}>Cancelar</button>
+    </div>
+  <//>`;
 }
 
 // ---------------------------------------------------------------- calentamiento
