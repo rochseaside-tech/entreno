@@ -115,7 +115,6 @@ const cantidadDe = (c) => (c.origen === 'libre' ? 'sin desglosar, a ojo' : c.ori
   ? `${n1(c.cantidad)} ${c.cantidad === 1 ? 'ración' : 'raciones'}`
   : c.medida === 'ud' ? `${n1(c.cantidad)} ud` : `${n0(c.cantidad)} ${c.medida === 'ml' ? 'ml' : 'g'}`);
 const macrosTexto = (m) => `${n0(m.kcal)} kcal · ${n1(m.prot)} g prot · ${n1(m.grasa)} g grasa · ${n1(m.hc)} g hidratos`;
-const MEDIDAS = ['cintura', 'cadera', 'pecho', 'muslo', 'brazo'];
 
 // Todo lo apuntado, día a día. dias = 7, 28… (hasta hoy incluido) o 0 para todo.
 // Devuelve el texto y cuántos días, comidas y entrenos lleva.
@@ -154,6 +153,11 @@ export async function textoTodo(dias = 0) {
   if (cerrados.length) res.push(`- Media de ${cerrados.length} ${cerrados.length === 1 ? 'día completo' : 'días completos'}: ${macrosTexto({ kcal: media('kcal'), prot: media('prot'), grasa: media('grasa'), hc: media('hc') })}.`);
   res.push(`- Entrenos terminados: ${sesionesR.length}.`);
   if (serie.length) res.push(`- Peso, media de 7 días: de ${n1(serie[0].media)} kg a ${n1(serie[serie.length - 1].media)} kg.`);
+  // Medidas: el valor de la última medición y el cambio respecto a la anterior.
+  for (const m of L.evolucionMedidas(medidas.filter((x) => dentro(x.fecha)), S.MEDIDAS)) {
+    res.push(`- ${m.nombre} (${m.definicion}): ${n1(m.ultimo.cm)} cm el ${fechaCompleta(m.ultimo.fecha)}${m.cambio != null
+      ? `, ${m.cambio === 0 ? 'igual que' : `${m.cambio > 0 ? '+' : ''}${n1(m.cambio)} cm desde`} la medición de ${m.dias} días antes (${n1(m.anterior.cm)} cm)` : ' (primera medición)'}.`);
+  }
 
   const dia = (f) => {
     const deDia = porDia.get(f) || [];
@@ -182,7 +186,7 @@ export async function textoTodo(dias = 0) {
     const cuerpo = [];
     if (p) cuerpo.push(`peso ${n1(p.kg)} kg`);
     if (pa) cuerpo.push(`${n0(pa.pasos)} pasos`);
-    if (me) cuerpo.push(`medidas: ${MEDIDAS.filter((k) => me[k]).map((k) => `${k} ${n1(me[k])} cm`).join(', ')}`);
+    if (me) cuerpo.push(`medidas: ${S.MEDIDAS.filter((t) => me[t.id]).map((t) => `${t.nombre.toLowerCase()} ${n1(me[t.id])} cm`).join(', ')}`);
     if (cuerpo.length) l.push(`Cuerpo: ${cuerpo.join(' · ')}.`);
     for (const s of ses) l.push(textoSesion(s).replace(/^## /, '#### Entreno: '));
     return l.join('\n');

@@ -4,11 +4,10 @@ import { html, useState, useEffect } from '../vendor/preact-htm.js';
 import { E, useEstado, avisar, toast, sesionesTerminadas, records } from '../estado.js';
 import * as L from '../logica.js';
 import * as db from '../db.js';
+import * as S from '../seed.js';
 import { Icono, Hoja, GraficaLinea, GraficaBarras, ir, n0, n1, aNum } from '../comunes.js';
 import { HojaPeso } from './hoy.js';
 import { textoTodo, copiar } from '../informe.js';
-
-const MEDIDAS = [['cintura', 'Cintura'], ['cadera', 'Cadera'], ['pecho', 'Pecho'], ['muslo', 'Muslo'], ['brazo', 'Brazo']];
 
 export function Progreso() {
   useEstado();
@@ -44,6 +43,9 @@ export function Progreso() {
   const ritmo = L.valoracionRitmo(L.ritmoSemanal(serie));
   const pasosHoy = d.pasos.find((p) => p.fecha === hoy)?.pasos;
   const ultimaMedida = d.medidas[d.medidas.length - 1];
+  const evolucion = L.evolucionMedidas(d.medidas, S.MEDIDAS);
+  const prox = L.proximaMedida(d.medidas, E.config.proximaMedida, hoy, S.PROTOCOLO_MEDIDAS.cadaDias);
+  const principal = evolucion[0];
   const LETRAS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
   const aplicarReparto = async () => {
@@ -89,9 +91,33 @@ export function Progreso() {
           <small>Pasos de hoy</small><div class="num">${pasosHoy != null ? n0(pasosHoy) : '—'}</div>
           <div class="t2 peq">objetivo ${n0(E.config.perfil.pasosObjetivo || 10000)}</div></button>
         <button class="tarjeta dato" style="text-align:left" onClick=${() => ponerHoja('medidas')}>
-          <small>Medidas</small><div class="num">${ultimaMedida?.cintura ? n1(ultimaMedida.cintura) : '—'} <span>cm cintura</span></div>
-          <div class="t2 peq">${ultimaMedida ? `hace ${L.diasEntre(ultimaMedida.fecha, hoy)} días · cada 4 semanas` : 'cada 4 semanas'}</div></button>
+          <small>${principal ? principal.nombre : 'Medidas'}</small>
+          <div class="num">${principal ? n1(principal.ultimo.cm) : '—'} <span>cm</span></div>
+          <div class="t2 peq">${prox.toca ? 'toca medirse' : `próxima en ${prox.dias} ${prox.dias === 1 ? 'día' : 'días'}`}</div></button>
       </div>
+    </div>
+
+    <div class="seccion"><h2 class="titulo">Medidas</h2><button onClick=${() => ponerHoja('medidas')}>Medirme</button></div>
+    <div class="pila">
+      ${prox.toca
+        ? html`<div class="sugerencia"><${Icono} n="reloj" t=${18} g=${2} />Toca medirse${prox.ultima ? `: la última fue el ${L.fechaLarga(prox.ultima)}` : ''}.</div>`
+        : html`<p class="t2 peq" style="margin:0 4px">Cada ${S.PROTOCOLO_MEDIDAS.cadaDias / 7} semanas. La próxima, el ${L.fechaLarga(prox.fecha)}${prox.dias > 0 ? ` (en ${prox.dias} ${prox.dias === 1 ? 'día' : 'días'})` : ''}.</p>`}
+      ${evolucion.length === 0
+        ? html`<div class="tarjeta t2">Cuando te midas por primera vez, aquí verás cada medida y cuánto cambia respecto a la vez anterior.</div>`
+        : evolucion.map((m) => html`<div class="tarjeta" key=${m.id}>
+            <div class="fila-f" style="justify-content:space-between;align-items:flex-start">
+              <div class="dato crece"><small>${m.nombre}</small>
+                <div class="num">${n1(m.ultimo.cm)} <span>cm</span></div>
+                <div class="t2 peq">${L.fechaLarga(m.ultimo.fecha)}</div>
+              </div>
+              ${m.cambio != null
+                ? html`<span class="pastilla">${m.cambio > 0 ? '+' : ''}${n1(m.cambio)} cm</span>`
+                : html`<span class="t2 peq">primera medición</span>`}
+            </div>
+            ${m.cambio != null && html`<p class="t2 peq" style="margin-top:8px">
+              ${m.cambio === 0 ? 'Igual que' : `${m.cambio > 0 ? '+' : '−'}${n1(Math.abs(m.cambio))} cm desde`} la medición del ${L.fechaCorta(m.anterior.fecha)}, ${m.dias} días antes (${n1(m.anterior.cm)} cm).</p>`}
+            ${m.puntos.length >= 2 && html`<${GraficaLinea} puntos=${m.puntos.slice(-12).map((x) => ({ etq: L.fechaCorta(x.fecha), y: x.cm }))} sufijo=" cm" />`}
+          </div>`)}
     </div>
 
     <${Fuerza} />
@@ -178,20 +204,40 @@ function HojaNumero({ titulo, unidad, inicial, alGuardar, alCerrar }) {
   <//>`;
 }
 
+// El protocolo se enseña entero cada vez: medir siempre igual es lo que hace que los
+// números se puedan comparar. Debajo de cada campo, dónde va exactamente la cinta.
 function HojaMedidas({ previa, alCerrar, alGuardar }) {
   const [v, ponerV] = useState({});
+  const [marcados, ponerMarcados] = useState({});
   const guardar = async () => {
-    const fila = { fecha: L.hoyISO() };
-    for (const [k] of MEDIDAS) { const n = aNum(v[k]); if (n) fila[k] = n; }
+    const hoy = L.hoyISO();
+    const fila = { fecha: hoy };
+    for (const m of S.MEDIDAS) { const n = aNum(v[m.id]); if (n) fila[m.id] = n; }
     if (Object.keys(fila).length === 1) { toast('Apunta al menos una medida'); return; }
-    await db.guardar('medidas', fila); toast('Medidas guardadas'); alGuardar(); alCerrar();
+    // Si hoy ya habías apuntado alguna, se completan en la misma fila en vez de perderse.
+    const ya = (await db.obtener('medidas', hoy)) || {};
+    await db.guardar('medidas', { ...ya, ...fila });
+    toast('Medidas guardadas'); alGuardar(); alCerrar();
   };
   return html`<${Hoja} titulo="Medidas de hoy" alCerrar=${alCerrar}>
-    <p class="t2" style="margin-bottom:12px">En centímetros, con la cinta sin apretar. Siempre en el mismo sitio y a la misma hora.</p>
-    <div class="rejilla-2" style="margin-bottom:14px">
-      ${MEDIDAS.map(([k, t]) => html`<label class="campo"><span>${t}${previa?.[k] ? ` (antes ${n1(previa[k])})` : ''}</span>
-        <input class="entrada num" inputmode="decimal" value=${v[k] || ''} onInput=${(e) => ponerV({ ...v, [k]: e.currentTarget.value })} /></label>`)}
+    <div class="tarjeta" style="margin-bottom:14px">
+      <div class="ej-nombre">Antes de medir</div>
+      <div style="margin-top:8px">
+        ${S.PROTOCOLO_MEDIDAS.pasos.map((p, k) => html`<button class=${`paso-cal ${marcados[k] ? 'hecho' : ''}`} key=${k}
+          onClick=${() => ponerMarcados({ ...marcados, [k]: !marcados[k] })}>
+          <i>${marcados[k] ? html`<${Icono} n="check" t=${14} g=${3} />` : null}</i><span>${p}</span>
+        </button>`)}
+      </div>
     </div>
+    <div class="pila" style="margin-bottom:14px">
+      ${S.MEDIDAS.map((m) => html`<div key=${m.id}>
+        <label class="campo"><span>${m.nombre} (cm)${previa?.[m.id] ? ` · antes ${n1(previa[m.id])}` : ''}</span>
+          <input class="entrada num" inputmode="decimal" value=${v[m.id] || ''}
+            onInput=${(e) => { const x = e.currentTarget.value; ponerV((p) => ({ ...p, [m.id]: x })); }} /></label>
+        <p class="t2 peq" style="margin:4px 4px 0">${m.definicion}</p>
+      </div>`)}
+    </div>
+    <p class="t2 peq" style="margin-bottom:12px">Apunta solo las que midas: las que dejes vacías se quedan como estaban.</p>
     <button class="boton" onClick=${guardar}>Guardar medidas</button>
   <//>`;
 }

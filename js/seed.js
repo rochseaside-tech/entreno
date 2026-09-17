@@ -34,6 +34,31 @@ export const REGLAS = [
   'Contar el aceite siempre. Una cucharada son 90 kcal y en un refrito no queda nada en la sartén.',
 ];
 
+// ---------------------------------------------------------------- medidas del cuerpo
+// Cada medida con su definición, que se enseña al ir a medir: el sitio exacto importa
+// más que el número, porque lo que dice algo es una medición contra la anterior.
+export const MEDIDAS = [
+  { id: 'abdomen', nombre: 'Abdomen máximo',
+    definicion: 'Perímetro en la parte más ancha de la barriga, de pie y relajada, sin meter ni sacar barriga, al final de una espiración normal y con la cinta paralela al suelo.' },
+  { id: 'cintura', nombre: 'Cintura', definicion: 'La parte más estrecha del torso, entre las costillas y el ombligo.' },
+  { id: 'cadera', nombre: 'Cadera', definicion: 'La parte más ancha del glúteo. Mírate de lado en el espejo para que la cinta quede recta por detrás.' },
+  { id: 'pecho', nombre: 'Pecho', definicion: 'A la altura de los pezones, con los brazos relajados al costado.' },
+  { id: 'muslo', nombre: 'Muslo', definicion: 'A media distancia entre la ingle y la rodilla, siempre la misma pierna.' },
+  { id: 'brazo', nombre: 'Brazo', definicion: 'En la mitad del bíceps, con el brazo colgando relajado, siempre el mismo brazo.' },
+];
+
+// El protocolo se enseña entero cada vez que vas a medirte: si cambia la forma de medir,
+// los números dejan de ser comparables con los de antes.
+export const PROTOCOLO_MEDIDAS = {
+  cadaDias: 28,
+  pasos: [
+    'Por la mañana, en ayunas, después del baño y antes de beber.',
+    'De pie y relajada: ni metiendo ni sacando barriga.',
+    'Al final de una espiración normal, con la cinta pegada sin apretar y paralela al suelo.',
+    'Mide tres veces seguidas cada sitio y apunta el valor del medio.',
+  ],
+};
+
 // Entradas rápidas: un toque y registrado.
 export const RAPIDAS = [
   {

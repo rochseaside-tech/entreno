@@ -225,6 +225,17 @@ async function aplicarRegistros() {
         metidos.push(`Tu ${r.nombreToma} del ${L.fechaLarga(r.fecha)} ya está apuntada`);
       }
     }
+    if (r.medidas) {
+      // Si ese día ya habías apuntado medidas tú, las tuyas mandan: solo se completan.
+      const { fecha, ...valores } = r.medidas;
+      const ya = (await db.obtener('medidas', fecha)) || { fecha };
+      await db.guardar('medidas', { ...valores, ...ya });
+      metidos.push(`Tus medidas del ${L.fechaLarga(fecha)} ya están apuntadas`);
+    }
+    if (r.config) {
+      const cfg = await db.leerMeta('config', {});
+      await db.escribirMeta('config', { ...cfg, ...r.config });
+    }
     if (r.diaGym) {
       const g = await db.leerMeta('diasGym', []);
       if (!g.includes(r.fecha)) await db.escribirMeta('diasGym', [...g, r.fecha]);

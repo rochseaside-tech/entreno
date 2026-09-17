@@ -120,6 +120,24 @@ comprobar('sigue desde la rutina anterior: tras D -> Torso 1', rot(['A', 'B', 'C
 comprobar('sigue desde la rutina anterior: tras B -> Torso 2', rot(['A', 'B']) === 'T2');
 comprobar('los entrenos libres no cuentan', rot(['A', 'L']) === 'P1');
 
+console.log('\n--- Medidas del cuerpo ---');
+const meds = [{ fecha: '2026-09-17', cintura: 87, abdomen: 109 }, { fecha: '2026-10-13', abdomen: 107.5 }];
+const ev = L.evolucionMedidas(meds, S.MEDIDAS);
+const abd = ev.find((x) => x.id === 'abdomen');
+comprobar(`abdomen máximo: −1,5 cm en 26 días (${abd.cambio} / ${abd.dias})`, abd.cambio === -1.5 && abd.dias === 26);
+comprobar('una medida con un solo dato no tiene cambio', ev.find((x) => x.id === 'cintura').cambio === null);
+comprobar('las medidas que no has apuntado no salen', !ev.some((x) => x.id === 'pecho'));
+comprobar('el abdomen máximo es la primera y trae su definición',
+  S.MEDIDAS[0].id === 'abdomen' && S.MEDIDAS[0].definicion.includes('más ancha de la barriga'));
+comprobar('el protocolo son 4 pasos cada 4 semanas',
+  S.PROTOCOLO_MEDIDAS.cadaDias === 28 && S.PROTOCOLO_MEDIDAS.pasos.length === 4 && S.PROTOCOLO_MEDIDAS.pasos[0].includes('ayunas'));
+
+let pm = L.proximaMedida([meds[0]], '2026-10-13', '2026-09-17');
+comprobar(`respeta la fecha fijada (${pm.fecha}, en ${pm.dias} días)`, pm.fecha === '2026-10-13' && pm.dias === 26 && !pm.toca);
+pm = L.proximaMedida(meds, '2026-10-13', '2026-10-13');
+comprobar(`tras medirse, la siguiente es 4 semanas después (${pm.fecha})`, pm.fecha === '2026-11-10');
+comprobar('si ya pasó la fecha, avisa de que toca', L.proximaMedida(meds, '2026-10-13', '2026-11-12').toca === true);
+
 console.log('\n--- Semana ISO ---');
 comprobar('lunes de un domingo', L.lunesDe('2026-09-13') === '2026-09-07');
 comprobar('la semana tiene 7 días de lunes a domingo',

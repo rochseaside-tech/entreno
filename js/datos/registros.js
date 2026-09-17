@@ -33,6 +33,15 @@ export const REGISTROS_PENDIENTES = [
   },
   CENA_9_SEP(),
   COMIDA_12_SEP(),
+  {
+    // Medidas del 17 sep 2026, pasadas a mano: las dos del mismo día. El 87 es la cintura
+    // (la parte más estrecha) y el 109 el abdomen máximo (la parte más ancha de la barriga).
+    // La próxima medición, el 13 de octubre.
+    id: 'medidas-2026-09-17',
+    hasta: '2026-10-31',
+    medidas: { fecha: '2026-09-17', cintura: 87, abdomen: 109 },
+    config: { proximaMedida: '2026-10-13' },
+  },
 ];
 
 // Comida del sábado 12 sep, día de gimnasio (se marca también el día, para el objetivo

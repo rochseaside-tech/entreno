@@ -379,6 +379,33 @@ export function valoracionRitmo(kgSemana) {
   return { texto: `${t}. Cerca del objetivo de ${PERFIL.ritmoMin}-${PERFIL.ritmoMax}.`, estado: 'neutro' };
 }
 
+// ---------------------------------------------------------------- medidas del cuerpo
+
+// Evolución de cada medida: sus puntos, el último valor y el cambio en cm respecto a la
+// medición anterior de esa misma medida (una medida que ese día no apuntaste no cuenta).
+export function evolucionMedidas(medidas, tipos) {
+  const orden = [...medidas].sort((a, b) => (a.fecha < b.fecha ? -1 : 1));
+  return tipos.map((t) => {
+    const puntos = orden.filter((m) => m[t.id] != null).map((m) => ({ fecha: m.fecha, cm: m[t.id] }));
+    const ultimo = puntos[puntos.length - 1] ?? null;
+    const anterior = puntos[puntos.length - 2] ?? null;
+    return {
+      ...t, puntos, ultimo, anterior,
+      cambio: ultimo && anterior ? Math.round((ultimo.cm - anterior.cm) * 10) / 10 : null,
+      dias: ultimo && anterior ? diasEntre(anterior.fecha, ultimo.fecha) : null,
+    };
+  }).filter((x) => x.puntos.length);
+}
+
+// Cuándo toca medirse: la fecha que hayas fijado mientras no te hayas medido después de
+// ella y, si no, cada 4 semanas desde la última medición.
+export function proximaMedida(medidas, fijada = null, iso = hoyISO(), cada = 28) {
+  const ultima = [...medidas].sort((a, b) => (a.fecha < b.fecha ? -1 : 1)).pop();
+  const fecha = fijada && (!ultima || fijada > ultima.fecha) ? fijada
+    : ultima ? sumarDias(ultima.fecha, cada) : iso;
+  return { fecha, dias: diasEntre(iso, fecha), toca: fecha <= iso, ultima: ultima?.fecha ?? null };
+}
+
 // ---------------------------------------------------------------- aprendizaje
 
 // La app no tiene IA: aprende contando. Cada registro suma a un contador por
