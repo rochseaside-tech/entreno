@@ -126,13 +126,20 @@ export function FotoEj({ ej, clase = 'mini', quieta = false, etiqueta = null }) 
 
 // ---------------------------------------------------------------- anillo
 
-export function Anillo({ valor, max, color = 'var(--acento)', children }) {
+// color2: el anillo se pinta en degradado de un color al otro (lavanda → rosa).
+// centro: el número va dentro del anillo, no al lado.
+export function Anillo({ valor, max, color = 'var(--acento)', color2 = null, centro = false, children }) {
   const C = 2 * Math.PI * 34;
   const frac = max > 0 ? Math.min(1, Math.max(0, valor / max)) : 0;
-  return html`<div class="anillo">
+  // El id sale de los colores: así es el mismo en cada repintado y no cambia el SVG.
+  const id = color2 ? 'g' + [color, color2].join('').replace(/[^a-z0-9]/gi, '').slice(-16) : null;
+  return html`<div class=${`anillo ${centro ? 'centro' : ''}`}>
     <svg viewBox="0 0 80 80" aria-hidden="true">
+      ${id && html`<defs><linearGradient id=${id} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color=${color} /><stop offset="100%" stop-color=${color2} />
+      </linearGradient></defs>`}
       <circle class="pista" cx="40" cy="40" r="34" />
-      <circle class="valor" cx="40" cy="40" r="34" stroke=${color} stroke-dasharray=${`${(frac * C).toFixed(1)} ${C.toFixed(1)}`} />
+      <circle class="valor" cx="40" cy="40" r="34" stroke=${id ? `url(#${id})` : color} stroke-dasharray=${`${(frac * C).toFixed(1)} ${C.toFixed(1)}`} />
     </svg>
     <div>${children}</div>
   </div>`;

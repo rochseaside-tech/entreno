@@ -84,14 +84,18 @@ function ElegirSesion() {
       ${ORDEN_SESIONES.map((plan) => {
         const s = E.rutina[plan];
         const ejs = s.ejercicios.map((x) => E.ejercicioPorId.get(x.id)).filter(Boolean);
-        return html`<button class="tarjeta" style="display:block;width:100%;text-align:left" onClick=${() => empezar(plan)}>
-          ${(s.nota || plan === toca) && html`<div class="fila-f" style="justify-content:space-between;margin-bottom:8px">
-            ${s.nota ? html`<span class="pastilla">${s.nota}</span>` : html`<span></span>`}
-            ${plan === toca && html`<span class="t2 peq" style="font-weight:700">Te toca</span>`}
-          </div>`}
-          <h3 class="titulo" style="font-size:20px;margin:0 0 2px">${s.nombre}</h3>
-          <div class="t2 peq">${ejs.length} ejercicios · unos ${minutosEstimados(s)} min</div>
-          <div style="display:flex;gap:6px;margin-top:12px">${ejs.slice(0, 5).map((ej) => html`<${FotoEj} ej=${ej} clase="mini" quieta />`)}</div>
+        return html`<button class="portada" style="display:block;width:100%;text-align:left" onClick=${() => empezar(plan)}>
+          <div class="fondo">${ejs[0] && html`<${FotoEj} ej=${ejs[0]} clase="lleno" quieta />`}</div>
+          <div class="encima">
+            <div class="hueco" style="height:84px"></div>
+            <div class="fila-f" style="justify-content:space-between;min-height:20px">
+              <span class="marca">${s.nota || ''}</span>
+              ${plan === toca && html`<span class="pastilla">Te toca</span>`}
+            </div>
+            <h3 class="titulo" style="font-size:26px">${s.nombre}</h3>
+            <div class="t2 peq">${ejs.length} ejercicios · unos ${minutosEstimados(s)} min</div>
+            <div class="tira">${ejs.slice(0, 5).map((ej) => html`<${FotoEj} ej=${ej} clase="mini" quieta />`)}</div>
+          </div>
         </button>`;
       })}
       <button class="boton suave" onClick=${() => empezar('L')}><${Icono} n="mas" t=${20} g=${2.2} />Entreno libre</button>

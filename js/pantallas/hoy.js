@@ -65,17 +65,22 @@ function TarjetaEntreno() {
   const visibles = ejercicios.slice(0, 4);
   const empezar = async () => { await iniciarSesion(plan); ir('entreno'); };
 
-  return html`<div class="tarjeta">
-    <div class="peq" style="font-weight:700;color:var(--acento)">Te toca</div>
-    <h3 class="titulo" style="font-size:23px;margin:5px 0 3px">${sesion.nombre}</h3>
-    <div class="t3 peq">${sesion.nota ? `${sesion.nota} · ` : ''}${ejercicios.length} ejercicios · unos ${minutosEstimados(sesion)} min</div>
-    <div style="display:flex;gap:8px;margin:14px 0">
-      ${visibles.map((ej) => html`<${FotoEj} ej=${ej} clase="mini" quieta />`)}
-      ${ejercicios.length > 4 && html`<div class="mini" style="display:grid;place-items:center;background:var(--superficie2);font-weight:700;color:var(--texto2)">+${ejercicios.length - 4}</div>`}
+  // Portada: la foto del primer ejercicio a sangre y el entreno del día encima.
+  return html`<div class="portada">
+    <div class="fondo">${ejercicios[0] && html`<${FotoEj} ej=${ejercicios[0]} clase="lleno" quieta />`}</div>
+    <div class="encima">
+      <div class="hueco"></div>
+      <div class="marca">Te toca</div>
+      <h3 class="titulo">${sesion.nombre}</h3>
+      <div class="t2 peq">${sesion.nota ? `${sesion.nota} · ` : ''}${ejercicios.length} ejercicios · unos ${minutosEstimados(sesion)} min</div>
+      <div class="tira">
+        ${visibles.map((ej) => html`<${FotoEj} ej=${ej} clase="mini" quieta />`)}
+        ${ejercicios.length > 4 && html`<div class="mini" style="width:44px;height:44px;border-radius:10px;display:grid;place-items:center;background:var(--superficie2);font-weight:700;font-size:14px;color:var(--texto2)">+${ejercicios.length - 4}</div>`}
+      </div>
+      ${E.fase?.motivo && html`<div class="sugerencia" style="margin-top:14px"><${Icono} n="reloj" t=${18} g=${2} />${E.fase.motivo}</div>`}
+      <button class="boton" style="margin-top:14px" onClick=${empezar}>Empezar entreno</button>
+      <button class="boton suave" style="margin-top:8px;min-height:44px;font-size:15px" onClick=${() => ir('entreno')}>Elegir otra sesión</button>
     </div>
-    ${E.fase?.motivo && html`<div class="sugerencia" style="margin-bottom:12px"><${Icono} n="reloj" t=${18} g=${2} />${E.fase.motivo}</div>`}
-    <button class="boton" onClick=${empezar}>Empezar entreno</button>
-    <button class="boton suave" style="margin-top:8px;min-height:44px;font-size:15px" onClick=${() => ir('entreno')}>Elegir otra sesión</button>
   </div>`;
 }
 
@@ -86,10 +91,10 @@ function TarjetaComida({ dia }) {
   const barra = (v, max) => html`<div class="barra-fina"><i style=${`width:${Math.min(100, (v / max) * 100)}%`}></i></div>`;
   return html`<button class="tarjeta" style="display:block;width:100%;text-align:left" onClick=${() => ir('comida')}>
     <div class="anillos">
-      <${Anillo} valor=${t.kcal} max=${o.kcal}>
+      <${Anillo} valor=${t.kcal} max=${o.kcal} color="var(--acento)" color2="var(--acento2)" centro=${true}>
         <div class="num">${n0(t.kcal)}</div><small>de ${n0(o.kcal)} kcal</small>
       <//>
-      <${Anillo} valor=${t.prot} max=${o.prot} color="var(--anillo2)">
+      <${Anillo} valor=${t.prot} max=${o.prot} color="var(--anillo2)" color2="var(--anillo2b)" centro=${true}>
         <div class="num">${n0(t.prot)} g</div><small>de ${o.prot} g prot.</small>
       <//>
     </div>

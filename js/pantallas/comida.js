@@ -46,8 +46,8 @@ export function Comida({ params }) {
 
     <div class="tarjeta">
       <div class="anillos">
-        <${Anillo} valor=${t.kcal} max=${o.kcal}><div class="num">${n0(t.kcal)}</div><small>de ${n0(o.kcal)} kcal</small><//>
-        <${Anillo} valor=${t.prot} max=${o.prot} color="var(--anillo2)"><div class="num">${n0(t.prot)} g</div><small>de ${o.prot} g prot.</small><//>
+        <${Anillo} valor=${t.kcal} max=${o.kcal} color="var(--acento)" color2="var(--acento2)" centro=${true}><div class="num">${n0(t.kcal)}</div><small>de ${n0(o.kcal)} kcal</small><//>
+        <${Anillo} valor=${t.prot} max=${o.prot} color="var(--anillo2)" color2="var(--anillo2b)" centro=${true}><div class="num">${n0(t.prot)} g</div><small>de ${o.prot} g prot.</small><//>
       </div>
       <div class="macros">
         <div><div class="t">Grasa <b>${n0(t.grasa)} / ${o.grasa} g</b></div><div class="barra-fina"><i style=${`width:${Math.min(100, (t.grasa / o.grasa) * 100)}%`}></i></div></div>
