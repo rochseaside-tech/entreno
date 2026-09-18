@@ -216,6 +216,7 @@ export const ALIMENTOS = [
   { nombre: 'Berberechos, escurridos', cat: 'Pescado', kcal: 53, prot: 8.4, grasa: 0, hc: 4.8, fibra: 0, sal: 1.4, medida: 'g', racion: 60, exacto: true,
     gramosUnidad: 90, nota: 'Lata Mercadona de 185 g: 90 g escurridos.' },
   { nombre: 'Anchoas en AOVE, escurridas', cat: 'Pescado', kcal: 200, prot: 26, grasa: 10, hc: 0, fibra: 0, sal: 5, medida: 'g', racion: 15 },
+  { nombre: 'Boquerones en vinagre, escurridos', cat: 'Pescado', kcal: 156, prot: 24.7, grasa: 6, hc: 0.7, fibra: 0, sal: 2.8, medida: 'g', racion: 60 },
   { nombre: 'Merluza', cat: 'Pescado', kcal: 85, prot: 17, grasa: 1.5, hc: 0, fibra: 0, sal: 0.15, medida: 'g', racion: 200 },
   { nombre: 'Jurel', cat: 'Pescado', kcal: 120, prot: 20, grasa: 4.5, hc: 0, fibra: 0, sal: 0.2, medida: 'g', racion: 150 },
   { nombre: 'Salmón', cat: 'Pescado', kcal: 200, prot: 20, grasa: 13, hc: 0, fibra: 0, sal: 0.15, medida: 'g', racion: 130 },
@@ -227,7 +228,12 @@ export const ALIMENTOS = [
   { nombre: 'Muslitos de pollo (fiambre La Carloteña)', cat: 'Carne', kcal: 150, prot: 17.5, grasa: 8.5, hc: 1, fibra: 0, sal: 1.8, medida: 'g', racion: 40 },
   { nombre: 'Lomo de cerdo adobado', cat: 'Carne', kcal: 141, prot: 20.9, grasa: 5.5, hc: 0.6, fibra: 0, sal: 1.1, medida: 'g', racion: 120 },
   { nombre: 'Chuleta de pavo', cat: 'Carne', kcal: 120, prot: 22, grasa: 3.5, hc: 0, fibra: 0, sal: 0.15, medida: 'g', racion: 180 },
-  { nombre: 'Carne picada de ternera (11 % grasa)', cat: 'Carne', kcal: 180, prot: 19.5, grasa: 11, hc: 0, fibra: 0, sal: 0.15, medida: 'g', racion: 200 },
+  { nombre: 'Babilla de ternera', cat: 'Carne', kcal: 118, prot: 21.5, grasa: 3.5, hc: 0, fibra: 0, sal: 0.15, medida: 'g', racion: 200,
+    nota: 'La que compras picada al corte: úsala también para la carne picada.' },
+  { nombre: 'Conejo (carne limpia, cruda)', cat: 'Carne', kcal: 133, prot: 20.3, grasa: 5.7, hc: 0, fibra: 0, sal: 0.1, medida: 'g', racion: 150 },
+  // Sacado de su plato del 18 sep: 140 g de carne = 394 kcal · 40 g prot · 23 g grasa · 6 g hc.
+  { nombre: 'Conejo al ajillo, carne sin hueso', cat: 'Carne', kcal: 281, prot: 28.6, grasa: 16.4, hc: 4.3, fibra: 0.2, sal: 0, medida: 'g', racion: 140,
+    nota: 'Apunta los gramos de CARNE, no el plato con hueso. 200 g de plato con muslo y lomo son unos 140 g de carne; con costillar y cabeza, unos 100 g.' },
   { nombre: 'Lomo de cerdo', cat: 'Carne', kcal: 130, prot: 22, grasa: 4.5, hc: 0, fibra: 0, sal: 0.15, medida: 'g', racion: 180 },
   { nombre: 'Entrecot de ternera', cat: 'Carne', kcal: 250, prot: 20, grasa: 19, hc: 0, fibra: 0, sal: 0.15, medida: 'g', racion: 200 },
   { nombre: 'Jamón serrano en taquitos', cat: 'Carne', kcal: 240, prot: 30, grasa: 13, hc: 0.5, fibra: 0, sal: 4.5, medida: 'g', racion: 30 },
@@ -240,6 +246,7 @@ export const ALIMENTOS = [
   { nombre: 'Arroz blanco, crudo', cat: 'Cereales', kcal: 355, prot: 7, grasa: 0.6, hc: 78, fibra: 1.4, sal: 0, medida: 'g', racion: 60 },
   { nombre: 'Arroz blanco, cocido', cat: 'Cereales', kcal: 127, prot: 2.3, grasa: 0.3, hc: 28, fibra: 0.5, sal: 0, medida: 'g', racion: 150 },
   { nombre: 'Pasta seca', cat: 'Cereales', kcal: 355, prot: 12, grasa: 1.5, hc: 71, fibra: 3, sal: 0, medida: 'g', racion: 60 },
+  { nombre: 'Harina de trigo', cat: 'Cereales', kcal: 350, prot: 10, grasa: 1.2, hc: 73, fibra: 2.7, sal: 0, medida: 'g', racion: 30 },
   { nombre: 'Fideos de arroz, secos', cat: 'Cereales', kcal: 360, prot: 4, grasa: 0.5, hc: 82, fibra: 1.5, sal: 0, medida: 'g', racion: 70 },
   { nombre: 'Patata cocida', cat: 'Cereales', kcal: 77, prot: 2, grasa: 0.1, hc: 17, fibra: 1.8, sal: 0, medida: 'g', racion: 200 },
   { nombre: 'Boniato asado', cat: 'Cereales', kcal: 90, prot: 1.6, grasa: 0.1, hc: 20, fibra: 3, sal: 0, medida: 'g', racion: 200 },
@@ -253,8 +260,7 @@ export const ALIMENTOS = [
   { nombre: 'Aceite de sésamo', cat: 'Grasas', kcal: 900, prot: 0, grasa: 100, hc: 0, fibra: 0, sal: 0, medida: 'g', racion: 5 },
   { nombre: 'Aguacate', cat: 'Grasas', kcal: 160, prot: 2, grasa: 15, hc: 2, fibra: 6.5, sal: 0, medida: 'g', racion: 80, nota: 'A ojo en vez de pesado son +65 kcal al día.' },
   { nombre: 'Nueces', cat: 'Grasas', kcal: 650, prot: 15, grasa: 65, hc: 7, fibra: 6, sal: 0, medida: 'g', racion: 20 },
-  { nombre: 'Cacahuete desgrasado en polvo (Just Loading)', cat: 'Grasas', kcal: 412, prot: 48.9, grasa: 12.6, hc: 18.5, fibra: 9, sal: 0, medida: 'g', racion: 15,
-    nota: 'Valores de la marca (fatsecret), no de la etiqueta: si tienes el bote delante, gana la etiqueta. La fibra está estimada y las 412 kcal salen algo altas para esos macros (calculadas, 383).' },
+  { nombre: 'Cacahuete desgrasado en polvo (Just Loading)', cat: 'Grasas', kcal: 421, prot: 50, grasa: 12.9, hc: 17.3, fibra: 7.5, sal: 0.01, medida: 'g', racion: 15, exacto: true },
   { nombre: 'Aceitunas negras', cat: 'Grasas', kcal: 150, prot: 1, grasa: 15, hc: 1, fibra: 3, sal: 3, medida: 'g', racion: 25 },
   { nombre: 'Semillas de chía', cat: 'Grasas', kcal: 486, prot: 17, grasa: 31, hc: 42, fibra: 34, sal: 0, medida: 'g', racion: 12 },
 
@@ -262,6 +268,7 @@ export const ALIMENTOS = [
   { nombre: 'Berenjena', cat: 'Verdura', kcal: 25, prot: 1, grasa: 0.2, hc: 3, fibra: 3, sal: 0, medida: 'g', racion: 250 },
   { nombre: 'Pimiento', cat: 'Verdura', kcal: 30, prot: 1, grasa: 0.3, hc: 4.5, fibra: 1.8, sal: 0, medida: 'g', racion: 150 },
   { nombre: 'Cebolla', cat: 'Verdura', kcal: 40, prot: 1.1, grasa: 0.1, hc: 8, fibra: 1.7, sal: 0, medida: 'g', racion: 100 },
+  { nombre: 'Ajo crudo', cat: 'Verdura', kcal: 149, prot: 6.4, grasa: 0.5, hc: 30, fibra: 2.1, sal: 0, medida: 'g', racion: 10, gramosUnidad: 4, nota: 'Un diente son unos 4 g.' },
   { nombre: 'Tomate', cat: 'Verdura', kcal: 18, prot: 0.9, grasa: 0.2, hc: 3, fibra: 1.2, sal: 0, medida: 'g', racion: 150 },
   { nombre: 'Tomate triturado', cat: 'Verdura', kcal: 30, prot: 1.2, grasa: 0.2, hc: 5, fibra: 1.5, sal: 0.3, medida: 'g', racion: 200 },
   { nombre: 'Tomate cherry', cat: 'Verdura', kcal: 18, prot: 0.9, grasa: 0.2, hc: 3, fibra: 1.2, sal: 0, medida: 'g', racion: 100 },
@@ -532,6 +539,16 @@ export const RECETAS = [
       { nombre: 'Whey Prime en polvo', cantidad: 25 }, { nombre: 'Leche desnatada sin lactosa', cantidad: 200 },
     ],
   },
+  {
+    // Cazuela entera, macros que dio Rocío el 18 sep (incluyen los higadillos).
+    nombre: 'Conejo al ajillo (cazuela entera)', raciones: 1, tiempo: 50, tags: ['batch', 'comida'],
+    macrosRacion: { kcal: 1448, prot: 146.5, grasa: 80, hc: 34, fibra: 1.6, sal: 0.7 },
+    nota: '1 conejo de 1,2 kg. Se reparte por piezas, no por peso: para tu plato no uses esta receta, apunta «Conejo al ajillo, carne sin hueso» con los gramos de carne.',
+    ingredientes: [
+      { nombre: 'Conejo (carne limpia, cruda)', cantidad: 660 }, { nombre: 'AOVE', cantidad: 40 },
+      { nombre: 'Harina de trigo', cantidad: 30 }, { nombre: 'Ajo crudo', cantidad: 40 },
+    ],
+  },
 ];
 
 // ---------------------------------------------------------------- referencias
@@ -550,5 +567,6 @@ export const ESCAPES = [
 // guarda sus propios macros.
 export const RETIRADOS = {
   recetas: ['tostada-de-desayuno'],
-  alimentos: [],
+  // 18 sep: la carne picada al 11 % era un duplicado; compra babilla picada al corte.
+  alimentos: ['carne-picada-de-ternera-11-grasa'],
 };

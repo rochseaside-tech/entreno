@@ -11,7 +11,7 @@ import { REGISTROS_PENDIENTES, CAMBIOS_PENDIENTES } from './datos/registros.js';
 
 // Sube este número cuando añadas datos nuevos a seed.js: la app los incorpora
 // sin tocar lo que tú hayas editado.
-const VERSION_SEMILLA = 9; // 7: melocotón light en lata (10 sep) · 8: carne picada 11 %, tahini del bote, sirope de agave (12 sep) · 9: cacahuete desgrasado en polvo y yogur natural 0,0 (16 sep)
+const VERSION_SEMILLA = 10; // 7: melocotón light en lata (10 sep) · 8: carne picada 11 %, tahini del bote, sirope de agave (12 sep) · 9: cacahuete desgrasado en polvo y yogur natural 0,0 (16 sep) · 10: conejo, babilla, boquerones en vinagre, harina, ajo y conejo al ajillo (18 sep)
 
 export const E = {
   listo: false,
@@ -266,6 +266,17 @@ async function aplicarRegistros() {
     if (c.alimento) {
       const a = await db.obtener('alimentos', idDe(c.alimento));
       if (a) await db.guardar('alimentos', { ...a, ...c.campos });
+    }
+    if (c.borrarAlimentos) {
+      // Borra de su biblioteca los que casen con el patrón (también los que creó ella a
+      // mano) y los apunta como quitados, para que la tabla general no los vuelva a enseñar.
+      const patron = new RegExp(c.borrarAlimentos, 'i');
+      const quitados = new Set(await db.leerMeta('alimentosQuitados', []));
+      for (const a of await db.todos('alimentos')) {
+        if (patron.test(a.nombre)) { await db.borrar('alimentos', a.id); quitados.add(a.id); }
+      }
+      for (const b of ALIMENTOS_BASE) if (patron.test(b.nombre)) quitados.add('b-' + idDe(b.nombre));
+      await db.escribirMeta('alimentosQuitados', [...quitados]);
     }
     hechos.push(c.id);
     await db.escribirMeta('registrosAplicados', hechos);

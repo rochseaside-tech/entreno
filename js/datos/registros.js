@@ -33,6 +33,7 @@ export const REGISTROS_PENDIENTES = [
   },
   CENA_9_SEP(),
   COMIDA_12_SEP(),
+  COMIDA_18_SEP(),
   {
     // Medidas del 17 sep 2026, pasadas a mano: las dos del mismo día. El 87 es la cintura
     // (la parte más estrecha) y el 109 el abdomen máximo (la parte más ancha de la barriga).
@@ -43,6 +44,31 @@ export const REGISTROS_PENDIENTES = [
     config: { proximaMedida: '2026-10-13' },
   },
 ];
+
+// Comida del viernes 18 sep: conejo al ajillo con patata y ensalada. Macros de cada línea
+// tal como los dio Rocío (suman 608 kcal · 50,8 g prot · 27,6 g grasa · 38,3 g hc · 4,9 g fibra).
+function COMIDA_18_SEP() {
+  const fecha = '2026-09-18', id = 'reg-comida-2026-09-18';
+  const base = Date.parse('2026-09-18T12:00:00Z'); // 14:00 en España, aproximada
+  const L = [
+    // nombre, cantidad, medida, origen, refId, kcal, prot, grasa, hc, fibra, sal, nota
+    ['Conejo al ajillo, carne sin hueso', 140, 'g', 'alimento', 'conejo-al-ajillo-carne-sin-hueso', 394, 40, 23, 6, 0.3, 0, 'Ración con muslo y piezas: 140 g de carne.'],
+    ['Patata en air fryer', 150, 'g', 'alimento', 'patata-cocida', 116, 3, 0.2, 25.5, 2.7, 0],
+    ['AOVE', 2, 'g', 'alimento', 'aove', 18, 0, 2, 0, 0, 0, 'De la patata.'],
+    ['Cottage 0% (Carrefour)', 50, 'g', 'alimento', 'cottage-0-carrefour', 34, 6.2, 0.1, 2.3, 0, 0.3],
+    ['Lechuga', 40, 'g', 'alimento', 'lechuga', 6, 0.6, 0.1, 0.6, 0.5, 0],
+    ['Tomate', 90, 'g', 'alimento', 'tomate', 16, 0.8, 0.2, 2.7, 1.1, 0],
+    ['Cebolla', 15, 'g', 'alimento', 'cebolla', 6, 0.2, 0, 1.2, 0.3, 0],
+    ['AOVE', 2, 'g', 'alimento', 'aove', 18, 0, 2, 0, 0, 0, 'De la ensalada.'],
+  ];
+  return {
+    id, hasta: '2026-09-30', fecha, toma: 'comida', nombreToma: 'comida',
+    comidas: L.map(([nombre, cantidad, medida, origen, refId, kcal, prot, grasa, hc, fibra, sal, nota = null], i) => ({
+      id: `${id}-${i + 1}`, fecha, toma: 'comida', nombre, cantidad, medida, origen, refId, nota,
+      kcal, prot, grasa, hc, fibra, sal, ts: base + i * 1000,
+    })),
+  };
+}
 
 // Comida del sábado 12 sep, día de gimnasio (se marca también el día, para el objetivo
 // de 1815 kcal aunque aún no haya entreno). Macros de cada línea tal como los dio Rocío.
@@ -93,6 +119,18 @@ function CENA_9_SEP() {
 // Cambios en datos que ya están en su móvil (la semilla solo añade lo que falta, no
 // cambia lo que hay). Se aplican una vez, igual que los registros.
 export const CAMBIOS_PENDIENTES = [
+  {
+    // 18 sep: valores nuevos del cacahuete desgrasado; sustituyen a los de fatsecret.
+    id: 'cacahuete-valores-2026-09-18',
+    alimento: 'Cacahuete desgrasado en polvo (Just Loading)',
+    campos: { kcal: 421, prot: 50, grasa: 12.9, hc: 17.3, fibra: 7.5, sal: 0.01, exacto: true, nota: '' },
+  },
+  {
+    // 18 sep: fuera los duplicados de carne picada de ternera al 10, 11 y 12 % (el 12 %,
+    // si lo creó ella en el móvil). Compra babilla picada al corte: usa «Babilla de ternera».
+    id: 'carne-picada-duplicados-2026-09-18',
+    borrarAlimentos: 'carne picada.*\\b1[0-2]\\s*%',
+  },
   {
     // 15 sep 2026: rutina Torso 1 → Pierna 1 → Torso 2 → Pierna 2 en lugar de A-B-C-D.
     // Sustituye la rutina guardada; los entrenos hechos no se tocan.
