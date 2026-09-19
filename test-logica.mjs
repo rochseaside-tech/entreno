@@ -57,8 +57,12 @@ comprobar('el tríceps en polea tiene los tres agarres',
   CATALOGO.find(c => c.id === 'triceps-polea').variantes.join() === 'Barra en V,Barra recta,Cuerda');
 a = L.analizarEjercicio(delCatalogo('remo-maquina'), [], faseNormal, { arranque: true });
 comprobar(`tantear: sin peso propuesto (${a.pesoSugerido})`, a.pesoSugerido === null && a.aviso.texto.includes('tantea'));
-comprobar('hip thrust de Pierna 2: 3 series de 12-15 y 90 s',
-  JSON.stringify(S.RUTINA.P2.ejercicios.find(x => x.id === 'hip-thrust')) === '{"id":"hip-thrust","series":3,"repMin":12,"repMax":15,"descanso":90}');
+comprobar('Pierna 2: prensa 45° · extensión · curl tumbado · abductores · gemelo · crunch',
+  S.RUTINA.P2.ejercicios.map(x => x.id).join() === 'prensa-45,extension-cuadriceps,curl-femoral-tumbado,abductores,gemelo-de-pie,crunch-maquina');
+comprobar('el hip thrust solo en Pierna 1, con 4 series',
+  !S.RUTINA.P2.ejercicios.some(x => x.id === 'hip-thrust') && S.RUTINA.P1.ejercicios.find(x => x.id === 'hip-thrust').series === 4);
+comprobar('prensa de 45° a tantear; crunch de Pierna 2 arranca en 60 kg desde el 19 sep',
+  S.PESOS_INICIALES['prensa-45'] === null && JSON.stringify(S.RUTINA.P2.ejercicios.find(x => x.id === 'crunch-maquina')) === '{"id":"crunch-maquina","series":3,"pesoInicial":60,"desde":"2026-09-19"}');
 const todos = Object.values(S.RUTINA).flatMap(d => d.ejercicios.map(x => x.id));
 comprobar('todos los ejercicios de la rutina están en el catálogo', todos.every(id => CATALOGO.some(c => c.id === id)), todos.filter(id => !CATALOGO.some(c => c.id === id)));
 comprobar('la extensión de cadera ya no está en la rutina', !todos.includes('extension-cadera'));

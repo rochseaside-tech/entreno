@@ -407,13 +407,28 @@ export const CATALOGO = [
 
   // ============================================================ Cuádriceps
   {
-    id: 'prensa', nombre: 'Prensa', grupo: 'Cuádriceps', sec: ['Glúteo', 'Femoral'], equipo: 'Máquina',
+    // La horizontal, la que usaba hasta el 18 sep. Se queda con su historial; sus pesos no
+    // valen para la de 45°.
+    id: 'prensa', nombre: 'Prensa horizontal', grupo: 'Cuádriceps', sec: ['Glúteo', 'Femoral'], equipo: 'Máquina',
     en: 'Leg Press', rep: [10, 12], rir: '2', descanso: 120, incremento: 5, tipo: 'peso',
+    fotoNota: 'La foto es de la prensa inclinada: el movimiento es el mismo, cambia el aparato.',
     claves: [
       'Recorrido por exposición progresiva, sin tope fijo de 90°: empieza en el recorrido que haces ahora y baja un poco más cada 2-3 semanas.',
       'Si ese día y el siguiente no hay molestia en la rodilla, te quedas con el rango nuevo; si la hay, vuelves al anterior.',
       'Talón despegado de la plataforma = has bajado de más.',
       'Pies a la anchura de la cadera; empuja con mediopié y talón, y no bloquees la rodilla arriba.',
+    ],
+  },
+  {
+    // Desde el 19 sep, la de Pierna 2: trineo a 45° cargado con discos.
+    id: 'prensa-45', nombre: 'Prensa inclinada 45°, pies altos', grupo: 'Cuádriceps', sec: ['Glúteo', 'Femoral'], equipo: 'Máquina de discos',
+    en: 'Leg Press', img: 'prensa', rep: [10, 12], rir: '2', descanso: 120, incremento: 5, tipo: 'peso',
+    claves: [
+      'Pies altos y separados en la plataforma, para que el glúteo asuma más trabajo y el cuádriceps menos.',
+      'Recorrido por exposición progresiva, sin tope fijo de 90°: empieza en el recorrido que haces ahora y baja un poco más cada 2-3 semanas.',
+      'Si ese día y el siguiente no hay molestia en la rodilla, te quedas con el rango nuevo; si la hay, vuelves al anterior.',
+      'Talón despegado de la plataforma = has bajado de más.',
+      'Empuja con mediopié y talón y no bloquees la rodilla arriba. Con los topes de seguridad siempre puestos.',
     ],
   },
   {

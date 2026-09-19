@@ -267,6 +267,11 @@ async function aplicarRegistros() {
       const a = await db.obtener('alimentos', idDe(c.alimento));
       if (a) await db.guardar('alimentos', { ...a, ...c.campos });
     }
+    if (c.sesionRutina) {
+      // Cambia una sola sesión de la rutina; las otras se quedan como las tenga ella.
+      const r = await db.leerMeta('rutina', S.RUTINA);
+      await db.escribirMeta('rutina', { ...r, [c.sesionRutina]: S.RUTINA[c.sesionRutina] });
+    }
     if (c.borrarAlimentos) {
       // Borra de su biblioteca los que casen con el patrón (también los que creó ella a
       // mano) y los apunta como quitados, para que la tabla general no los vuelva a enseñar.
@@ -373,7 +378,9 @@ export function previasPara(ejercicioId, sesion, variante = null) {
   const rangos = new Set(Object.values(E.rutina).flatMap((d) => d.ejercicios
     .filter((x) => x.id === ejercicioId).map((x) => { const e = conAjustes(base, x); return `${e?.repMin}-${e?.repMax}`; })));
   const previas = porAgarre(rangos.size > 1 ? todas.filter((s) => planNuevo(planDeSesion(s.sesionId)) === plan) : todas);
-  const arranque = !previas.some((s) => S.ORDEN_SESIONES.includes(planDeSesion(s.sesionId)));
+  // Una línea de la rutina con `desde` vuelve a arrancar con su peso: lo de antes no cuenta.
+  const desde = E.rutina[plan]?.ejercicios.find((x) => x.id === ejercicioId)?.desde || null;
+  const arranque = !previas.some((s) => S.ORDEN_SESIONES.includes(planDeSesion(s.sesionId)) && (!desde || s.fecha >= desde));
   return { previas, arranque, otroAgarre: arranque ? otroAgarre() : null };
 }
 

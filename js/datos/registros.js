@@ -120,6 +120,11 @@ function CENA_9_SEP() {
 // cambia lo que hay). Se aplican una vez, igual que los registros.
 export const CAMBIOS_PENDIENTES = [
   {
+    // 19 sep: Pierna 2 nueva (prensa de 45°, abductores en lugar del hip thrust, crunch a 60 kg).
+    id: 'rutina-pierna2-2026-09-19',
+    sesionRutina: 'P2',
+  },
+  {
     // 18 sep: valores nuevos del cacahuete desgrasado; sustituyen a los de fatsecret.
     id: 'cacahuete-valores-2026-09-18',
     alimento: 'Cacahuete desgrasado en polvo (Just Loading)',

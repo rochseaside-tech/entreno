@@ -87,14 +87,17 @@ export const PESOS_INICIALES = {
   'jalon-neutro': 32, 'remo-maquina': null, 'deltoides-posterior': 9.1, 'elev-laterales': 4,
   'triceps-sobre-cabeza': 24.5, 'curl-predicador': 11.4,
   // Pierna 2
-  'prensa': 95.8, 'extension-cuadriceps': 40.8, 'curl-femoral-tumbado': 22.7, 'gemelo-de-pie': 22.7,
+  'prensa-45': null, // 45° con discos desde el 19 sep: tantear, los pesos de la horizontal no valen
+  'extension-cuadriceps': 40.8, 'curl-femoral-tumbado': 22.7, 'gemelo-de-pie': 22.7,
+  'prensa': 95.8, // la horizontal, fuera de la rutina desde el 19 sep
   // Fuera de la rutina
   'hiperextensiones': 0, 'extension-cadera': null,
 };
 
 // La rutina desde el 15 sep 2026, en rotación continua. Cada ejercicio usa su rango, RIR,
-// descanso e incremento del catálogo; si en una sesión lleva otros (el hip thrust de
-// Pierna 2), van en su línea y mandan solo en esa sesión.
+// descanso e incremento del catálogo; si en una sesión lleva otros, van en su línea y
+// mandan solo en esa sesión. `desde` + `pesoInicial`: vuelve a arrancar con ese peso,
+// sin mirar lo hecho antes de esa fecha (el crunch de Pierna 2, que iba sobrado a 35 kg).
 export const RUTINA = {
   T1: {
     nombre: 'Torso 1',
@@ -131,13 +134,15 @@ export const RUTINA = {
   },
   P2: {
     nombre: 'Pierna 2', nota: 'Dominante de rodilla',
+    // 19 sep: prensa de 45° con discos (tantear), fuera el hip thrust (solo en Pierna 1),
+    // entran los abductores y el crunch arranca de nuevo en 60 kg.
     ejercicios: [
-      { id: 'prensa', series: 4 },
+      { id: 'prensa-45', series: 4 },
       { id: 'extension-cuadriceps', series: 3 },
       { id: 'curl-femoral-tumbado', series: 3 },
-      { id: 'hip-thrust', series: 3, repMin: 12, repMax: 15, descanso: 90 },
+      { id: 'abductores', series: 2 },
       { id: 'gemelo-de-pie', series: 3 },
-      { id: 'crunch-maquina', series: 3 },
+      { id: 'crunch-maquina', series: 3, pesoInicial: 60, desde: '2026-09-19' },
     ],
   },
 };

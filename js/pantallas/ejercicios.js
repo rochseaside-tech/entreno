@@ -19,7 +19,7 @@ function enRutina(id) {
 function distintosEnRutina(ej) {
   return Object.values(E.rutina).flatMap((s) => s.ejercicios
     .filter((x) => x.id === ej.id && Object.keys(ajustesDe(x)).length)
-    .map((x) => ({ sesion: s.nombre, e: conAjustes(ej, x) })));
+    .map((x) => ({ sesion: s.nombre, e: conAjustes(ej, x), arranque: x.pesoInicial })));
 }
 
 // ---------------------------------------------------------------- lista reutilizable
@@ -119,7 +119,7 @@ export function Ejercicio({ id }) {
           <div class="dato"><small>Cómo lo haces tú</small>
             <div style="margin-top:4px;font-weight:600">${ej.repMin}–${ej.repMax} ${ej.segundos ? 'segundos' : 'reps'} · RIR ${ej.rir} · descanso ${L.mmss(ej.descanso)}</div>
             <div class="t2 peq" style="margin-top:2px">${sesiones.length ? `En tu ${sesiones.join(' y ')}` : 'No está en tu rutina'}${ej.incremento ? ` · sube de ${n1(ej.incremento)} en ${n1(ej.incremento)} kg` : ''}</div>
-            ${distintosEnRutina(ej).map(({ sesion, e }) => html`<div class="t2 peq" style="margin-top:2px">En ${sesion}: ${e.repMin}–${e.repMax} reps · RIR ${e.rir} · descanso ${L.mmss(e.descanso)}</div>`)}
+            ${distintosEnRutina(ej).map(({ sesion, e, arranque }) => html`<div class="t2 peq" style="margin-top:2px">En ${sesion}: ${e.repMin}–${e.repMax} reps · RIR ${e.rir} · descanso ${L.mmss(e.descanso)}${arranque != null ? ` · arranca en ${n1(arranque)} kg` : ''}</div>`)}
           </div>
           <${Icono} n="chevron" t=${18} g=${2.2} clase="chevron" />
         </div>
