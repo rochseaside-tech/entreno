@@ -46,6 +46,39 @@ export function Pinguinos({ alto = 88 }) {
   </svg>`;
 }
 
+// ---------------------------------------------------------------- anillo del ciclo
+
+// El ciclo entero en un anillo: los días de regla en color, los previstos en color
+// desvaído, la ventana fértil en una marca fina y hoy con su punto.
+function AnilloCiclo({ a }) {
+  const R = 78, GROSOR = 15, C = 2 * Math.PI * R;
+  const total = a.largoCiclo + a.largoRegla; // el ciclo más la regla que viene
+  const arco = (desdeDia, dias, clase, ancho = GROSOR) => {
+    const largo = (C * Math.min(dias, total)) / total;
+    return html`<circle class=${clase} cx="100" cy="100" r=${R} fill="none" stroke-width=${ancho}
+      stroke-dasharray=${`${largo.toFixed(1)} ${(C - largo).toFixed(1)}`}
+      stroke-dashoffset=${(-C * (desdeDia - 1)) / total} stroke-linecap="round" />`;
+  };
+  const anguloHoy = ((a.dia - 0.5) / total) * 2 * Math.PI - Math.PI / 2;
+  const reglaHecha = a.ultimo.duracion || a.largoRegla;
+  const diaFertil = L.diasEntre(a.ultimo.inicio, a.fertil.desde) + 1;
+
+  return html`<svg class="anillo-ciclo" viewBox="0 0 200 200" role="img"
+      aria-label=${`Día ${a.dia} del ciclo. Próxima regla el ${L.fechaLarga(a.proxima)}`}>
+    <g transform="rotate(-90 100 100)">
+      <circle class="pista" cx="100" cy="100" r=${R} fill="none" stroke-width=${GROSOR} />
+      ${arco(diaFertil, 7, 'fertil', 5)}
+      ${arco(a.largoCiclo + 1, a.largoRegla, 'prevista')}
+      ${arco(1, reglaHecha, 'regla')}
+    </g>
+    <circle class="hoy" cx=${(100 + R * Math.cos(anguloHoy)).toFixed(1)} cy=${(100 + R * Math.sin(anguloHoy)).toFixed(1)} r="7" />
+    <text class="centro-num" x="100" y="96" text-anchor="middle">${a.enRegla ? a.dia : a.diasParaProxima}</text>
+    <text class="centro-txt" x="100" y="118" text-anchor="middle">${a.enRegla
+      ? (a.dia === 1 ? 'primer día' : 'días de regla')
+      : a.diasParaProxima === 1 ? 'día para la regla' : 'días para la regla'}</text>
+  </svg>`;
+}
+
 // ---------------------------------------------------------------- pantalla
 
 const NIVEL = {
@@ -74,6 +107,8 @@ export function Ciclo() {
 
   const fase = L.FASES[a.fase];
   const dias = L.diasDelCiclo(a, hoy);
+  const proximas = L.predicciones(a, 3);
+  const prox = proximas[0];
   const consejos = S.CONSEJOS_CICLO[a.fase] || [];
   const deHoy = E.diasCiclo.get(hoy);
 
@@ -102,7 +137,16 @@ export function Ciclo() {
     </div>
 
     <div class="tarjeta" style="margin-top:12px">
-      <div class="tira-ciclo">
+      <${AnilloCiclo} a=${a} />
+      <p class="prevista-txt">${a.retraso > 0
+        ? `Te tocaba el ${L.fechaLarga(a.proxima)}: llevas ${a.retraso} ${a.retraso === 1 ? 'día' : 'días'} de retraso.`
+        : `Regla prevista del ${L.fechaCorta(prox.inicio)} al ${L.fechaCorta(prox.fin)}${prox.margen ? `, con ${prox.margen} ${prox.margen === 1 ? 'día' : 'días'} de margen` : ''}.`}</p>
+      <div class="leyenda">
+        <span><i class="p-regla"></i>Regla</span>
+        <span><i class="p-prevista"></i>Prevista</span>
+        <span><i class="p-fertil"></i>Días fértiles</span>
+      </div>
+      <div class="tira-ciclo" style="margin-top:14px">
         ${dias.map((d) => html`<span class=${`dia-ciclo ${d.fase} ${d.hoy ? 'hoy' : ''}`} key=${d.fecha}
           title=${`Día ${d.dia} · ${L.fechaCorta(d.fecha)}`}>${d.hoy ? d.dia : ''}</span>`)}
       </div>
@@ -116,6 +160,15 @@ export function Ciclo() {
         <div class="dato"><small>Ovulación</small><div class="num" style="font-size:19px">${L.fechaCorta(a.ovulacion)}</div></div>
       </div>
       <p class="t3 peq" style="margin-top:10px">Calculado con tus ${a.fiables} ciclos fiables${a.variacion ? `, que varían unos ${a.variacion} días` : ''}. La ovulación y los días fértiles son una estimación a partir del calendario, no una medición.</p>
+    </div>
+
+    <div class="tarjeta" style="margin-top:12px">
+      <div class="dato"><small>Siguientes reglas previstas</small></div>
+      ${proximas.map((x, i) => html`<div class="fila-f" key=${x.inicio}
+          style=${`justify-content:space-between;padding:9px 0;${i ? 'border-top:1px solid var(--linea)' : ''}`}>
+        <span style="font-weight:600">${L.fechaLarga(x.inicio)}</span>
+        <span class="t3 peq">${x.margen ? `entre el ${L.fechaCorta(x.desde)} y el ${L.fechaCorta(x.hasta)}` : 'sin margen aún'}</span>
+      </div>`)}
     </div>
 
     <div class="dos-botones" style="margin-top:12px">
@@ -143,7 +196,7 @@ export function Ciclo() {
         return html`<button class="item" key=${c.inicio} onClick=${() => ponerHoja({ tipo: 'editar', c })}>
           <div class="crece">
             <div class="nombre">${L.fechaLarga(c.inicio)}</div>
-            <div class="meta">${c.duracion || '?'} días de regla${largo ? ` · ciclo de ${largo} días` : ' · en curso'}${c.dudoso ? ' · registro dudoso' : ''}</div>
+            <div class="meta">${c.duracion || '?'} días de regla${largo ? ` · ciclo de ${largo} días` : c.fin ? '' : ' · en curso'}${c.dudoso ? ' · registro dudoso' : ''}</div>
           </div>
           <${Icono} n="chevron" t=${18} g=${2.2} clase="chevron" />
         </button>`;

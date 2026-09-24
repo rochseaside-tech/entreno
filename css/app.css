@@ -453,6 +453,23 @@ button.crono { width: calc(100% - 4px); text-align: left; color: inherit; }
 .hola-pinguinas { display: flex; align-items: center; gap: 10px; }
 .globo { display: inline-block; padding: 6px 12px; border-radius: 14px 14px 14px 4px; background: var(--chip-fondo); color: var(--chip-texto); font-weight: 700; font-size: 14px; }
 
+/* el ciclo en un anillo, como en la app de salud del iPhone */
+.anillo-ciclo { display: block; width: 100%; max-width: 250px; margin: 2px auto 0; }
+.anillo-ciclo .pista { stroke: var(--superficie2); }
+.anillo-ciclo .regla { stroke: var(--anillo2); }
+.anillo-ciclo .prevista { stroke: color-mix(in srgb, var(--anillo2) 42%, transparent); }
+.anillo-ciclo .fertil { stroke: color-mix(in srgb, var(--acento) 60%, transparent); }
+.anillo-ciclo .hoy { fill: var(--texto); stroke: var(--superficie); stroke-width: 3; }
+.anillo-ciclo .centro-num { fill: var(--texto); font-family: var(--num-font); font-size: 46px; font-weight: 700; letter-spacing: -.03em; }
+.anillo-ciclo .centro-txt { fill: var(--texto3); font-size: 13px; font-weight: 600; }
+.prevista-txt { text-align: center; font-size: 14.5px; font-weight: 600; margin-top: 4px; }
+.leyenda { display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--texto3); }
+.leyenda span { display: inline-flex; align-items: center; gap: 5px; }
+.leyenda i { width: 10px; height: 10px; border-radius: 50%; }
+.leyenda .p-regla { background: var(--anillo2); }
+.leyenda .p-prevista { background: color-mix(in srgb, var(--anillo2) 42%, transparent); }
+.leyenda .p-fertil { background: color-mix(in srgb, var(--acento) 60%, transparent); }
+
 .tira-ciclo { display: flex; gap: 3px; flex-wrap: wrap; }
 .dia-ciclo { flex: 1 1 12px; height: 24px; border-radius: 7px; background: var(--superficie2); display: grid; place-items: center; font-size: 10.5px; font-weight: 700; }
 .dia-ciclo.menstrual { background: var(--anillo2); }

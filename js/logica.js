@@ -442,6 +442,20 @@ export function analizarCiclos(ciclos, iso = hoyISO(), reglaPorDefecto = 5) {
   };
 }
 
+// Las próximas reglas previstas, con su ventana de margen según lo que te varían los
+// ciclos. No es una medición: es tu media aplicada al calendario.
+export function predicciones(a, cuantas = 3) {
+  if (!a?.hay) return [];
+  return Array.from({ length: cuantas }, (_, k) => {
+    const inicio = sumarDias(a.ultimo.inicio, a.largoCiclo * (k + 1));
+    const margen = (a.variacion || 0) + k; // cuanto más lejos, menos fino
+    return {
+      inicio, fin: sumarDias(inicio, a.largoRegla - 1), margen,
+      desde: sumarDias(inicio, -margen), hasta: sumarDias(inicio, margen),
+    };
+  });
+}
+
 // Días de un ciclo para pintarlos en fila (calendario corto).
 export function diasDelCiclo(analisis, iso = hoyISO()) {
   if (!analisis?.hay) return [];
