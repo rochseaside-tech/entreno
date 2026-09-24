@@ -1,7 +1,7 @@
 // sw.js de la app de Aida — mismo funcionamiento que el de Rocío, pero con su propia
 // caché y con el código un nivel por encima (../js, ../css). Los datos no pasan por aquí.
 
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE = `entreno-aida-${VERSION}`;
 const FOTOS = 'entreno-fotos-v1'; // aparte: no se vuelven a bajar en cada versión
 

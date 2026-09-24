@@ -80,7 +80,8 @@ export function Ciclo() {
   const saludo = a.enRegla ? `Día ${a.dia} de la regla`
     : a.retraso > 0 ? `${a.retraso} ${a.retraso === 1 ? 'día' : 'días'} de retraso`
     : `Día ${a.dia} de tu ciclo`;
-  const sub = a.enRegla ? 'Cuídate hoy: entrena si te apetece, para si no.'
+  // Sus días de entreno son fijos: aquí no se sugiere saltarse ninguno, solo cómo ajustarlo.
+  const sub = a.enRegla ? 'Día de entreno normal. Si molesta, quita una serie antes que peso.'
     : a.retraso > 0 ? 'Puede ser normal: tus ciclos varían algún día.'
     : `Te toca sobre el ${L.fechaLarga(a.proxima)}, en ${a.diasParaProxima} ${a.diasParaProxima === 1 ? 'día' : 'días'}.`;
 
@@ -95,6 +96,8 @@ export function Ciclo() {
         <div class="globo">¡Hola, ${QUIEN.nombre}!</div>
         <div class="num" style="font-size:22px;margin-top:6px">${saludo}</div>
         <p class="t3 peq" style="margin-top:4px">${sub}</p>
+        <button class="boton chico suave" style="margin-top:10px"
+          onClick=${() => ponerHoja({ tipo: 'regla', c: a.ultimo })}>Empezó el ${L.fechaCorta(a.ultimo.inicio)} · cambiar</button>
       </div>
     </div>
 
@@ -104,7 +107,7 @@ export function Ciclo() {
           title=${`Día ${d.dia} · ${L.fechaCorta(d.fecha)}`}>${d.hoy ? d.dia : ''}</span>`)}
       </div>
       <div class="fila-f" style="justify-content:space-between;margin-top:10px">
-        <span class="t3 peq">${L.fechaCorta(a.ultimo.inicio)}</span>
+        <button class="t3 peq" onClick=${() => ponerHoja({ tipo: 'regla', c: a.ultimo })}>${L.fechaCorta(a.ultimo.inicio)}</button>
         <span class="t3 peq">próxima ${L.fechaCorta(a.proxima)}</span>
       </div>
       <div class="rejilla-3" style="margin-top:12px">

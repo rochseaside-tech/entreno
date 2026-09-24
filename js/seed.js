@@ -46,8 +46,8 @@ export const REGLAS = [
 // lo que manda es cómo te encuentras ese día, no el día del calendario.
 export const CONSEJOS_CICLO = {
   menstrual: [
-    { n: 'demostrado', t: 'Entrenar con la regla no es malo ni peligroso. Si te encuentras bien, entrena igual: la fuerza no baja de forma fiable por estar en regla.' },
-    { n: 'plausible', t: 'Si duele o vas muy cansada, quita una serie antes que bajar el peso: así conservas el estímulo y acortas la sesión.' },
+    { n: 'demostrado', t: 'Entrenar con la regla no es malo ni peligroso, y la fuerza no baja de forma fiable por estar en regla: no hay motivo para saltarse el día.' },
+    { n: 'plausible', t: 'Si duele o vas muy cansada, quita una serie antes que bajar el peso: conservas el estímulo y acortas la sesión sin perder el entreno.' },
     { n: 'demostrado', t: 'Con sangrado abundante se puede ir el hierro, y eso sí tumba el rendimiento. Si arrastras cansancio raro, se mira con analítica (ferritina), no a ojo.' },
     { n: 'plausible', t: 'El calentamiento suave ayuda con las molestias: moverse alivia el dolor de regla en la mayoría de estudios.' },
   ],
