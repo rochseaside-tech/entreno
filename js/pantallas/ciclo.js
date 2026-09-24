@@ -60,28 +60,16 @@ export function Ciclo() {
   const [hoja, ponerHoja] = useState(null); // 'sintomas' | { tipo: 'editar', c }
   const a = L.analizarCiclos(E.ciclos, hoy);
 
-  const empezarRegla = async () => {
-    if (E.ciclos.some((c) => c.inicio === hoy)) { toast('Hoy ya está apuntado como primer día'); return; }
-    await db.guardar('ciclos', { inicio: hoy, duracion: a.hay ? a.largoRegla : 5 });
-    await recargar(); avisar(); toast('Apuntado: hoy es el día 1');
-  };
-  const terminarRegla = async () => {
-    const c = a.ultimo;
-    const dias = L.diasEntre(c.inicio, hoy); // si acaba hoy, ayer fue el último día
-    if (dias < 1) { toast('Empezó hoy: aún no se puede cerrar'); return; }
-    await db.guardar('ciclos', { ...c, duracion: dias, fin: hoy });
-    await recargar(); avisar(); toast(`Regla de ${dias} ${dias === 1 ? 'día' : 'días'}`);
-  };
-
   if (!a.hay) {
     return html`
       <header class="cabecera"><h1 class="titulo">Ciclo</h1></header>
       <div class="tarjeta pila" style="text-align:center">
         <${Pinguinos} />
         <b>Aún no hay ninguna regla apuntada</b>
-        <p class="t2 peq">Pulsa el botón el primer día y a partir de ahí la app lleva la cuenta.</p>
-        <button class="boton" onClick=${empezarRegla}>Me ha bajado hoy</button>
-      </div>`;
+        <p class="t2 peq">Apunta la última y a partir de ahí la app lleva la cuenta. Puedes poner el día que fue, no tiene que ser hoy.</p>
+        <button class="boton" onClick=${() => ponerHoja({ tipo: 'regla' })}>Apuntar una regla</button>
+      </div>
+      ${hoja?.tipo === 'regla' && html`<${HojaRegla} alCerrar=${() => ponerHoja(null)} />`}`;
   }
 
   const fase = L.FASES[a.fase];
@@ -129,8 +117,8 @@ export function Ciclo() {
 
     <div class="dos-botones" style="margin-top:12px">
       ${a.enRegla
-        ? html`<button class="boton suave" onClick=${terminarRegla}>Se me ha ido</button>`
-        : html`<button class="boton" onClick=${empezarRegla}>Me ha bajado hoy</button>`}
+        ? html`<button class="boton suave" onClick=${() => ponerHoja({ tipo: 'regla', c: a.ultimo })}>Se me ha ido</button>`
+        : html`<button class="boton" onClick=${() => ponerHoja({ tipo: 'regla' })}>Apuntar regla</button>`}
       <button class="boton suave" onClick=${() => ponerHoja('sintomas')}>
         ${deHoy ? 'Cambiar cómo estoy' : 'Cómo estoy hoy'}</button>
     </div>
@@ -159,8 +147,57 @@ export function Ciclo() {
       })}
     </div>
 
+    ${hoja?.tipo === 'regla' && html`<${HojaRegla} c=${hoja.c} alCerrar=${() => ponerHoja(null)} />`}
     ${hoja === 'sintomas' && html`<${HojaSintomas} fecha=${hoy} dia=${deHoy} alCerrar=${() => ponerHoja(null)} />`}
     ${hoja?.tipo === 'editar' && html`<${HojaCiclo} c=${hoja.c} alCerrar=${() => ponerHoja(null)} />`}`;
+}
+
+// ---------------------------------------------------------------- apuntar una regla
+
+// Con día a elegir, porque casi nunca te acuerdas el mismo día: por defecto pone hoy,
+// pero puedes poner el día que fue de verdad, y cerrarla también en el día que fue.
+function HojaRegla({ c = null, alCerrar }) {
+  const hoy = L.hoyISO();
+  const [inicio, ponerInicio] = useState(c?.inicio || hoy);
+  const [terminada, ponerTerminada] = useState(!!c?.fin);
+  const [fin, ponerFin] = useState(c?.fin || hoy);
+
+  const guardar = async () => {
+    if (!inicio || inicio > hoy) { toast('El primer día no puede ser futuro'); return; }
+    const choca = E.ciclos.some((x) => x.inicio === inicio && x.inicio !== c?.inicio);
+    if (choca) { toast('Ya tienes una regla apuntada ese día'); return; }
+    let duracion = c?.duracion || null;
+    if (terminada) {
+      if (fin < inicio) { toast('El último día es anterior al primero'); return; }
+      if (fin > hoy) { toast('El último día no puede ser futuro'); return; }
+      duracion = L.diasEntre(inicio, fin) + 1;
+    }
+    if (c && c.inicio !== inicio) await db.borrar('ciclos', c.inicio); // la fecha es la clave
+    await db.guardar('ciclos', {
+      ...(c || {}), inicio, duracion: duracion || 5,
+      ...(terminada ? { fin } : {}),
+    });
+    await recargar(); avisar();
+    toast(terminada ? `Regla de ${duracion} ${duracion === 1 ? 'día' : 'días'}` : `Apuntada desde el ${L.fechaLarga(inicio)}`);
+    alCerrar();
+  };
+
+  const dias = terminada && fin >= inicio ? L.diasEntre(inicio, fin) + 1 : null;
+  return html`<${Hoja} titulo=${c ? 'Tu regla' : 'Apuntar regla'} alCerrar=${alCerrar}>
+    <div class="pila">
+      <p class="t2 peq">Pon el día que te bajó de verdad, aunque lo apuntes días después.</p>
+      <label class="campo"><span>Primer día</span>
+        <input class="entrada" type="date" max=${hoy} value=${inicio}
+          onInput=${(e) => { const v = e.currentTarget.value; ponerInicio(v); }} /></label>
+      <button class=${`boton ${terminada ? '' : 'suave'}`} onClick=${() => ponerTerminada(!terminada)}>
+        ${terminada ? 'Ya se me ha ido' : 'Todavía la tengo'}</button>
+      ${terminada && html`<label class="campo"><span>Último día</span>
+        <input class="entrada" type="date" min=${inicio} max=${hoy} value=${fin}
+          onInput=${(e) => { const v = e.currentTarget.value; ponerFin(v); }} /></label>`}
+      ${dias && html`<p class="t3 peq">Serían ${dias} ${dias === 1 ? 'día' : 'días'} de regla.</p>`}
+      <button class="boton" onClick=${guardar}>Guardar</button>
+    </div>
+  <//>`;
 }
 
 // ---------------------------------------------------------------- cómo estoy hoy
