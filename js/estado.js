@@ -7,7 +7,12 @@ import * as S from './seed.js';
 import * as L from './logica.js';
 import { CATALOGO } from './datos/catalogo-ejercicios.js';
 import { ALIMENTOS_BASE } from './datos/alimentos-base.js';
-import { REGISTROS_PENDIENTES, CAMBIOS_PENDIENTES } from './datos/registros.js';
+import * as regRocio from './datos/registros.js';
+import * as regAida from './datos/registros-aida.js';
+import { QUIEN } from './perfiles.js';
+
+// Cada una tiene lo suyo: entrenos y comidas que se pasaron a mano.
+const { REGISTROS_PENDIENTES, CAMBIOS_PENDIENTES } = QUIEN.id === 'aida' ? regAida : regRocio;
 
 // Sube este número cuando añadas datos nuevos a seed.js: la app los incorpora
 // sin tocar lo que tú hayas editado.

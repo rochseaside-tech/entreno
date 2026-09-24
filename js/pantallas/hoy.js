@@ -8,6 +8,7 @@ import { cargarDia } from '../dia.js';
 import { Icono, FotoEj, Anillo, GraficaLinea, Hoja, ir, n0, n1, aNum } from '../comunes.js';
 import { iniciarSesion, minutosEstimados } from './entreno.js';
 import { guardarCopia } from './ajustes.js';
+import { QUIEN } from '../perfiles.js';
 
 const capital = (t) => t.charAt(0).toUpperCase() + t.slice(1);
 export const fechaBonita = (iso) => capital(L.desdeISO(iso).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }));
@@ -20,6 +21,7 @@ export function Hoy() {
   const [hojaPeso, ponerHojaPeso] = useState(false);
 
   const cargar = async () => {
+    if (!QUIEN.comida && !QUIEN.cuerpo) return; // su app no lleva comida ni peso
     const [d, p] = await Promise.all([cargarDia(hoy), db.todos('peso')]);
     ponerDia(d); ponerPesos(p);
   };
@@ -37,9 +39,9 @@ export function Hoy() {
     <div class="pila">
       <${TarjetaEntreno} />
       <${AvisoCopia} />
-      ${dia && html`<${TarjetaComida} dia=${dia} />`}
+      ${QUIEN.comida && dia && html`<${TarjetaComida} dia=${dia} />`}
       <${TarjetaSemana} hoy=${hoy} />
-      <${TarjetaPeso} pesos=${pesos} alPulsar=${() => ponerHojaPeso(true)} />
+      ${QUIEN.cuerpo && html`<${TarjetaPeso} pesos=${pesos} alPulsar=${() => ponerHojaPeso(true)} />`}
     </div>
 
     ${hojaPeso && html`<${HojaPeso} alCerrar=${() => ponerHojaPeso(false)} alGuardar=${cargar} />`}`;

@@ -1,6 +1,8 @@
 // seed.js — datos de partida: rutina, ejercicios con guía de técnica, biblioteca de
 // alimentos y recetas. Solo se cargan la primera vez; luego se editan desde Ajustes.
 
+import { QUIEN } from './perfiles.js';
+
 export const PERFIL = {
   altura: 170,
   pesoInicial: 85,
@@ -76,7 +78,7 @@ export const RAPIDAS = [
 // Tus pesos de arranque (kg), de la tabla del 15 sep 2026. null = tantear: sin peso
 // propuesto la primera vez. La técnica, el rango de repeticiones, el RIR, el descanso y
 // el incremento de cada ejercicio están en datos/catalogo-ejercicios.js.
-export const PESOS_INICIALES = {
+const PESOS_ROCIO = {
   // Torso 1
   'jalon-prono': 32.5, 'remo-sentado': 36, 'press-pecho-maquina': 22.7, 'press-hombro-maquina': 16,
   'triceps-polea': 20, 'curl-biceps-maquina': null,
@@ -93,6 +95,26 @@ export const PESOS_INICIALES = {
   // Fuera de la rutina
   'hiperextensiones': 0, 'extension-cadera': null,
 };
+
+// Los de Aida, sacados de su export de Lyfta (últimas sesiones, 18-22 sep 2026). Levanta
+// bastante menos que Rocío: la app tiene que arrancar con SUS pesos, no con los de nadie.
+const PESOS_AIDA = {
+  // Torso 1
+  'jalon-prono': 25, 'remo-sentado': 23, 'press-pecho-maquina': 11.4, 'press-hombro-maquina': 6.8,
+  'triceps-polea': 16, 'curl-biceps-maquina': 12.2,
+  // Pierna 1
+  'hip-thrust': 35, 'glute-kick-bioarc': 21.8, 'curl-femoral-sentado': 40.8, 'abductores': 20.4,
+  'aductores': 18.1, 'crunch-maquina': 25,
+  // Torso 2
+  'jalon-neutro': 23, 'remo-maquina': 20, 'deltoides-posterior': 4.5, 'elev-laterales': 3,
+  'triceps-sobre-cabeza': 9, 'curl-predicador': 12.2,
+  // Pierna 2
+  'prensa-45': 30, 'extension-cuadriceps': 22.7, 'curl-femoral-tumbado': 13.7, 'gemelo-de-pie': 22.7,
+  // Fuera de la rutina
+  'hiperextensiones': 0, 'extension-cadera': null, 'prensa': null,
+};
+
+export const PESOS_INICIALES = QUIEN.id === 'aida' ? PESOS_AIDA : PESOS_ROCIO;
 
 // La rutina desde el 15 sep 2026, en rotación continua. Cada ejercicio usa su rango, RIR,
 // descanso e incremento del catálogo; si en una sesión lleva otros, van en su línea y

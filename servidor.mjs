@@ -15,7 +15,10 @@ createServer(async (req, res) => {
   try {
     let ruta = normalize(decodeURIComponent(req.url.split('?')[0])).replace(/^([.][.][/])+/, '');
     if (ruta === '/' || ruta.length <= 1) ruta = '/index.html';
-    const abs = join(RAIZ, ruta);
+    let abs = join(RAIZ, ruta);
+    // Una carpeta (por ejemplo /aida/) sirve su index.html, como hace GitHub Pages.
+    const info = await stat(abs).catch(() => null);
+    if (!info || info.isDirectory()) abs = join(abs, 'index.html');
     await stat(abs);
     const datos = await readFile(abs);
     res.writeHead(200, {

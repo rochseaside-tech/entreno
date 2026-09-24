@@ -7,6 +7,7 @@ import * as db from './db.js';
 import * as L from './logica.js';
 import * as S from './seed.js';
 import { n1, n0, n2 } from './comunes.js';
+import { QUIEN } from './perfiles.js';
 
 const fechaCompleta = (iso) => {
   const [a, m, d] = iso.split('-').map(Number);
@@ -120,6 +121,15 @@ const macrosTexto = (m) => `${n0(m.kcal)} kcal · ${n1(m.prot)} g prot · ${n1(m
 // Devuelve el texto y cuántos días, comidas y entrenos lleva.
 export async function textoTodo(dias = 0) {
   const hoy = L.hoyISO();
+  // En la app sin comida ni peso, «todo» son los entrenos.
+  if (!QUIEN.comida && !QUIEN.cuerpo) {
+    const desde = dias ? L.sumarDias(hoy, -(dias - 1)) : '0000-01-01';
+    const sesiones = E.sesiones.filter((s) => s.fin && s.fecha >= desde);
+    return {
+      texto: textoEntrenos(sesiones, dias ? `últimos ${dias} días` : 'todo'),
+      dias: new Set(sesiones.map((s) => s.fecha)).size, comidas: 0, entrenos: sesiones.length,
+    };
+  }
   const [comidas, pesos, pasos, medidas, semanas, diasGym] = await Promise.all([
     db.todos('comidas'), db.todos('peso'), db.todos('pasos'), db.todos('medidas'), db.todos('semanas'), db.leerMeta('diasGym', []),
   ]);

@@ -6,6 +6,7 @@ import { E, useEstado, avisar, toast, recargar, guardarConfig } from '../estado.
 import * as L from '../logica.js';
 import * as db from '../db.js';
 import { Icono, Interruptor, atras, n0, aNum, TEMAS, ponerTema } from '../comunes.js';
+import { QUIEN } from '../perfiles.js';
 
 export async function guardarCopia() {
   const datos = await db.exportarTodo();
@@ -94,13 +95,13 @@ export function Ajustes() {
         html`<${Interruptor} etiqueta="Pantalla encendida" valor=${E.config.pantallaEncendida !== false} alCambiar=${(v) => guardarConfig({ pantallaEncendida: v })} />`)}
     </div>
 
-    <div class="seccion"><h2 class="titulo">Objetivos de comida</h2></div>
+    ${QUIEN.comida && html`<div class="seccion"><h2 class="titulo">Objetivos de comida</h2></div>
     <div class="tarjeta pila">
       <div class="rejilla-2">${campo('kcalEntreno', 'Kcal día de gimnasio')}${campo('kcalDescanso', 'Kcal día sin gimnasio')}</div>
       <div class="rejilla-2">${campo('proteina', 'Proteína (g)')}${campo('grasa', 'Grasa (g)')}</div>
       <p class="t2 peq">Los hidratos son lo que queda: ${n0(Math.max(0, ((aNum(obj.kcalEntreno) || 0) - (aNum(obj.proteina) || 0) * 4 - (aNum(obj.grasa) || 0) * 9) / 4))} g un día de gimnasio.</p>
       <button class="boton" onClick=${guardarObjetivos}>Guardar objetivos</button>
-    </div>
+    </div>`}
 
-    <p class="t2 peq" style="text-align:center;margin:28px 0 8px">Fotos de ejercicios: free-exercise-db (dominio público). Alimentos: USDA FoodData Central.</p>`;
+    <p class="t2 peq" style="text-align:center;margin:28px 0 8px">Fotos de ejercicios: free-exercise-db (dominio público).${QUIEN.comida ? ' Alimentos: USDA FoodData Central.' : ''}</p>`;
 }

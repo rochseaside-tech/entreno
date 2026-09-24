@@ -5,6 +5,7 @@ import { E, useEstado, avisar, toast, sesionesTerminadas, records } from '../est
 import * as L from '../logica.js';
 import * as db from '../db.js';
 import * as S from '../seed.js';
+import { QUIEN } from '../perfiles.js';
 import { Icono, Hoja, GraficaLinea, GraficaBarras, Vacio, ir, n0, n1, aNum } from '../comunes.js';
 import { HojaPeso } from './hoy.js';
 import { textoTodo, copiar } from '../informe.js';
@@ -57,7 +58,7 @@ export function Progreso() {
   return html`
     <header class="cabecera"><h1 class="titulo">Progreso</h1></header>
 
-    <div class="seccion"><h2 class="titulo">Esta semana</h2></div>
+    ${QUIEN.comida && html`<div class="seccion"><h2 class="titulo">Esta semana</h2></div>
     <div class="pila">
       ${cerrados.length > 0 && html`<div class="rejilla-3">
         <div class="tarjeta dato"><small>Media</small><div class="num">${n0(media('kcal'))} <span>kcal</span></div></div>
@@ -78,9 +79,9 @@ export function Progreso() {
               Repartir ${reparto.porDia} kcal al día en los ${r.diasRestantes} días que quedan</button>
               ${reparto.recortado && html`<p class="t2 peq" style="margin-top:6px">Tu suelo de ${E.config.objetivos.sueloKcal} kcal no deja bajar más: no se compensa entero esta semana.</p>`}`}
       </div>
-    </div>
+    </div>`}
 
-    <div class="seccion"><h2 class="titulo">Cuerpo</h2><button onClick=${() => ponerHoja('peso')}>Pesarme</button></div>
+    ${QUIEN.cuerpo && html`<div class="seccion"><h2 class="titulo">Cuerpo</h2><button onClick=${() => ponerHoja('peso')}>Pesarme</button></div>
     <div class="pila">
       <div class="tarjeta">
         <div class="dato"><small>Peso, media de 7 días</small>
@@ -120,7 +121,7 @@ export function Progreso() {
               ${m.cambio === 0 ? 'Igual que' : `${m.cambio > 0 ? '+' : '−'}${n1(Math.abs(m.cambio))} cm desde`} la medición del ${L.fechaCorta(m.anterior.fecha)}, ${m.dias} días antes (${n1(m.anterior.cm)} cm).</p>`}
             ${m.puntos.length >= 2 && html`<${GraficaLinea} puntos=${m.puntos.slice(-12).map((x) => ({ etq: L.fechaCorta(x.fecha), y: x.cm }))} sufijo=" cm" />`}
           </div>`)}
-    </div>
+    </div>`}
 
     <${Fuerza} />
     <${PasarAClaude} />
@@ -186,11 +187,13 @@ function PasarAClaude() {
   return html`
     <div class="seccion"><h2 class="titulo">Pasar a Claude</h2></div>
     <div class="tarjeta pila">
-      <p class="t2 peq">Todo lo que has apuntado, día a día: cada comida con sus macros y el total frente a tu objetivo, cada entreno con todas sus series, el peso, los pasos y las medidas. Pégalo en Claude y pídele que lo analice.</p>
+      <p class="t2 peq">${QUIEN.comida
+        ? 'Todo lo que has apuntado, día a día: cada comida con sus macros y el total frente a tu objetivo, cada entreno con todas sus series, el peso, los pasos y las medidas. Pégalo en Claude y pídele que lo analice.'
+        : 'Todos tus entrenos con cada serie: peso, repeticiones y RIR. Pégalo en Claude y pídele que lo analice.'}</p>
       <div class="segmentado">
         ${[[7, 'Última semana'], [28, '4 semanas'], [0, 'Todo']].map(([d, t]) => html`<button class=${alcance === d ? 'activo' : ''} onClick=${() => ponerAlcance(d)}>${t}</button>`)}
       </div>
-      <p class="t2 peq">${datos ? `${datos.dias} ${datos.dias === 1 ? 'día' : 'días'} con datos · ${datos.comidas} ${datos.comidas === 1 ? 'comida' : 'comidas'} · ${datos.entrenos} ${datos.entrenos === 1 ? 'entreno' : 'entrenos'}` : 'Preparando el texto…'}</p>
+      <p class="t2 peq">${datos ? `${datos.dias} ${datos.dias === 1 ? 'día' : 'días'} con datos${QUIEN.comida ? ` · ${datos.comidas} ${datos.comidas === 1 ? 'comida' : 'comidas'}` : ''} · ${datos.entrenos} ${datos.entrenos === 1 ? 'entreno' : 'entrenos'}` : 'Preparando el texto…'}</p>
       <div class="dos-botones">
         <button class="boton" disabled=${!datos} onClick=${copiarlo}><${Icono} n="compartir" t=${20} g=${2.2} />Copiar</button>
         <button class="boton suave" disabled=${!datos} onClick=${compartir}><${Icono} n="guardar" t=${20} g=${2.2} />Archivo</button>

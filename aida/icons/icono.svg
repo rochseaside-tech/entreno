@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024"><defs><linearGradient id="v" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#86B68C"/><stop offset="1" stop-color="#CFE6CB"/></linearGradient></defs>
+    <rect width="1024" height="1024" fill="url(#v)"/><g transform="translate(512 540) scale(1) translate(-512 -540)" fill="#FFFFFF" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
+    <!-- barra con sus discos -->
+    <line x1="228" y1="226" x2="796" y2="226" stroke-width="30" />
+    <rect x="200" y="150" width="54" height="152" rx="16" stroke="none" />
+    <rect x="770" y="150" width="54" height="152" rx="16" stroke="none" />
+    <rect x="258" y="176" width="30" height="100" rx="10" stroke="none" />
+    <rect x="736" y="176" width="30" height="100" rx="10" stroke="none" />
+    <!-- brazos: de los hombros al agarre, finos -->
+    <path d="M446 488 L402 366 L380 240" fill="none" stroke-width="40" />
+    <path d="M578 488 L622 366 L644 240" fill="none" stroke-width="40" />
+    <!-- cabeza -->
+    <circle cx="512" cy="398" r="58" stroke="none" />
+    <!-- coleta alta que ondea hacia un lado: moño arriba y la cola en S -->
+    <circle cx="548" cy="344" r="26" stroke="none" />
+    <path d="M560 330 C 640 300, 700 340, 690 410 C 684 452, 650 480, 626 500 C 650 456, 656 414, 624 388 C 604 372, 584 372, 566 380 Z" stroke="none" />
+    <!-- cuello -->
+    <rect x="494" y="440" width="36" height="56" rx="16" stroke="none" />
+    <!-- tronco con forma: hombros, cintura estrecha y cadera -->
+    <path d="M428 486 Q512 468 596 486 Q606 506 592 534 Q566 572 546 612 Q590 660 590 706 L434 706 Q434 660 478 612 Q458 572 432 534 Q418 506 428 486 Z" stroke="none" />
+    <!-- piernas abiertas desde la cadera -->
+    <path d="M470 700 L438 812 L414 916" fill="none" stroke-width="52" />
+    <path d="M554 700 L586 812 L610 916" fill="none" stroke-width="52" />
+    <!-- pies -->
+    <path d="M414 916 L372 928" fill="none" stroke-width="36" />
+    <path d="M610 916 L652 928" fill="none" stroke-width="36" />
+  </g></svg>

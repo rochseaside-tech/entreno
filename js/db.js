@@ -1,7 +1,10 @@
 // db.js — capa fina sobre IndexedDB. Sin dependencias.
 // Todos los datos viven aquí, en el dispositivo. Nada sale a ningún servidor.
 
-const NOMBRE_DB = 'entreno-nutricion';
+import { QUIEN } from './perfiles.js';
+
+// Una base de datos por persona: las dos apps pueden vivir en el mismo móvil sin mezclarse.
+const NOMBRE_DB = QUIEN.db;
 // v2: almacén 'habituales' (comidas guardadas para repetir con un toque).
 // v3: almacén 'fotos' (tus fotos de un ejercicio, en lugar de las de la base).
 // Subir la versión solo crea los almacenes nuevos: no toca los datos existentes.

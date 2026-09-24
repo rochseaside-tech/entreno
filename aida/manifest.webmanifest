@@ -1,0 +1,16 @@
+{
+  "name": "Entreno de Aida",
+  "short_name": "Aida",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ECEFE9",
+  "theme_color": "#ECEFE9",
+  "lang": "es",
+  "icons": [
+    { "src": "./icons/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

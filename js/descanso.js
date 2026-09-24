@@ -6,8 +6,11 @@
 // durante el entreno la app mantiene la pantalla encendida (se puede quitar en Ajustes).
 
 import { E, avisar } from './estado.js';
+import { QUIEN } from './perfiles.js';
 
-const CLAVE = 'descanso';
+// Una clave por persona: si las dos apps están abiertas en el mismo móvil, el descanso
+// de una no pisa el de la otra.
+const CLAVE = QUIEN.id === 'rocio' ? 'descanso' : `descanso-${QUIEN.id}`;
 
 function leer() {
   try { return JSON.parse(localStorage.getItem(CLAVE)) || null; } catch { return null; }
@@ -66,9 +69,16 @@ export function prepararAudio() {
   } catch { /* sin audio */ }
 }
 
+// El primer toque en cualquier sitio de la app deja el audio listo, así el pitido del
+// descanso suena siempre. (Con el iPhone en silencio no suena: eso no lo puede saltar una web.)
+addEventListener('pointerdown', prepararAudio, { once: true, capture: true });
+addEventListener('touchstart', prepararAudio, { once: true, capture: true });
+
 export function pitido(veces = 3) {
+  prepararAudio(); // por si el descanso arrancó sin pasar por un toque: si no, no suena
   if (!ctx) return;
   try {
+    if (ctx.state === 'suspended') ctx.resume();
     for (let i = 0; i < veces; i++) {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.connect(g); g.connect(ctx.destination);

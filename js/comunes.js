@@ -3,6 +3,7 @@
 
 import { html, useEffect } from './vendor/preact-htm.js';
 import { E } from './estado.js';
+import { QUIEN } from './perfiles.js';
 
 // ---------------------------------------------------------------- navegación
 
@@ -67,7 +68,8 @@ export function Icono({ n, t = 24, g = 1.8, clase = '' }) {
 
 // ---------------------------------------------------------------- barra de pestañas
 
-const PESTANAS = [['hoy', 'Hoy'], ['entreno', 'Entreno'], ['ejercicios', 'Ejercicios'], ['comida', 'Comida'], ['progreso', 'Progreso']];
+const PESTANAS = [['hoy', 'Hoy'], ['entreno', 'Entreno'], ['ejercicios', 'Ejercicios'], ['comida', 'Comida'], ['progreso', 'Progreso']]
+  .filter(([id]) => QUIEN.comida || id !== 'comida');
 
 export function Tabs({ activa }) {
   return html`<nav class="tabs">
@@ -116,7 +118,7 @@ export function FotoEj({ ej, clase = 'mini', quieta = false, etiqueta = null }) 
     return html`<div class=${`anim ${clase}`} style="display:grid;place-items:center">
       <span class="titulo t2" style="font-size:22px">${(ej?.nombre || '?').slice(0, 1)}</span></div>`;
   }
-  const src = (i) => `./img/ej/${ej.img}-${i}.webp`;
+  const src = (i) => `${QUIEN.base}img/ej/${ej.img}-${i}.webp`;
   return html`<div class=${`anim ${clase} ${quieta ? 'quieta' : ''}`}>
     <img src=${src(0)} alt="" loading="lazy" decoding="async" />
     <img src=${src(1)} alt="" loading="lazy" decoding="async" />
@@ -216,8 +218,8 @@ export const TEMAS = [
 ];
 
 export function ponerTema(id) {
-  const t = TEMAS.find((x) => x.id === id) || TEMAS[0];
+  const t = TEMAS.find((x) => x.id === id) || TEMAS.find((x) => x.id === QUIEN.tema) || TEMAS[0];
   document.documentElement.dataset.tema = t.id;
   document.querySelector('meta[name=theme-color]')?.setAttribute('content', t.fondo);
-  try { localStorage.setItem('tema', t.id); } catch { /* modo privado */ }
+  try { localStorage.setItem(QUIEN.id === 'rocio' ? 'tema' : `tema-${QUIEN.id}`, t.id); } catch { /* modo privado */ }
 }

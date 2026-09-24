@@ -10,6 +10,7 @@ import { Ejercicios, Ejercicio } from './pantallas/ejercicios.js';
 import { Comida } from './pantallas/comida.js';
 import { Progreso } from './pantallas/progreso.js';
 import { Ajustes } from './pantallas/ajustes.js';
+import { QUIEN } from './perfiles.js';
 
 // '#/ejercicio/jalon-prono?desde=entreno' -> { nombre: 'ejercicio', id: 'jalon-prono', params: { desde: 'entreno' } }
 function leerRuta() {
@@ -42,7 +43,9 @@ function App() {
 
   if (!E.listo) return null;
 
-  const p = PANTALLAS[ruta.nombre] || PANTALLAS.hoy;
+  // En la app de Aida no hay Comida: si alguien llega a esa ruta, se va a Hoy.
+  const pedida = PANTALLAS[ruta.nombre];
+  const p = (pedida && (QUIEN.comida || ruta.nombre !== 'comida')) ? pedida : PANTALLAS.hoy;
   const conDescanso = !!E.descanso;
   return html`
     <main class=${`pantalla ${p.detalle ? 'entra' : 'aparece'} ${conDescanso ? 'con-descanso' : ''}`} key=${ruta.nombre + (ruta.id || '')}>
@@ -53,8 +56,24 @@ function App() {
     <${Toast} />`;
 }
 
+// El teclado del iPhone tapa lo que está pegado abajo. Se mide cuánto ocupa de verdad y
+// se guarda en --teclado: la barra del descanso sube justo por encima mientras escribes.
+function seguirTeclado() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const poner = () => {
+    const alto = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+    document.documentElement.style.setProperty('--teclado', `${alto}px`);
+    document.documentElement.classList.toggle('con-teclado', alto > 80);
+  };
+  vv.addEventListener('resize', poner);
+  vv.addEventListener('scroll', poner);
+  poner();
+}
+
 async function arrancar() {
   ponerTema(document.documentElement.dataset.tema);
+  seguirTeclado();
   render(html`<${App} />`, document.getElementById('app'));
   try {
     await arrancarDatos();
@@ -102,12 +121,13 @@ function recargarSiSePuede() {
 // La primera vez, bajar todas las fotos de ejercicios para tenerlas sin cobertura.
 async function guardarFotos() {
   try {
-    if (localStorage.getItem('fotos-v1')) return;
+    const marca = QUIEN.id === 'rocio' ? 'fotos-v1' : `fotos-v1-${QUIEN.id}`;
+    if (localStorage.getItem(marca)) return;
     await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) return; // aún no controla: la próxima vez
-    const urls = E.ejercicios.filter((e) => e.img).flatMap((e) => [0, 1].map((i) => `./img/ej/${e.img}-${i}.webp`));
+    const urls = E.ejercicios.filter((e) => e.img).flatMap((e) => [0, 1].map((i) => `${QUIEN.base}img/ej/${e.img}-${i}.webp`));
     for (let i = 0; i < urls.length; i += 8) await Promise.allSettled(urls.slice(i, i + 8).map((u) => fetch(u)));
-    localStorage.setItem('fotos-v1', '1');
+    localStorage.setItem(marca, '1');
   } catch { /* se reintenta al abrir otra vez */ }
 }
 
