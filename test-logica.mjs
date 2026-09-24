@@ -124,6 +124,24 @@ comprobar('sigue desde la rutina anterior: tras D -> Torso 1', rot(['A', 'B', 'C
 comprobar('sigue desde la rutina anterior: tras B -> Torso 2', rot(['A', 'B']) === 'T2');
 comprobar('los entrenos libres no cuentan', rot(['A', 'L']) === 'P1');
 
+console.log('\n--- Ciclo menstrual ---');
+const { CICLOS_ROCIO, CICLOS_AIDA } = await import('./js/datos/ciclos.js');
+let c = L.analizarCiclos(CICLOS_ROCIO, '2026-09-24');
+comprobar(`Rocío: ciclo de 26 días y regla de 5 (${c.largoCiclo} / ${c.largoRegla})`, c.largoCiclo === 26 && c.largoRegla === 5);
+comprobar(`va por el día 2 y está con la regla (${c.dia} · ${c.fase})`, c.dia === 2 && c.fase === 'menstrual' && c.enRegla);
+comprobar(`la próxima, el 19 oct (${c.proxima}, en ${c.diasParaProxima} días)`, c.proxima === '2026-10-19' && c.diasParaProxima === 25);
+comprobar(`el ciclo de 83 días no cuenta: ${c.fiables} ciclos fiables de ${c.ciclos}`, c.fiables === 11 && c.ciclos === 14);
+c = L.analizarCiclos(CICLOS_AIDA, '2026-09-24');
+comprobar(`Aida: ciclo de 26-27 días y regla de 7, contando el manchado (${c.largoCiclo} / ${c.largoRegla})`, [26, 27].includes(c.largoCiclo) && c.largoRegla === 7);
+comprobar(`día 25 del ciclo, en fase lútea (${c.dia} · ${c.fase})`, c.dia === 25 && c.fase === 'lutea');
+comprobar('el ciclo de 51 días tampoco cuenta', c.fiables === 9 && c.ciclos === 12);
+comprobar('fases: día 1 regla, día 8 folicular, día 13 ovulación, día 20 lútea',
+  L.faseCiclo(1, 27, 5) === 'menstrual' && L.faseCiclo(8, 27, 5) === 'folicular'
+  && L.faseCiclo(13, 27, 5) === 'ovulacion' && L.faseCiclo(20, 27, 5) === 'lutea');
+comprobar('los consejos de cada fase llevan etiqueta de certeza',
+  Object.values(S.CONSEJOS_CICLO).flat().every((x) => ['demostrado', 'plausible', 'mito'].includes(x.n))
+  && S.CONSEJOS_CICLO.lutea.some((x) => x.n === 'mito'));
+
 console.log('\n--- Medidas del cuerpo ---');
 const meds = [{ fecha: '2026-09-17', cintura: 87, abdomen: 109 }, { fecha: '2026-10-13', abdomen: 107.5 }];
 const ev = L.evolucionMedidas(meds, S.MEDIDAS);

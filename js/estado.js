@@ -6,6 +6,7 @@ import * as db from './db.js';
 import * as S from './seed.js';
 import * as L from './logica.js';
 import { CATALOGO } from './datos/catalogo-ejercicios.js';
+import { CICLOS_ROCIO, CICLOS_AIDA } from './datos/ciclos.js';
 import { ALIMENTOS_BASE } from './datos/alimentos-base.js';
 import * as regRocio from './datos/registros.js';
 import * as regAida from './datos/registros-aida.js';
@@ -35,6 +36,8 @@ export const E = {
   uso: new Map(),
   sesionActiva: null,
   fase: null,
+  ciclos: [],
+  diasCiclo: new Map(),
   toast: null,
 };
 
@@ -87,6 +90,10 @@ async function sembrar() {
     for (const id of ids) if (await db.obtener(almacen, id)) await db.borrar(almacen, id);
   }
   if (!(await db.leerMeta('rutina'))) await db.escribirMeta('rutina', S.RUTINA);
+  // El historial de reglas que traían de su app de siempre, solo si aún no hay nada.
+  if (!(await db.todos('ciclos')).length) {
+    await db.guardarVarios('ciclos', QUIEN.id === 'aida' ? CICLOS_AIDA : CICLOS_ROCIO);
+  }
   if (!(await db.leerMeta('config'))) {
     await db.escribirMeta('config', {
       objetivos: { ...S.OBJETIVOS }, perfil: { ...S.PERFIL },
@@ -152,11 +159,14 @@ function adaptarSeries(series, sesiones) {
 // ---------------------------------------------------------------- carga
 
 export async function recargar() {
-  const [ejercicios, alimentos, recetas, despensa, uso, sesiones, series, habituales, fotos, rutina, config, quitados] = await Promise.all([
+  const [ejercicios, alimentos, recetas, despensa, uso, sesiones, series, habituales, fotos, rutina, config, quitados, ciclos, diasCiclo] = await Promise.all([
     db.todos('ejercicios'), db.todos('alimentos'), db.todos('recetas'), db.todos('despensa'),
     db.todos('uso'), db.todos('sesiones'), db.todos('series'), db.todos('habituales'), db.todos('fotos'),
     db.leerMeta('rutina', S.RUTINA), db.leerMeta('config', {}), db.leerMeta('alimentosQuitados', []),
+    db.todos('ciclos'), db.todos('diasCiclo'),
   ]);
+  E.ciclos = ciclos.sort((a, b) => (a.inicio < b.inicio ? -1 : 1));
+  E.diasCiclo = new Map(diasCiclo.map((d) => [d.fecha, d]));
   const fuera = new Set(quitados);
 
   E.ejercicios = mezclarEjercicios(ejercicios);

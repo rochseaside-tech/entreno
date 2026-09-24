@@ -58,6 +58,7 @@ const RUTAS_ICONO = {
   nota: '<path d="M5 4h14v16H5zM9 9h6M9 13h6"/>',
   fuego: '<path d="M12 21a6 6 0 0 0 6-6c0-4-3-6-4-9-1.5 2-2 3.5-2 5-1-.5-2-2-2-3.5C8 9.5 6 12 6 15a6 6 0 0 0 6 6Z"/>',
   aviso: '<path d="M12 4l9 16H3Z"/><path d="M12 10v4M12 17v.5"/>',
+  ciclo: '<path d="M20.5 12a8.5 8.5 0 1 1-2.8-6.3"/><path d="M20.5 3.5V9H15"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/>',
 };
 
 export function Icono({ n, t = 24, g = 1.8, clase = '' }) {
@@ -68,8 +69,11 @@ export function Icono({ n, t = 24, g = 1.8, clase = '' }) {
 
 // ---------------------------------------------------------------- barra de pestañas
 
-const PESTANAS = [['hoy', 'Hoy'], ['entreno', 'Entreno'], ['ejercicios', 'Ejercicios'], ['comida', 'Comida'], ['progreso', 'Progreso']]
-  .filter(([id]) => QUIEN.comida || id !== 'comida');
+// En la app sin Comida queda hueco abajo: el ciclo va de pestaña. En la otra se entra
+// desde la tarjeta de Hoy, para no meter seis pestañas en la barra.
+const PESTANAS = [['hoy', 'Hoy'], ['entreno', 'Entreno'], ['ejercicios', 'Ejercicios'],
+  ['comida', 'Comida'], ['ciclo', 'Ciclo'], ['progreso', 'Progreso']]
+  .filter(([id]) => (id === 'comida' ? QUIEN.comida : id === 'ciclo' ? !QUIEN.comida : true));
 
 export function Tabs({ activa }) {
   return html`<nav class="tabs">

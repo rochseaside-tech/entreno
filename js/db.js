@@ -7,8 +7,9 @@ import { QUIEN } from './perfiles.js';
 const NOMBRE_DB = QUIEN.db;
 // v2: almacén 'habituales' (comidas guardadas para repetir con un toque).
 // v3: almacén 'fotos' (tus fotos de un ejercicio, en lugar de las de la base).
+// v4: almacenes 'ciclos' (cada regla) y 'diasCiclo' (síntomas de un día).
 // Subir la versión solo crea los almacenes nuevos: no toca los datos existentes.
-const VERSION_DB = 3;
+const VERSION_DB = 4;
 
 // Definición de los almacenes. keyPath = campo que hace de clave.
 const ALMACENES = {
@@ -28,6 +29,8 @@ const ALMACENES = {
   uso:        { keyPath: 'clave' },                                // aprendizaje: frecuencia y cantidades habituales
   habituales: { keyPath: 'id' },                                   // comidas guardadas: varios alimentos que se apuntan juntos
   fotos:      { keyPath: 'id' },                                   // tus fotos: { id: ejercicio, f0, f1 } en data URL (entra en la copia)
+  ciclos:     { keyPath: 'inicio' },                               // cada regla: { inicio, duracion, dudoso, nota }
+  diasCiclo:  { keyPath: 'fecha' },                                // síntomas de un día: { fecha, flujo, dolor, animo, energia, nota }
 };
 
 export const NOMBRES_ALMACENES = Object.keys(ALMACENES);

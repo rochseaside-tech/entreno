@@ -379,6 +379,82 @@ export function valoracionRitmo(kgSemana) {
   return { texto: `${t}. Cerca del objetivo de ${PERFIL.ritmoMin}-${PERFIL.ritmoMax}.`, estado: 'neutro' };
 }
 
+// ---------------------------------------------------------------- ciclo menstrual
+
+// Un ciclo dura de una regla a la siguiente. Los ciclos larguísimos suelen ser un olvido
+// al registrar, no un ciclo de verdad: por encima de este tope no cuentan para las medias.
+export const TOPE_CICLO = 45;
+
+export const mediana = (xs) => {
+  if (!xs.length) return null;
+  const o = [...xs].sort((a, b) => a - b);
+  const m = Math.floor(o.length / 2);
+  return o.length % 2 ? o[m] : Math.round(((o[m - 1] + o[m]) / 2) * 10) / 10;
+};
+
+// fase del ciclo a partir del día (1 = primer día de regla).
+export function faseCiclo(dia, largoCiclo, largoRegla) {
+  if (dia <= largoRegla) return 'menstrual';
+  const ovula = largoCiclo - 14; // la segunda mitad es la estable: se cuenta hacia atrás
+  if (dia >= ovula - 1 && dia <= ovula + 1) return 'ovulacion';
+  return dia < ovula ? 'folicular' : 'lutea';
+}
+
+export const FASES = {
+  menstrual: { nombre: 'Regla', color: 'var(--aviso-texto)' },
+  folicular: { nombre: 'Fase folicular', color: 'var(--acento)' },
+  ovulacion: { nombre: 'Ovulación (estimada)', color: 'var(--anillo2)' },
+  lutea: { nombre: 'Fase lútea', color: 'var(--acento2)' },
+};
+
+// Todo lo que hace falta para la pantalla: en qué día vas, qué fase, cuándo toca la
+// próxima y cómo de fiable es la predicción.
+export function analizarCiclos(ciclos, iso = hoyISO(), reglaPorDefecto = 5) {
+  const orden = [...ciclos].filter((c) => c.inicio).sort((a, b) => (a.inicio < b.inicio ? -1 : 1));
+  const ultimo = orden[orden.length - 1] || null;
+  if (!ultimo) return { hay: false };
+
+  // Largos entre inicios consecutivos; fuera los marcados como dudosos y los desmesurados.
+  const largos = [];
+  for (let i = 1; i < orden.length; i++) {
+    const d = diasEntre(orden[i - 1].inicio, orden[i].inicio);
+    const dudoso = orden[i - 1].dudoso || orden[i].dudoso || d > TOPE_CICLO;
+    if (!dudoso) largos.push(d);
+  }
+  const recientes = largos.slice(-12);
+  const largoCiclo = Math.round(mediana(recientes) ?? 28);
+  const variacion = recientes.length > 1
+    ? Math.max(1, Math.round((Math.max(...recientes) - Math.min(...recientes)) / 2)) : null;
+  const reglas = orden.map((c) => c.duracion).filter((d) => d > 0 && d <= 12).slice(-12);
+  const largoRegla = Math.round(mediana(reglas) ?? reglaPorDefecto);
+
+  const dia = diasEntre(ultimo.inicio, iso) + 1;
+  const proxima = sumarDias(ultimo.inicio, largoCiclo);
+  const ovulacion = sumarDias(ultimo.inicio, largoCiclo - 14);
+  return {
+    hay: true, ultimo, dia, largoCiclo, largoRegla, variacion,
+    fase: faseCiclo(dia, largoCiclo, ultimo.duracion || largoRegla),
+    enRegla: dia <= (ultimo.duracion || largoRegla) && !ultimo.fin,
+    proxima, diasParaProxima: diasEntre(iso, proxima),
+    ovulacion, fertil: { desde: sumarDias(ovulacion, -5), hasta: sumarDias(ovulacion, 1) },
+    ciclos: orden.length, fiables: recientes.length,
+    retraso: Math.max(0, diasEntre(proxima, iso)),
+  };
+}
+
+// Días de un ciclo para pintarlos en fila (calendario corto).
+export function diasDelCiclo(analisis, iso = hoyISO()) {
+  if (!analisis?.hay) return [];
+  const total = Math.max(analisis.largoCiclo, analisis.dia);
+  return Array.from({ length: total }, (_, i) => {
+    const fecha = sumarDias(analisis.ultimo.inicio, i);
+    return {
+      fecha, dia: i + 1, hoy: fecha === iso,
+      fase: faseCiclo(i + 1, analisis.largoCiclo, analisis.ultimo.duracion || analisis.largoRegla),
+    };
+  });
+}
+
 // ---------------------------------------------------------------- medidas del cuerpo
 
 // Evolución de cada medida: sus puntos, el último valor y el cambio en cm respecto a la

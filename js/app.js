@@ -9,6 +9,7 @@ import { EditarEntreno } from './pantallas/editar-entreno.js';
 import { Ejercicios, Ejercicio } from './pantallas/ejercicios.js';
 import { Comida } from './pantallas/comida.js';
 import { Progreso } from './pantallas/progreso.js';
+import { Ciclo } from './pantallas/ciclo.js';
 import { Ajustes } from './pantallas/ajustes.js';
 import { QUIEN } from './perfiles.js';
 
@@ -27,6 +28,7 @@ const PANTALLAS = {
   ejercicios: { C: Ejercicios, tab: 'ejercicios' },
   ejercicio: { C: Ejercicio, tab: 'ejercicios', detalle: true },
   comida: { C: Comida, tab: 'comida' },
+  ciclo: { C: Ciclo, tab: 'ciclo' },
   progreso: { C: Progreso, tab: 'progreso' },
   ajustes: { C: Ajustes, tab: 'hoy', detalle: true },
 };

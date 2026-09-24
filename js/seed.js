@@ -36,6 +36,39 @@ export const REGLAS = [
   'Contar el aceite siempre. Una cucharada son 90 kcal y en un refrito no queda nada en la sartén.',
 ];
 
+// ---------------------------------------------------------------- ciclo menstrual
+// Consejos por fase, cada uno con su etiqueta de honestidad:
+//   demostrado = hay evidencia sólida y repetida.
+//   plausible  = tiene sentido y algún estudio lo apunta, pero no está cerrado.
+//   mito       = se repite mucho y la evidencia NO lo sostiene.
+// Aviso general: periodizar el entreno por fases del ciclo NO está demostrado. Las
+// revisiones recientes no encuentran diferencias fiables de fuerza entre fases, así que
+// lo que manda es cómo te encuentras ese día, no el día del calendario.
+export const CONSEJOS_CICLO = {
+  menstrual: [
+    { n: 'demostrado', t: 'Entrenar con la regla no es malo ni peligroso. Si te encuentras bien, entrena igual: la fuerza no baja de forma fiable por estar en regla.' },
+    { n: 'plausible', t: 'Si duele o vas muy cansada, quita una serie antes que bajar el peso: así conservas el estímulo y acortas la sesión.' },
+    { n: 'demostrado', t: 'Con sangrado abundante se puede ir el hierro, y eso sí tumba el rendimiento. Si arrastras cansancio raro, se mira con analítica (ferritina), no a ojo.' },
+    { n: 'plausible', t: 'El calentamiento suave ayuda con las molestias: moverse alivia el dolor de regla en la mayoría de estudios.' },
+  ],
+  folicular: [
+    { n: 'plausible', t: 'Buen momento para intentar subir peso o repeticiones: es cuando más gente se nota con energía.' },
+    { n: 'demostrado', t: 'Lo que de verdad hace progresar es dormir, comer suficiente proteína y subir cargas poco a poco. El día del ciclo pinta mucho menos de lo que se dice.' },
+  ],
+  ovulacion: [
+    { n: 'plausible', t: 'Por aquí hay algo más de laxitud en los ligamentos. En máquinas y con técnica controlada no es problema; el cuidado es para saltos y cambios bruscos de dirección.' },
+    { n: 'mito', t: '«En ovulación rindes más»: la diferencia, si existe, es mínima y no se repite entre estudios. No hagas planes contando con ella.' },
+  ],
+  lutea: [
+    { n: 'demostrado', t: 'Sube la temperatura del cuerpo: se lleva peor el calor. Bebe más y no te agobies si sudas antes.' },
+    { n: 'demostrado', t: 'El gasto sube un poco y el hambre también. Comer algo más, sobre todo hidratos, no es fallar: es lo que pide el cuerpo.' },
+    { n: 'plausible', t: 'Puedes notar el mismo peso más duro sin que tu fuerza real haya bajado. Fíate de las repeticiones y del RIR, no de la sensación.' },
+    { n: 'mito', t: '«Hay que ir a RIR 3 en lútea»: no hay evidencia que lo sostenga. Ajusta por cómo estés ese día, no por el calendario.' },
+  ],
+};
+
+export const SINTOMAS = ['Dolor', 'Hinchazón', 'Cansancio', 'Dolor de cabeza', 'Antojos', 'Pecho sensible', 'Ánimo bajo', 'Irritable'];
+
 // ---------------------------------------------------------------- medidas del cuerpo
 // Cada medida con su definición, que se enseña al ir a medir: el sitio exacto importa
 // más que el número, porque lo que dice algo es una medición contra la anterior.

@@ -9,6 +9,7 @@ import { Icono, FotoEj, Anillo, GraficaLinea, Hoja, ir, n0, n1, aNum } from '../
 import { iniciarSesion, minutosEstimados } from './entreno.js';
 import { guardarCopia } from './ajustes.js';
 import { QUIEN } from '../perfiles.js';
+import { Pinguinos } from './ciclo.js';
 
 const capital = (t) => t.charAt(0).toUpperCase() + t.slice(1);
 export const fechaBonita = (iso) => capital(L.desdeISO(iso).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }));
@@ -38,6 +39,7 @@ export function Hoy() {
 
     <div class="pila">
       <${TarjetaEntreno} />
+      <${TarjetaCiclo} />
       <${AvisoCopia} />
       ${QUIEN.comida && dia && html`<${TarjetaComida} dia=${dia} />`}
       <${TarjetaSemana} hoy=${hoy} />
@@ -84,6 +86,26 @@ function TarjetaEntreno() {
       <button class="boton suave" style="margin-top:8px;min-height:44px;font-size:15px" onClick=${() => ir('entreno')}>Elegir otra sesión</button>
     </div>
   </div>`;
+}
+
+// ---------------------------------------------------------------- ciclo
+
+// Las pingüinas saludan desde Hoy y llevan la cuenta del día del ciclo.
+function TarjetaCiclo() {
+  const a = L.analizarCiclos(E.ciclos);
+  const texto = !a.hay ? 'Apunta tu primera regla'
+    : a.enRegla ? `Día ${a.dia} de la regla`
+    : a.retraso > 0 ? `${a.retraso} ${a.retraso === 1 ? 'día' : 'días'} de retraso`
+    : `Día ${a.dia} · te toca en ${a.diasParaProxima} ${a.diasParaProxima === 1 ? 'día' : 'días'}`;
+  return html`<button class="tarjeta hola-pinguinas" style="width:100%;text-align:left" onClick=${() => ir('ciclo')}>
+    <${Pinguinos} alto=${64} />
+    <div class="crece">
+      <div class="globo">¡Hola, ${QUIEN.nombre}!</div>
+      <div style="font-weight:650;font-size:16px;margin-top:6px">${texto}</div>
+      <div class="t3 peq">${a.hay ? L.FASES[a.fase].nombre : 'y llevamos la cuenta por ti'}</div>
+    </div>
+    <${Icono} n="chevron" t=${18} g=${2.2} clase="chevron" />
+  </button>`;
 }
 
 // ---------------------------------------------------------------- comida
