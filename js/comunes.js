@@ -207,6 +207,8 @@ export function Vacio({ titulo, children }) {
 
 // Los colores de cada uno están en css/app.css. Se guarda en este móvil (localStorage).
 export const TEMAS = [
+  { id: 'claro', nombre: 'Claro, lavanda y rosa', fondo: '#ECECF1', acento: '#6E5CE6', dos: '#DE7F98' },
+  { id: 'claro-salvia', nombre: 'Claro, verde suculenta', fondo: '#ECEFE9', acento: '#4E8C5A', dos: '#86B68C' },
   { id: 'mixto', nombre: 'Lavanda y rosa', fondo: '#2A2A30', acento: '#A99BFF', dos: '#EDB4C2' },
   { id: 'grafito', nombre: 'Solo lavanda', fondo: '#2A2A30', acento: '#A99BFF', dos: '#A99BFF' },
   { id: 'grafito-rosa', nombre: 'Solo rosa palo', fondo: '#2A2A30', acento: '#EDB4C2', dos: '#EDB4C2' },

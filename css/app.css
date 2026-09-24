@@ -67,6 +67,48 @@
   --chip-fondo: rgba(237,180,194,.17); --chip-texto: #F7D2DB;
 }
 
+/* ------------------------------------------------------------ temas claros
+   Gris muy claro casi blanco, con la tarjeta en blanco puro. Mismo sistema de fichas:
+   solo cambian los valores. `claro-salvia` es el de Aida: verde suculenta y menta. */
+[data-tema="claro"], [data-tema="claro-salvia"] {
+  --fondo: #ECECF1; --superficie: #FFFFFF; --superficie2: #F1F1F6; --superficie3: #E3E3EB;
+  --linea: rgba(22,22,38,.10);
+  --texto: #1B1B22; --texto2: #585866; --texto3: #83838F;
+  --acento: #6E5CE6; --acento2: #9B8CFF; --enlace: #5947D4;
+  --boton: #6E5CE6; --sobre-boton: #FFFFFF;
+  --check: #DE7F98; --sobre-check: #FFFFFF; --hecho: rgba(222,127,152,.12);
+  --sug-fondo: rgba(110,92,230,.10); --sug-texto: #4A3BB5;
+  --chip-fondo: rgba(110,92,230,.12); --chip-texto: #4A3BB5;
+  --timer-fondo: #DE7F98; --timer-texto: #FFFFFF; --timer-linea: #FFFFFF; --timer-btn: rgba(255,255,255,.24);
+  --anillo2: #DE7F98; --anillo2b: #F0AEC0; --tab-activo: #6E5CE6;
+  --aviso-fondo: rgba(198,64,40,.10); --aviso-texto: #B23C28;
+  --titulo-color: #4A3BB5;
+  --marca: var(--texto2); --marca-sombra: none;
+  --sombra: 0 1px 2px rgba(20,20,45,.07), 0 10px 22px -14px rgba(20,20,45,.22);
+  --sombra-alta: 0 2px 6px rgba(20,20,45,.10), 0 24px 48px -22px rgba(20,20,45,.30);
+  color-scheme: light;
+}
+/* El de Aida: verde suculenta de protagonista, menta de segundo color. */
+[data-tema="claro-salvia"] {
+  --fondo: #ECEFE9; --superficie: #FFFFFF; --superficie2: #F1F4ED; --superficie3: #E2E8DE;
+  --linea: rgba(28,45,28,.10);
+  --texto: #1A231B; --texto2: #545E54; --texto3: #7D877D;
+  --acento: #4E8C5A; --acento2: #86B68C; --enlace: #3F7A4C;
+  --boton: #4E8C5A; --sobre-boton: #FFFFFF;
+  --check: #4E8C5A; --sobre-check: #FFFFFF; --hecho: rgba(78,140,90,.13);
+  --sug-fondo: rgba(78,140,90,.11); --sug-texto: #35663F;
+  --chip-fondo: rgba(78,140,90,.13); --chip-texto: #35663F;
+  --timer-fondo: #4E8C5A; --timer-texto: #FFFFFF; --timer-linea: #FFFFFF; --timer-btn: rgba(255,255,255,.24);
+  --anillo2: #86B68C; --anillo2b: #BFD9BC; --tab-activo: #3F7A4C;
+  --aviso-fondo: rgba(190,80,40,.10); --aviso-texto: #A8542C;
+  --titulo-color: #35663F;
+  --sombra: 0 1px 2px rgba(25,40,25,.07), 0 10px 22px -14px rgba(25,40,25,.22);
+  --sombra-alta: 0 2px 6px rgba(25,40,25,.10), 0 24px 48px -22px rgba(25,40,25,.30);
+}
+/* En claro, dentro de una hoja las tarjetas se quedan en blanco con filo. */
+[data-tema="claro"] .hoja .lista, [data-tema="claro"] .hoja .tarjeta,
+[data-tema="claro-salvia"] .hoja .lista, [data-tema="claro-salvia"] .hoja .tarjeta { background: var(--superficie2); }
+
 /* medidas comunes a todos los temas */
 :root {
   --radio: 18px;          /* contenedores: tarjetas, listas, fotos grandes */
@@ -151,7 +193,7 @@ h1, h2, h3, p { margin: 0; }
 .portada .encima { position: relative; padding: 16px; }
 .portada .hueco { height: 104px; }
 .portada h3 { font-size: 30px; line-height: 1.02; margin: 4px 0 4px; }
-.portada .marca { font-size: 13px; font-weight: 700; color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.5); }
+.portada .marca { font-size: 13px; font-weight: 700; color: var(--marca, #fff); text-shadow: var(--marca-sombra, 0 1px 6px rgba(0,0,0,.5)); }
 .portada .tira { display: flex; gap: 6px; margin-top: 12px; }
 .portada .tira .mini { width: 44px; height: 44px; border-radius: 10px; }
 

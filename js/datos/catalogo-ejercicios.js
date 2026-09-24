@@ -19,7 +19,7 @@ export const CATALOGO = [
   // ============================================================ Pecho
   {
     id: 'press-pecho-maquina', nombre: 'Press de pecho en máquina', grupo: 'Pecho', sec: ['Tríceps', 'Hombro'], equipo: 'Máquina',
-    en: 'Leverage Chest Press', rep: [10, 12], rir: '2', descanso: 120, incremento: 2.5, tipo: 'peso',
+    en: 'Leverage Chest Press', rep: [10, 12], rir: '2', descanso: 90, incremento: 2.5, tipo: 'peso',
     claves: [
       'Asiento de forma que las asas queden a la altura media del pecho, no del cuello.',
       'Omóplatos juntos y apoyados en el respaldo todo el movimiento.',
@@ -29,7 +29,7 @@ export const CATALOGO = [
   },
   {
     id: 'press-inclinado-maquina', nombre: 'Press inclinado en máquina', grupo: 'Pecho', sec: ['Hombro', 'Tríceps'], equipo: 'Máquina',
-    en: 'Leverage Incline Chest Press', rep: [8, 12], rir: '2', descanso: 120, incremento: 2.5, tipo: 'peso',
+    en: 'Leverage Incline Chest Press', rep: [8, 12], rir: '2', descanso: 90, incremento: 2.5, tipo: 'peso',
     claves: [
       'Asas a la altura de la parte alta del pecho.',
       'Omóplatos juntos y pegados al respaldo.',
@@ -38,7 +38,7 @@ export const CATALOGO = [
   },
   {
     id: 'press-banca-mancuernas', nombre: 'Press de banca con mancuernas', grupo: 'Pecho', sec: ['Tríceps', 'Hombro'], equipo: 'Mancuernas',
-    en: 'Dumbbell Bench Press', rep: [8, 12], rir: '2', descanso: 120, incremento: 2, tipo: 'peso',
+    en: 'Dumbbell Bench Press', rep: [8, 12], rir: '2', descanso: 90, incremento: 2, tipo: 'peso',
     claves: [
       'Apoya las mancuernas en los muslos y túmbate con ellas: así llegan a su sitio sin forzar el hombro.',
       'Codos a unos 45° del cuerpo, no abiertos en cruz.',
@@ -47,7 +47,7 @@ export const CATALOGO = [
   },
   {
     id: 'press-inclinado-mancuernas', nombre: 'Press inclinado con mancuernas', grupo: 'Pecho', sec: ['Hombro', 'Tríceps'], equipo: 'Mancuernas',
-    en: 'Incline Dumbbell Press', rep: [8, 12], rir: '2', descanso: 120, incremento: 2, tipo: 'peso',
+    en: 'Incline Dumbbell Press', rep: [8, 12], rir: '2', descanso: 90, incremento: 2, tipo: 'peso',
     claves: [
       'Banco a 30°: más inclinado ya trabaja sobre todo el hombro.',
       'Codos a 45°, antebrazos verticales.',
@@ -95,7 +95,7 @@ export const CATALOGO = [
   // ============================================================ Espalda
   {
     id: 'jalon-prono', nombre: 'Jalón al pecho, agarre prono', grupo: 'Espalda', sec: ['Bíceps', 'Hombro posterior'], equipo: 'Polea',
-    en: 'Wide-Grip Lat Pulldown', rep: [8, 12], rir: '2', descanso: 120, incremento: 2.5, tipo: 'peso',
+    en: 'Wide-Grip Lat Pulldown', rep: [8, 12], rir: '2', descanso: 90, incremento: 2.5, tipo: 'peso',
     claves: [
       'Manos algo más anchas que los hombros, agarre prono.',
       'Pecho alto: la barra baja a la clavícula, nunca a la nuca.',
@@ -105,7 +105,7 @@ export const CATALOGO = [
   },
   {
     id: 'jalon-neutro', nombre: 'Jalón agarre neutro', grupo: 'Espalda', sec: ['Bíceps'], equipo: 'Polea',
-    en: 'V-Bar Pulldown', rep: [10, 12], rir: '2', descanso: 120, incremento: 2.5, tipo: 'peso',
+    en: 'V-Bar Pulldown', rep: [10, 12], rir: '2', descanso: 90, incremento: 2.5, tipo: 'peso',
     claves: [
       'Agarre neutro (palmas enfrentadas), manos a la anchura de los hombros.',
       'Pecho arriba y ligera inclinación atrás, que se mantiene quieta.',
@@ -115,7 +115,7 @@ export const CATALOGO = [
   },
   {
     id: 'jalon-supino', nombre: 'Jalón agarre supino', grupo: 'Espalda', sec: ['Bíceps'], equipo: 'Polea',
-    en: 'Underhand Cable Pulldowns', rep: [8, 12], rir: '2', descanso: 120, incremento: 2.5, tipo: 'peso',
+    en: 'Underhand Cable Pulldowns', rep: [8, 12], rir: '2', descanso: 90, incremento: 2.5, tipo: 'peso',
     claves: [
       'Palmas mirando hacia ti, manos a la anchura de los hombros.',
       'Baja la barra a la parte alta del pecho llevando los codos junto al cuerpo.',
@@ -124,7 +124,7 @@ export const CATALOGO = [
   },
   {
     id: 'remo-sentado', nombre: 'Remo sentado, agarre neutro', grupo: 'Espalda', sec: ['Bíceps', 'Hombro posterior'], equipo: 'Polea',
-    en: 'Seated Cable Rows', rep: [8, 12], rir: '2', descanso: 120, incremento: 2.5, tipo: 'peso',
+    en: 'Seated Cable Rows', rep: [8, 12], rir: '2', descanso: 90, incremento: 2.5, tipo: 'peso',
     claves: [
       'Agarre neutro (palmas enfrentadas), pecho alto y espalda neutra: el tronco casi no se mueve.',
       'Codos pegados al cuerpo hasta pasar la línea del torso.',
@@ -134,7 +134,7 @@ export const CATALOGO = [
   },
   {
     id: 'remo-maquina', nombre: 'Remo en máquina con pecho apoyado', grupo: 'Espalda', sec: ['Bíceps', 'Hombro posterior'], equipo: 'Máquina',
-    en: 'Leverage Iso Row', rep: [10, 12], rir: '2', descanso: 120, incremento: 2.5, tipo: 'peso',
+    en: 'Leverage Iso Row', rep: [10, 12], rir: '2', descanso: 90, incremento: 2.5, tipo: 'peso',
     claves: [
       'Ajusta el asiento para que las asas queden a la altura de la parte baja del pecho, con el pecho entero apoyado en el cojín.',
       'El pecho no se despega del cojín en ninguna repetición: si tienes que echarte atrás para mover el peso, sobra peso.',
@@ -162,7 +162,7 @@ export const CATALOGO = [
   },
   {
     id: 'remo-barra', nombre: 'Remo con barra', grupo: 'Espalda', sec: ['Bíceps', 'Lumbar'], equipo: 'Barra',
-    en: 'Bent Over Barbell Row', rep: [6, 10], rir: '2', descanso: 120, incremento: 2.5, tipo: 'peso',
+    en: 'Bent Over Barbell Row', rep: [6, 10], rir: '2', descanso: 90, incremento: 2.5, tipo: 'peso',
     claves: [
       'Rodillas algo dobladas y tronco inclinado unos 45°, espalda recta.',
       'Tira de la barra hacia el ombligo.',
@@ -410,7 +410,7 @@ export const CATALOGO = [
     // La horizontal, la que usaba hasta el 18 sep. Se queda con su historial; sus pesos no
     // valen para la de 45°.
     id: 'prensa', nombre: 'Prensa horizontal', grupo: 'Cuádriceps', sec: ['Glúteo', 'Femoral'], equipo: 'Máquina',
-    en: 'Leg Press', rep: [10, 12], rir: '2', descanso: 120, incremento: 5, tipo: 'peso',
+    en: 'Leg Press', rep: [10, 12], rir: '2', descanso: 90, incremento: 5, tipo: 'peso',
     fotoNota: 'La foto es de la prensa inclinada: el movimiento es el mismo, cambia el aparato.',
     claves: [
       'Recorrido por exposición progresiva, sin tope fijo de 90°: empieza en el recorrido que haces ahora y baja un poco más cada 2-3 semanas.',
@@ -422,7 +422,7 @@ export const CATALOGO = [
   {
     // Desde el 19 sep, la de Pierna 2: trineo a 45° cargado con discos.
     id: 'prensa-45', nombre: 'Prensa inclinada 45°, pies altos', grupo: 'Cuádriceps', sec: ['Glúteo', 'Femoral'], equipo: 'Máquina de discos',
-    en: 'Leg Press', img: 'prensa', rep: [10, 12], rir: '2', descanso: 120, incremento: 5, tipo: 'peso',
+    en: 'Leg Press', img: 'prensa', rep: [10, 12], rir: '2', descanso: 90, incremento: 5, tipo: 'peso',
     claves: [
       'Pies altos y separados en la plataforma, para que el glúteo asuma más trabajo y el cuádriceps menos.',
       'Recorrido por exposición progresiva, sin tope fijo de 90°: empieza en el recorrido que haces ahora y baja un poco más cada 2-3 semanas.',
@@ -443,7 +443,7 @@ export const CATALOGO = [
   },
   {
     id: 'hack-squat', nombre: 'Sentadilla hack en máquina', grupo: 'Cuádriceps', sec: ['Glúteo'], equipo: 'Máquina',
-    en: 'Hack Squat', rep: [8, 12], rir: '2', descanso: 120, incremento: 5, tipo: 'peso',
+    en: 'Hack Squat', rep: [8, 12], rir: '2', descanso: 90, incremento: 5, tipo: 'peso',
     claves: [
       'Espalda pegada al respaldo, pies a la anchura de la cadera.',
       'Baja controlada y sube empujando con todo el pie.',
@@ -453,7 +453,7 @@ export const CATALOGO = [
   },
   {
     id: 'sentadilla-multipower', nombre: 'Sentadilla en multipower', grupo: 'Cuádriceps', sec: ['Glúteo'], equipo: 'Multipower',
-    en: 'Smith Machine Squat', rep: [8, 12], rir: '2', descanso: 120, incremento: 2.5, tipo: 'peso',
+    en: 'Smith Machine Squat', rep: [8, 12], rir: '2', descanso: 90, incremento: 2.5, tipo: 'peso',
     claves: [
       'Barra apoyada en la parte alta de la espalda, pies un poco por delante de la barra.',
       'Baja como si te sentaras, con la espalda recta.',
@@ -526,7 +526,7 @@ export const CATALOGO = [
   },
   {
     id: 'peso-muerto-rumano', nombre: 'Peso muerto rumano con barra', grupo: 'Femoral', sec: ['Glúteo', 'Lumbar'], equipo: 'Barra',
-    en: 'Romanian Deadlift', rep: [8, 12], rir: '2', descanso: 120, incremento: 2.5, tipo: 'peso',
+    en: 'Romanian Deadlift', rep: [8, 12], rir: '2', descanso: 90, incremento: 2.5, tipo: 'peso',
     claves: [
       'Rodillas algo dobladas y fijas; el movimiento es echar la cadera atrás.',
       'La barra baja rozando los muslos, espalda recta.',
@@ -546,7 +546,7 @@ export const CATALOGO = [
   // ============================================================ Glúteo
   {
     id: 'hip-thrust', nombre: 'Hip thrust en máquina', grupo: 'Glúteo', sec: ['Femoral'], equipo: 'Máquina',
-    en: 'Barbell Hip Thrust', rep: [10, 12], rir: '1-2', descanso: 120, incremento: 5, tipo: 'peso',
+    en: 'Barbell Hip Thrust', rep: [10, 12], rir: '1-2', descanso: 90, incremento: 5, tipo: 'peso',
     fotoNota: 'La foto es del hip thrust con barra: el movimiento es el mismo, cambia el aparato.',
     claves: [
       'El borde del respaldo justo debajo del omóplato.',
@@ -557,7 +557,7 @@ export const CATALOGO = [
   },
   {
     id: 'hip-thrust-barra', nombre: 'Hip thrust con barra', grupo: 'Glúteo', sec: ['Femoral'], equipo: 'Barra',
-    en: 'Barbell Hip Thrust', rep: [8, 12], rir: '1-2', descanso: 120, incremento: 5, tipo: 'peso',
+    en: 'Barbell Hip Thrust', rep: [8, 12], rir: '1-2', descanso: 90, incremento: 5, tipo: 'peso',
     claves: [
       'Espalda alta apoyada en un banco, barra sobre la cadera con almohadilla.',
       'Sube hasta alinear hombros, cadera y rodillas y aprieta un segundo.',
