@@ -31,6 +31,7 @@ export const REGISTROS_PENDIENTES = [
     },
     series: HECHO_9_SEP.flatMap(serie(S1, '2026-09-09', INICIO_9_SEP)),
   },
+  ...COMIDAS_2_3_OCT(),
   CENA_9_SEP(),
   COMIDA_12_SEP(),
   COMIDA_18_SEP(),
@@ -44,6 +45,42 @@ export const REGISTROS_PENDIENTES = [
     config: { proximaMedida: '2026-10-13' },
   },
 ];
+
+// Lo que Rocío pasó a ojo el 3 oct: cena fuera del 2 oct con 4 cócteles, y comida,
+// merienda y cena del 3 oct. Las líneas «a ojo» son estimaciones; se corrigen tocándolas.
+// Los cócteles llevan `sumar`: entran aunque la cena del 2 ya tenga algo apuntado.
+function COMIDAS_2_3_OCT() {
+  const toma = (fecha, toma, hora, L, extra = {}) => {
+    const id = extra.id || `reg-${toma}-${fecha}`;
+    const base = Date.parse(`${fecha}T${hora}:00+02:00`);
+    return {
+      id, hasta: '2026-10-31', fecha, toma, nombreToma: toma, ...extra,
+      comidas: L.map(([nombre, cantidad, medida, origen, refId, kcal, prot, grasa, hc, fibra, sal, nota = null], i) => ({
+        id: `${id}-${i + 1}`, fecha, toma, nombre, cantidad, medida, origen, refId, nota,
+        kcal, prot, grasa, hc, fibra, sal, ts: base + i * 1000,
+      })),
+    };
+  };
+  return [
+    toma('2026-10-02', 'cena', '21:30', [
+      ['Cena fuera, a ojo', 1, 'libre', 'libre', null, 800, 40, 40, 65, 5, 3, 'Restaurante, sin desglosar: estimación media.'],
+    ]),
+    toma('2026-10-02', 'cena', '21:31', [
+      ['4 cócteles', 1, 'libre', 'libre', null, 800, 0, 0, 100, 0, 0, 'A ojo: unos 200 kcal cada uno (alcohol + azúcar del sirope o refresco).'],
+    ], { id: 'reg-cocteles-2026-10-02', sumar: true, aviso: 'Tus 4 cócteles del 2 de octubre ya están apuntados' }),
+    toma('2026-10-03', 'comida', '14:00', [
+      // Una ración de su receta (la mitad): 70 g de fideos en seco, 150 g de pollo, 20 g de gochujang, 10 g de soja.
+      ['Fideos de arroz con pollo y gochujang', 1, 'racion', 'receta', 'fideos-de-arroz-con-pollo-y-gochujang', 547, 40.2, 8.9, 75.5, 4.2, 3, 'Una ración de la receta, a ojo.'],
+      ['Cacahuetes tostados', 15, 'g', 'alimento', 'cacahuetes-tostados', 88, 3.7, 7.5, 3.2, 1.3, 0, 'A ojo, un puñadito.'],
+    ]),
+    toma('2026-10-03', 'merienda', '18:30', [
+      ['Melocotón light en lata (Mercadona)', 240, 'g', 'alimento', 'melocoton-light-en-lata-mercadona', 65, 1, 0, 15.1, 1.2, 0.05, 'Una lata: 240 g escurridos.'],
+    ]),
+    toma('2026-10-03', 'cena', '21:00', [
+      ['Kebab casero, a ojo', 1, 'libre', 'libre', null, 550, 38, 18, 55, 4, 2, 'Pan de pita, carne, salsa de yogur y verdura: estimación.'],
+    ]),
+  ];
+}
 
 // Comida del viernes 18 sep: conejo al ajillo con patata y ensalada. Macros de cada línea
 // tal como los dio Rocío (suman 608 kcal · 50,8 g prot · 27,6 g grasa · 38,3 g hc · 4,9 g fibra).

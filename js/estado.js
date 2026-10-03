@@ -233,11 +233,12 @@ async function aplicarRegistros() {
     }
     if (r.comidas) {
       // Si mientras tanto ya apuntaste algo en esa toma ese día, no se añade: evita duplicados.
+      // Con `sumar` se añade igual (algo que va aparte, como las bebidas de una cena).
       const propios = new Set(r.comidas.map((c) => c.id));
-      const yaHay = (await db.porIndice('comidas', 'fecha', r.fecha)).some((c) => c.toma === r.toma && !propios.has(c.id));
+      const yaHay = !r.sumar && (await db.porIndice('comidas', 'fecha', r.fecha)).some((c) => c.toma === r.toma && !propios.has(c.id));
       if (!yaHay) {
         await db.guardarVarios('comidas', r.comidas);
-        metidos.push(`Tu ${r.nombreToma} del ${L.fechaLarga(r.fecha)} ya está apuntada`);
+        metidos.push(r.aviso || `Tu ${r.nombreToma} del ${L.fechaLarga(r.fecha)} ya está apuntada`);
       }
     }
     if (r.medidas) {
