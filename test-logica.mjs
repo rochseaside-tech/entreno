@@ -12,50 +12,62 @@ const delCatalogo = (id) => { const c = CATALOGO.find(e => e.id === id); return 
 const ej = delCatalogo('jalon-prono'); // 8-12, +2.5
 const faseNormal = { semana: 5, reacondicionamiento: false, descarga: false, rirForzado: null };
 
+// Las pruebas miran el día de su última serie, no el de hoy (si no, todas serían un parón).
+const ultimaFecha = (series) => series.reduce((m, x) => (x.fecha > m ? x.fecha : m), '') || L.hoyISO();
+const A = (e, series, f, o = {}) => L.analizarEjercicio(e, series, f, { iso: ultimaFecha(series), ...o });
+
 const serie = (sesionId, fecha, i, peso, reps, rir) => ({ sesionId, fecha, indice: i, peso, reps, rir, ejercicioId: ej.id });
 
 console.log('\n--- Progresión doble ---');
 let s = [0,1,2].map(i => serie('s1','2026-09-01',i,30,12,2));
 comprobar('todas al tope con RIR 2 -> subir a 32,5',
-  L.analizarEjercicio(ej, s, faseNormal).aviso?.tipo === 'subir' &&
-  L.analizarEjercicio(ej, s, faseNormal).pesoSugerido === 32.5);
+  A(ej, s, faseNormal).aviso?.tipo === 'subir' &&
+  A(ej, s, faseNormal).pesoSugerido === 32.5);
 
 s = [0,1,2].map(i => serie('s1','2026-09-01',i,30,12,0));
-comprobar('todas al tope pero RIR 0 -> NO sube', L.analizarEjercicio(ej, s, faseNormal).aviso === null);
+comprobar('todas al tope pero RIR 0 -> NO sube', A(ej, s, faseNormal).aviso === null);
 
 s = [serie('s1','2026-09-01',0,30,12,2), serie('s1','2026-09-01',1,30,11,2), serie('s1','2026-09-01',2,30,12,2)];
-comprobar('una serie por debajo del tope -> NO sube', L.analizarEjercicio(ej, s, faseNormal).aviso === null);
+comprobar('una serie por debajo del tope -> NO sube', A(ej, s, faseNormal).aviso === null);
+
+console.log('\n--- Vuelta tras un parón ---');
+s = [0,1,2].map(i => serie('s1','2026-09-20',i,30,12,2));
+comprobar('14 días sin hacerlo -> baja un 10 % y no sube',
+  L.analizarEjercicio(ej, s, faseNormal, { iso: '2026-10-04' }).aviso?.tipo === 'vuelta' &&
+  L.analizarEjercicio(ej, s, faseNormal, { iso: '2026-10-04' }).pesoSugerido === 27.5);
+comprobar('11 días -> sigue la progresión normal',
+  L.analizarEjercicio(ej, s, faseNormal, { iso: '2026-10-01' }).aviso?.tipo === 'subir');
 
 console.log('\n--- Estancamiento ---');
 // 3 sesiones iguales, con reps por debajo del tope (no dispara progresión doble)
 s = ['2026-08-20','2026-08-24','2026-08-28'].flatMap((f, k) =>
   [0,1,2].map(i => serie('s'+k, f, i, 40, 9, 1)));
-let a = L.analizarEjercicio(ej, s, faseNormal);
+let a = A(ej, s, faseNormal);
 comprobar('3 sesiones clavadas -> bajar 10% (40 -> 35, el múltiplo de 2,5 más cercano a 36)',
   a.aviso?.tipo === 'estancado' && a.pesoSugerido === 35, JSON.stringify(a.aviso));
 
 s = ['2026-08-20','2026-08-24','2026-08-28'].flatMap((f, k) =>
   [0,1,2].map(i => serie('s'+k, f, i, 40, 9 + k, 1)));
-comprobar('reps mejorando -> NO es estancamiento', L.analizarEjercicio(ej, s, faseNormal).aviso === null);
+comprobar('reps mejorando -> NO es estancamiento', A(ej, s, faseNormal).aviso === null);
 
 console.log('\n--- Máquinas en libras (saltos desde el peso real) ---');
 const pecho = delCatalogo('press-pecho-maquina'); // 10-12, +2.5, arranque 22,7
 const sp = (i, peso, reps, rir, ses = 's1', f = '2026-09-20') => ({ sesionId: ses, fecha: f, indice: i, peso, reps, rir, ejercicioId: pecho.id });
-a = L.analizarEjercicio(pecho, [0,1,2].map(i => sp(i, 22.7, 12, 2)), faseNormal);
+a = A(pecho, [0,1,2].map(i => sp(i, 22.7, 12, 2)), faseNormal);
 comprobar(`22,7 al tope -> sube a 25,2, no a 25 (${a.pesoSugerido})`, a.aviso?.tipo === 'subir' && a.pesoSugerido === 25.2);
-a = L.analizarEjercicio(pecho, ['2026-09-20','2026-09-24','2026-09-28'].flatMap((f, k) => [0,1,2].map(i => sp(i, 22.7, 10, 1, 's'+k, f))), faseNormal);
+a = A(pecho, ['2026-09-20','2026-09-24','2026-09-28'].flatMap((f, k) => [0,1,2].map(i => sp(i, 22.7, 10, 1, 's'+k, f))), faseNormal);
 comprobar(`22,7 estancado -> baja un salto a 20,2 (${a.pesoSugerido})`, a.aviso?.tipo === 'estancado' && a.pesoSugerido === 20.2);
 comprobar('prensa 95,8 estancada (+5) -> 85,8', L.bajarCarga(95.8, 5) === 85.8);
 
 console.log('\n--- Rutina nueva: peso de arranque ---');
-a = L.analizarEjercicio(pecho, [0,1,2].map(i => sp(i, 30, 12, 2)), faseNormal, { arranque: true });
+a = A(pecho, [0,1,2].map(i => sp(i, 30, 12, 2)), faseNormal, { arranque: true });
 comprobar(`primera vez: manda la tabla (22,7), no el historial (${a.pesoSugerido})`, a.pesoSugerido === 22.7 && a.aviso?.tipo === 'arranque');
-a = L.analizarEjercicio(delCatalogo('triceps-polea'), [], faseNormal,
+a = A(delCatalogo('triceps-polea'), [], faseNormal,
   { arranque: true, referencia: { peso: 25, texto: 'Primera vez con Cuerda: te propongo los 25 kg de Barra en V.' } });
 comprobar(`agarre nuevo: propone el peso del otro agarre (${a.pesoSugerido})`, a.pesoSugerido === 25 && a.aviso.texto.includes('Barra en V'));
 comprobar('el tríceps en polea tiene los tres agarres',
   CATALOGO.find(c => c.id === 'triceps-polea').variantes.join() === 'Barra en V,Barra recta,Cuerda');
-a = L.analizarEjercicio(delCatalogo('remo-maquina'), [], faseNormal, { arranque: true });
+a = A(delCatalogo('remo-maquina'), [], faseNormal, { arranque: true });
 comprobar(`tantear: sin peso propuesto (${a.pesoSugerido})`, a.pesoSugerido === null && a.aviso.texto.includes('tantea'));
 comprobar('Pierna 2: prensa 45° · extensión · curl tumbado · abductores · gemelo · crunch',
   S.RUTINA.P2.ejercicios.map(x => x.id).join() === 'prensa-45,extension-cuadriceps,curl-femoral-tumbado,abductores,gemelo-de-pie,crunch-maquina');
@@ -79,7 +91,7 @@ comprobar('descarga: 3 series -> 2 (redondeo al alza)', L.seriesObjetivo(3, d8) 
 const d9 = L.faseActual('2026-09-01', L.sumarDias('2026-09-01', 8*7));
 comprobar('semana 9 -> sin descarga', d9.descarga === false);
 comprobar('en descarga no se pide subir peso',
-  L.analizarEjercicio(ej, [0,1,2].map(i => serie('s1','2026-09-01',i,30,12,2)), d8).aviso === null);
+  A(ej, [0,1,2].map(i => serie('s1','2026-09-01',i,30,12,2)), d8).aviso === null);
 
 console.log('\n--- Objetivos de comida ---');
 let o = L.objetivoDia({ huboGym: true });

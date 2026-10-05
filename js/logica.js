@@ -118,7 +118,11 @@ export function agruparPorSesion(series) {
 // arranque = primera vez con la rutina nueva (o con este agarre): manda el peso de
 // arranque de la tabla (o tantear, si no tiene), no lo que hiciste antes.
 // referencia = { peso, texto } para proponer el peso de otro agarre del mismo ejercicio.
-export function analizarEjercicio(ejercicio, series, fase, { arranque = false, referencia = null } = {}) {
+// Vuelta tras un parón (enfermedad, vacaciones): si hace 12 días o más que no lo haces,
+// se baja un 10 % y no se sube, para retomar sin pasarte.
+export const DIAS_PARON = 12;
+
+export function analizarEjercicio(ejercicio, series, fase, { arranque = false, referencia = null, iso = hoyISO() } = {}) {
   const grupos = agruparPorSesion(series);
   const ultima = grupos[grupos.length - 1] || null;
 
@@ -129,6 +133,16 @@ export function analizarEjercicio(ejercicio, series, fase, { arranque = false, r
       aviso: { tipo: 'arranque', texto: referencia?.texto ?? (p != null
         ? `Rutina nueva: arrancas con ${formatoPeso(p)}.`
         : 'Rutina nueva: tantea el peso en la primera serie.') },
+    };
+  }
+
+  const parado = ultima ? diasEntre(ultima.fecha, iso) : 0;
+  if (parado >= DIAS_PARON && ultima.pesoMax > 0) {
+    const p = bajarCarga(ultima.pesoMax, ejercicio.incremento);
+    return {
+      ultima, sesionesRegistradas: grupos.length, pesoSugerido: p, grupos, vuelta: true,
+      aviso: { tipo: 'vuelta',
+        texto: `Llevas ${parado} días sin hacerlo: vuelve con ${formatoPeso(p)}, un 10 % menos que la última vez, y deja 3 repeticiones en recámara. Si va fácil, la app te subirá la próxima.` },
     };
   }
 

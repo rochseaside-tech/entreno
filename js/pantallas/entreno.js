@@ -478,7 +478,7 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar,
         onClick=${() => alAgarre(v === variante ? null : v)}>${v}</button>`)}
     </div>`}
 
-    ${analisis.aviso && html`<div class="sugerencia" style="margin-top:12px"><${Icono} n=${{ subir: 'subir', arranque: 'nota' }[analisis.aviso.tipo] || 'cambiar'} t=${18} g=${2.4} />${analisis.aviso.texto}</div>`}
+    ${analisis.aviso && html`<div class="sugerencia" style="margin-top:12px"><${Icono} n=${{ subir: 'subir', arranque: 'nota', vuelta: 'nota' }[analisis.aviso.tipo] || 'cambiar'} t=${18} g=${2.4} />${analisis.aviso.texto}</div>`}
     ${ej.aviso && html`<div class="aviso" style="margin-top:8px"><${Icono} n="aviso" t=${17} g=${2} />${ej.aviso}</div>`}
 
     <div class="series">
