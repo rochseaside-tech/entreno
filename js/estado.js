@@ -237,7 +237,14 @@ async function aplicarRegistros() {
       const propios = new Set(r.comidas.map((c) => c.id));
       const yaHay = !r.sumar && (await db.porIndice('comidas', 'fecha', r.fecha)).some((c) => c.toma === r.toma && !propios.has(c.id));
       if (!yaHay) {
-        await db.guardarVarios('comidas', r.comidas);
+        // Con `copiarDe` («lo mismo que ayer») se copia esa toma de ese día tal como está en el
+        // móvil; r.comidas queda de reserva por si allí no hay nada.
+        const antes = r.copiarDe ? (await db.porIndice('comidas', 'fecha', r.copiarDe)).filter((c) => c.toma === r.toma) : [];
+        const base = r.comidas[0].ts;
+        const comidas = antes.length
+          ? antes.sort((a, b) => a.ts - b.ts).map((c, i) => ({ ...c, id: `${r.id}-${i + 1}`, fecha: r.fecha, ts: base + i * 1000 }))
+          : r.comidas;
+        await db.guardarVarios('comidas', comidas);
         metidos.push(r.aviso || `Tu ${r.nombreToma} del ${L.fechaLarga(r.fecha)} ya está apuntada`);
       }
     }

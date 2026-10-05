@@ -31,6 +31,7 @@ export const REGISTROS_PENDIENTES = [
     },
     series: HECHO_9_SEP.flatMap(serie(S1, '2026-09-09', INICIO_9_SEP)),
   },
+  ...COMIDAS_4_5_OCT(),
   ...COMIDAS_2_3_OCT(),
   CENA_9_SEP(),
   COMIDA_12_SEP(),
@@ -49,18 +50,49 @@ export const REGISTROS_PENDIENTES = [
 // Lo que Rocío pasó a ojo el 3 oct: cena fuera del 2 oct con 4 cócteles, y comida,
 // merienda y cena del 3 oct. Las líneas «a ojo» son estimaciones; se corrigen tocándolas.
 // Los cócteles llevan `sumar`: entran aunque la cena del 2 ya tenga algo apuntado.
-function COMIDAS_2_3_OCT() {
-  const toma = (fecha, toma, hora, L, extra = {}) => {
-    const id = extra.id || `reg-${toma}-${fecha}`;
-    const base = Date.parse(`${fecha}T${hora}:00+02:00`);
-    return {
-      id, hasta: '2026-10-31', fecha, toma, nombreToma: toma, ...extra,
-      comidas: L.map(([nombre, cantidad, medida, origen, refId, kcal, prot, grasa, hc, fibra, sal, nota = null], i) => ({
-        id: `${id}-${i + 1}`, fecha, toma, nombre, cantidad, medida, origen, refId, nota,
-        kcal, prot, grasa, hc, fibra, sal, ts: base + i * 1000,
-      })),
-    };
+function toma(fecha, toma, hora, L, extra = {}) {
+  const id = extra.id || `reg-${toma}-${fecha}`;
+  const base = Date.parse(`${fecha}T${hora}:00+02:00`);
+  return {
+    id, hasta: '2026-10-31', fecha, toma, nombreToma: toma, ...extra,
+    comidas: L.map(([nombre, cantidad, medida, origen, refId, kcal, prot, grasa, hc, fibra, sal, nota = null], i) => ({
+      id: `${id}-${i + 1}`, fecha, toma, nombre, cantidad, medida, origen, refId, nota,
+      kcal, prot, grasa, hc, fibra, sal, ts: base + i * 1000,
+    })),
   };
+}
+
+// Lo que Rocío pasó el 5 oct: comida en casa de sus suegros, merienda y cena del 4 oct, y
+// el desayuno del 5 («lo mismo que ayer»). Las cantidades que no dio van a ojo, con nota.
+function COMIDAS_4_5_OCT() {
+  return [
+    toma('2026-10-04', 'comida', '14:30', [
+      ['Raviolis frescos variados, a ojo', 1, 'libre', 'libre', null, 455, 17.5, 14, 63, 3.5, 1.6, 'A ojo: un plato, unos 175 g de pasta fresca rellena (≈260 kcal/100 g).'],
+      ['Salsa de cottage, parmesano, espinacas y AOVE', 1, 'libre', 'libre', null, 137, 12.5, 7.9, 4.8, 1.1, 0.9, 'Tu parte, a ojo: 60 g de cottage, 10 g de parmesano, 50 g de espinacas y 5 g de AOVE.'],
+      ['Pan de barra', 20, 'g', 'alimento', 'b-pan-de-barra', 54, 2.2, 0.5, 10.4, 0.4, 0.3],
+      ['Manzana asada', 90, 'g', 'alimento', 'b-manzana', 47, 0.3, 0.2, 12.4, 2.2, 0, 'Media manzana.'],
+      ['Sirope de agave', 10, 'g', 'alimento', 'sirope-de-agave', 31, 0, 0, 7.6, 0, 0.01, 'A ojo, por encima de la manzana.'],
+      ['Pastelito de Belém mini', 1, 'libre', 'libre', null, 95, 1.6, 5.2, 10.8, 0.2, 0.1, 'A ojo: uno pequeñito de unos 30 g.'],
+    ]),
+    toma('2026-10-04', 'merienda', '18:30', [
+      ['Melocotón light en lata (Mercadona)', 240, 'g', 'alimento', 'melocoton-light-en-lata-mercadona', 65, 1, 0, 15.1, 1.2, 0.05, 'Una lata: 240 g escurridos.'],
+    ]),
+    toma('2026-10-04', 'cena', '21:00', [
+      ['Contramuslo de pollo sin piel', 170, 'g', 'alimento', 'contramuslo-de-pollo-sin-piel', 206, 33.5, 7.1, 0, 0, 0.26, 'Dos contramuslos, unos 85 g de carne cada uno, adobados con pimentón (el pimentón no se cuenta).'],
+      ['AOVE', 6, 'g', 'alimento', 'aove', 54, 0, 6, 0, 0, 0, 'Del adobo.'],
+      ['Escalivada casera', 1, 'racion', 'receta', 'escalivada-casera', 110, 2.5, 4, 8.8, 3.5, 0],
+      ['Anchoas en AOVE, escurridas', 15, 'g', 'alimento', 'anchoas-en-aove-escurridas', 30, 3.9, 1.5, 0, 0, 0.75],
+      ['Tostas de arroz y maíz', 10, 'g', 'alimento', 'tostas-de-arroz-y-maiz', 39, 0.8, 0.3, 8, 0.2, 0.04, '2 unidades.'],
+    ]),
+    // «Lo mismo que ayer»: se copia en el móvil el desayuno que ella apuntó el 4. Si allí no
+    // hay ninguno, entra el desayuno habitual.
+    toma('2026-10-05', 'desayuno', '06:00', [
+      ['Desayuno habitual', 1, 'racion', 'receta', 'desayuno-habitual', 307, 32.6, 3.8, 32.8, 1.3, 1.9, 'No había desayuno apuntado el 4 de octubre: va el habitual. Cámbialo si no fue eso.'],
+    ], { copiarDe: '2026-10-04' }),
+  ];
+}
+
+function COMIDAS_2_3_OCT() {
   return [
     toma('2026-10-02', 'cena', '21:30', [
       ['Cena fuera, a ojo', 1, 'libre', 'libre', null, 800, 40, 40, 65, 5, 3, 'Restaurante, sin desglosar: estimación media.'],
