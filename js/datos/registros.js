@@ -84,6 +84,16 @@ function COMIDAS_4_5_OCT() {
       ['Anchoas en AOVE, escurridas', 15, 'g', 'alimento', 'anchoas-en-aove-escurridas', 30, 3.9, 1.5, 0, 0, 0.75],
       ['Tostas de arroz y maíz', 10, 'g', 'alimento', 'tostas-de-arroz-y-maiz', 39, 0.8, 0.3, 8, 0.2, 0.04, '2 unidades.'],
     ]),
+    // Comida del 5 oct: conejo guisado con patata, ensalada y media salsa. Macros de la
+    // tabla que trajo Rocío (≈745 kcal); fibra y sal estimadas.
+    toma('2026-10-05', 'comida', '14:00', [
+      ['Conejo (carne limpia, cruda)', 230, 'g', 'alimento', 'conejo-carne-limpia-cruda', 315, 46, 13, 0, 0, 0.2, 'Guisado. Unos 230 g de carne cruda.'],
+      ['AOVE', 5, 'g', 'alimento', 'aove', 45, 0, 5, 0, 0, 0, 'Del guiso: tu parte de los 10 g.'],
+      ['Ajo y vino del guiso', 1, 'libre', 'libre', null, 20, 0, 0, 2, 0, 0],
+      ['Patata air fryer', 200, 'libre', 'libre', null, 155, 4, 0, 34, 3.5, 0, 'Unos 200 g en crudo. Si era de 150 g, quita 40 kcal y 8 g de hidratos.'],
+      ['Ensalada', 1, 'libre', 'libre', null, 35, 1.5, 0, 7, 2, 0],
+      ['Media salsa', 1, 'libre', 'libre', null, 175, 12, 12, 5, 0, 0.5],
+    ]),
     // «Lo mismo que ayer»: se copia en el móvil el desayuno que ella apuntó el 4. Si allí no
     // hay ninguno, entra el desayuno habitual.
     toma('2026-10-05', 'desayuno', '06:00', [
