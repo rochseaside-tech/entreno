@@ -7,6 +7,7 @@ import * as L from '../logica.js';
 import * as db from '../db.js';
 import { Icono, Interruptor, atras, n0, aNum, TEMAS, ponerTema } from '../comunes.js';
 import { QUIEN } from '../perfiles.js';
+import { pitido } from '../descanso.js';
 
 export async function guardarCopia() {
   const datos = await db.exportarTodo();
@@ -91,6 +92,9 @@ export function Ajustes() {
     <div class="seccion"><h2 class="titulo">Entreno</h2></div>
     <div class="lista">
       ${fila('Pitido al acabar el descanso', null, html`<${Interruptor} etiqueta="Pitido" valor=${E.config.sonidoDescanso !== false} alCambiar=${(v) => guardarConfig({ sonidoDescanso: v })} />`)}
+      ${fila('Sonar aunque el iPhone esté en silencio', 'Si no, con el botón de silencio puesto solo suena por los cascos. Ojo: al pitar se para la música que tengas puesta.',
+        html`<${Interruptor} etiqueta="Sonar en silencio" valor=${!!E.config.sonarEnSilencio} alCambiar=${(v) => guardarConfig({ sonarEnSilencio: v })} />`)}
+      ${fila('Probar el pitido', null, html`<button class="boton suave chico" onClick=${() => pitido(1)}>Probar</button>`)}
       ${fila('Pantalla encendida mientras entrenas', 'El iPhone no deja que una web suene con la pantalla bloqueada. Así el descanso siempre te avisa.',
         html`<${Interruptor} etiqueta="Pantalla encendida" valor=${E.config.pantallaEncendida !== false} alCambiar=${(v) => guardarConfig({ pantallaEncendida: v })} />`)}
     </div>

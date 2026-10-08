@@ -199,6 +199,16 @@ function CENA_9_SEP() {
 // cambia lo que hay). Se aplican una vez, igual que los registros.
 export const CAMBIOS_PENDIENTES = [
   {
+    // 8 oct: en su móvil las dos piernas salían con hip thrust y sin prensa. Se vuelven a
+    // poner Pierna 1 (hip thrust) y Pierna 2 (prensa de 45°) como manda la rutina.
+    id: 'rutina-pierna1-2026-10-08',
+    sesionRutina: 'P1',
+  },
+  {
+    id: 'rutina-pierna2-2026-10-08',
+    sesionRutina: 'P2',
+  },
+  {
     // 19 sep: Pierna 2 nueva (prensa de 45°, abductores en lugar del hip thrust, crunch a 60 kg).
     id: 'rutina-pierna2-2026-09-19',
     sesionRutina: 'P2',

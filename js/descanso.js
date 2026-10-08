@@ -61,33 +61,52 @@ setInterval(() => {
 // ---------------------------------------------------------------- sonido
 
 let ctx = null;
-// Safari solo deja sonar audio si se ha preparado dentro de un toque de la usuaria.
+// Con el iPhone en silencio, una web no suena salvo que pida el modo «reproducción»
+// (Safari 17+). Ese modo para la música que tengas puesta, por eso va en Ajustes.
+function tipoDeAudio() {
+  try {
+    if (navigator.audioSession) navigator.audioSession.type = E.config.sonarEnSilencio ? 'playback' : 'auto';
+  } catch { /* Safari antiguo */ }
+}
+
+// Safari solo deja sonar audio si se ha preparado dentro de un toque de la usuaria, y lo
+// vuelve a bloquear al salir de la app (WhatsApp, una llamada): por eso se prepara en cada
+// toque, no solo en el primero.
 export function prepararAudio() {
   try {
+    tipoDeAudio();
     ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state === 'suspended') ctx.resume();
+    if (ctx.state !== 'running') {
+      ctx.resume();
+      // Un sonido mudo dentro del toque es lo que de verdad desbloquea el audio en iPhone.
+      const b = ctx.createBufferSource();
+      b.buffer = ctx.createBuffer(1, 1, 22050);
+      b.connect(ctx.destination); b.start(0);
+    }
   } catch { /* sin audio */ }
 }
 
-// El primer toque en cualquier sitio de la app deja el audio listo, así el pitido del
-// descanso suena siempre. (Con el iPhone en silencio no suena: eso no lo puede saltar una web.)
-addEventListener('pointerdown', prepararAudio, { once: true, capture: true });
-addEventListener('touchstart', prepararAudio, { once: true, capture: true });
+addEventListener('pointerdown', prepararAudio, { capture: true, passive: true });
+addEventListener('touchend', prepararAudio, { capture: true, passive: true });
 
-export function pitido(veces = 3) {
+// Dos tandas de tres pitidos fuertes (el último más agudo): se oyen en el gimnasio.
+export function pitido(tandas = 2) {
   prepararAudio(); // por si el descanso arrancó sin pasar por un toque: si no, no suena
   if (!ctx) return;
   try {
-    if (ctx.state === 'suspended') ctx.resume();
-    for (let i = 0; i < veces; i++) {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
-      o.type = 'sine'; o.frequency.value = i === veces - 1 ? 1320 : 880;
-      const t = ctx.currentTime + i * 0.3;
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.35, t + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
-      o.start(t); o.stop(t + 0.24);
+    for (let k = 0; k < tandas; k++) {
+      for (let i = 0; i < 3; i++) {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'triangle'; o.frequency.value = i === 2 ? 1320 : 880;
+        const t = ctx.currentTime + 0.05 + k * 1.2 + i * 0.28;
+        const largo = i === 2 ? 0.45 : 0.2;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(1, t + 0.02);
+        g.gain.setValueAtTime(1, t + largo - 0.06);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + largo);
+        o.start(t); o.stop(t + largo + 0.02);
+      }
     }
   } catch { /* sin audio */ }
 }

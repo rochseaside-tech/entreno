@@ -12,9 +12,7 @@ const delCatalogo = (id) => { const c = CATALOGO.find(e => e.id === id); return 
 const ej = delCatalogo('jalon-prono'); // 8-12, +2.5
 const faseNormal = { semana: 5, reacondicionamiento: false, descarga: false, rirForzado: null };
 
-// Las pruebas miran el día de su última serie, no el de hoy (si no, todas serían un parón).
-const ultimaFecha = (series) => series.reduce((m, x) => (x.fecha > m ? x.fecha : m), '') || L.hoyISO();
-const A = (e, series, f, o = {}) => L.analizarEjercicio(e, series, f, { iso: ultimaFecha(series), ...o });
+const A = L.analizarEjercicio;
 
 const serie = (sesionId, fecha, i, peso, reps, rir) => ({ sesionId, fecha, indice: i, peso, reps, rir, ejercicioId: ej.id });
 
@@ -30,13 +28,12 @@ comprobar('todas al tope pero RIR 0 -> NO sube', A(ej, s, faseNormal).aviso === 
 s = [serie('s1','2026-09-01',0,30,12,2), serie('s1','2026-09-01',1,30,11,2), serie('s1','2026-09-01',2,30,12,2)];
 comprobar('una serie por debajo del tope -> NO sube', A(ej, s, faseNormal).aviso === null);
 
-console.log('\n--- Vuelta tras un parón ---');
+console.log('\n--- Tras un parón ---');
+// 8 oct 2026: Rocío quitó la bajada del 10 % al volver; un parón no cambia la propuesta.
 s = [0,1,2].map(i => serie('s1','2026-09-20',i,30,12,2));
-comprobar('14 días sin hacerlo -> baja un 10 % y no sube',
-  L.analizarEjercicio(ej, s, faseNormal, { iso: '2026-10-04' }).aviso?.tipo === 'vuelta' &&
-  L.analizarEjercicio(ej, s, faseNormal, { iso: '2026-10-04' }).pesoSugerido === 27.5);
-comprobar('11 días -> sigue la progresión normal',
-  L.analizarEjercicio(ej, s, faseNormal, { iso: '2026-10-01' }).aviso?.tipo === 'subir');
+comprobar('14 días sin hacerlo -> progresión normal, sin bajar',
+  L.analizarEjercicio(ej, s, faseNormal).aviso?.tipo === 'subir' &&
+  L.analizarEjercicio(ej, s, faseNormal).pesoSugerido === 32.5);
 
 console.log('\n--- Estancamiento ---');
 // 3 sesiones iguales, con reps por debajo del tope (no dispara progresión doble)
