@@ -49,17 +49,22 @@ async function guardarSesion(s) {
 export async function iniciarSesion(plan) {
   const hoy = L.hoyISO();
   if (!E.config.primeraSesion) await guardarConfig({ primeraSesion: hoy });
-  E.fase = L.faseActual(E.config.primeraSesion);
   const def = plan === 'L' ? { nombre: 'Entreno libre', ejercicios: [] } : E.rutina[plan];
   await guardarSesion({
     id: db.nuevoId('s'), fecha: hoy, plan, nombre: def.nombre,
     inicio: new Date().toISOString(), fin: null,
     // El primer ejercicio trae dos series de aproximación propuestas (50 % y 75 % del peso).
     // Lo que un ejercicio lleve distinto en esta sesión (rango, descanso…) viaja con él,
-    // y los de agarre intercambiable arrancan con el que usaste la última vez.
+    // y los de agarre intercambiable arrancan con el que usaste la última vez. Con máquinas
+    // distintas (las prensas) no se elige sola: la eliges tú al empezar el ejercicio.
+    // Con alternativa (el hip thrust), las dos opciones viajan con él para elegir al empezar.
     ejercicios: def.ejercicios.map((x, i) => {
-      const v = E.ejercicioPorId.get(x.id)?.variantes ? ultimaVariante(x.id) : null;
-      return { id: x.id, series: L.seriesObjetivo(x.series, E.fase), ...ajustesDe(x), ...(v ? { variante: v } : {}), calent: i === 0 ? 2 : 0 };
+      const base = E.ejercicioPorId.get(x.id);
+      const v = base?.variantes && !base.maquinasDistintas ? ultimaVariante(x.id) : null;
+      const opciones = x.alternativa && E.ejercicioPorId.get(x.alternativa.id)
+        ? [{ id: x.id, series: x.series, ...ajustesDe(x) }, { id: x.alternativa.id, series: x.alternativa.series, ...ajustesDe(x.alternativa) }]
+        : null;
+      return { id: x.id, series: x.series, ...ajustesDe(x), ...(v ? { variante: v } : {}), ...(opciones ? { opciones } : {}), calent: i === 0 ? 2 : 0 };
     }),
   });
   if (E.config.pantallaEncendida !== false) D.pantallaEncendida(true);
@@ -261,7 +266,6 @@ function EntrenoActivo({ sesion }) {
       <span class="barra-fina"><i style=${`width:${Math.min(100, (seg / limite) * 100)}%`}></i></span>
       <span class="t2">${limite / 60} min</span>
     </button>
-    ${E.fase?.motivo && html`<div class="sugerencia" style="margin-bottom:12px"><${Icono} n="reloj" t=${18} g=${2} />${E.fase.motivo}</div>`}
 
     <div class="pila">
       <${TarjetaCalentamiento} sesion=${sesion} />
@@ -272,6 +276,17 @@ function EntrenoActivo({ sesion }) {
           ? html`<${TarjetaEjercicio} key=${item.id + i} sesion=${sesion} item=${item} i=${i} ej=${ej}
               alMenu=${() => ponerHoja({ tipo: 'menu', i })}
               alAgarre=${(v) => cambiarPlan((l) => { if (v) l[i].variante = v; else delete l[i].variante; return l; })}
+              alOpcion=${async (k) => {
+                // Las aproximaciones hechas eran del otro ejercicio: fuera, para que no pasen a este.
+                const aprox = E.series.filter((x) => x.sesionId === sesion.id && x.item === i && x.calent);
+                for (const s of aprox) await db.borrar('series', s.id);
+                E.series = E.series.filter((x) => !aprox.includes(x));
+                await cambiarPlan((l) => {
+                  const o = l[i].opciones[k];
+                  l[i] = { ...o, opciones: l[i].opciones, ...(l[i].calent ? { calent: l[i].calent } : {}) };
+                  return l;
+                });
+              }}
               alCompletar=${() => ponerAbierto(sesion.ejercicios.findIndex((x, j) => j > i && hechasDe(j) < x.series))}
               alAnadirSerie=${() => cambiarPlan((l) => { l[i].series++; return l; })}
               alAnadirAprox=${() => cambiarPlan((l) => { l[i].calent = (l[i].calent || 0) + 1; return l; })}
@@ -311,22 +326,25 @@ function EntrenoActivo({ sesion }) {
 
 // tipo 'a' = serie de aproximación (calent: no cuenta), 't' = serie de trabajo.
 // lado 'izq' | 'der' en ejercicios por lados; null en el resto.
-function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar, alAnadirSerie, alAnadirAprox, alQuitarFila, alAgarre }) {
+function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar, alAnadirSerie, alAnadirAprox, alQuitarFila, alAgarre, alOpcion }) {
   const [borrador, ponerBorrador] = useState({});
   const [filaMenu, ponerFilaMenu] = useState(null); // { tipo: 'a'|'t', f }
   // Agarre intercambiable (tríceps en polea): cada uno lleva su propia progresión.
   const variantes = ej.variantes || null;
   const variante = item.variante ?? null;
+  // Máquinas distintas (prensas de 45°): sin elegir máquina no se apunta nada, para que
+  // ninguna serie acabe en el historial de la que no es.
+  const faltaMaquina = !!ej.maquinasDistintas && !variante;
   // Los entrenos apuntados después con pesos estándar no guían la progresión.
   const { previas, arranque, otroAgarre } = previasPara(ej.id, sesion, variante);
   const referencia = otroAgarre && variante
     ? { peso: otroAgarre.peso, texto: `Primera vez con ${variante}: te propongo los ${L.formatoPeso(otroAgarre.peso)} de ${otroAgarre.variante}. Ajústalo si no te va.` }
     : null;
-  const analisis = L.analizarEjercicio(ej, previas, E.fase || L.faseActual(null), { arranque: arranque || !!referencia, referencia });
+  const analisis = L.analizarEjercicio(ej, previas, { arranque: arranque || !!referencia, referencia });
   const ultima = analisis.ultima;
   const mias = E.series.filter((s) => s.sesionId === sesion.id && s.item === i && s.ejercicioId === ej.id);
   const hechas = trabajo(mias);
-  const rirObj = L.rirObjetivo(ej, E.fase || {});
+  const rirObj = L.rirObjetivo(ej);
   const corporal = ej.tipo === 'corporal';
   const LADOS = ej.lados ? ['izq', 'der'] : [null];
   const base = analisis.pesoSugerido ?? ej.pesoInicial ?? null;
@@ -366,6 +384,7 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar,
       poner(tipo, f, lado, 'peso', String(hecha.peso ?? '')); avisar();
       return;
     }
+    if (faltaMaquina) { toast('Elige antes la máquina: Basculante o Fija'); return; }
     const sug = sugerencia(tipo, f, lado);
     const peso = aNum(valor(tipo, f, lado, 'peso')) ?? sug.peso ?? (corporal ? 0 : null);
     const reps = aNum(valor(tipo, f, lado, 'reps')) ?? sug.reps;
@@ -390,7 +409,11 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar,
     if (!lado || otro) D.empezar(ej.descanso || 90);
     if (mejorAntes > 0 && unaRM(peso, reps) > mejorAntes) toast(`Récord en ${ej.nombre.split(',')[0]}: ${n1(peso)} kg × ${reps}`, 3500);
     avisar();
-    if (seriesCompletas([...hechas, nueva], ej.lados) >= item.series) setTimeout(alCompletar, 350);
+    if (seriesCompletas([...hechas, nueva], ej.lados) >= item.series) {
+      // Ejercicio terminado: un sonido distinto al del descanso, para saberlo sin mirar.
+      if (seriesCompletas(hechas, ej.lados) < item.series && E.config.sonidoFinEjercicio !== false) D.finEjercicio();
+      setTimeout(alCompletar, 350);
+    }
   };
 
   // Quitar una serie entera a mitad de entreno: borra lo que hubieras marcado en esa fila
@@ -467,21 +490,27 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar,
       <button onClick=${() => ir('ejercicio/' + ej.id)} aria-label=${'Ver ' + ej.nombre}><${FotoEj} ej=${ej} clase="mini-g" /></button>
       <div class="crece">
         <div class="ej-nombre">${ej.nombre}</div>
-        <div class="ej-meta">${item.series} series${ej.lados ? ' por lado' : ''} · ${ej.repMin}–${ej.repMax} ${ej.segundos ? 'seg' : 'reps'} · RIR ${rirObj}</div>
+        <div class="ej-meta">${item.series} series${ej.lados ? ' por lado' : ''} · ${ej.repMin}–${ej.repMax} ${ej.segundos ? 'seg' : 'reps'} · RIR ${rirObj}${ej.porMano ? ' · kg por mano' : ''}</div>
       </div>
       <button class="mas" onClick=${alCambiar} aria-label="Cambiar por otro ejercicio"><${Icono} n="cambiar" t=${21} g=${2.2} /></button>
       <button class="mas" onClick=${alMenu} aria-label="Opciones del ejercicio"><${Icono} n="puntos" t=${22} /></button>
     </div>
 
-    ${variantes && html`<div class="chips ej" style="margin-top:10px;padding:0">
-      ${variantes.map((v) => html`<button class=${`chip ${v === variante ? 'activo' : ''}`} key=${v}
-        onClick=${() => alAgarre(v === variante ? null : v)}>${v}</button>`)}
+    ${item.opciones && hechas.length === 0 && html`<div class="chips ej" style="margin-top:10px;padding:0">
+      ${item.opciones.map((o, k) => html`<button class=${`chip ${o.id === item.id ? 'activo' : ''}`} key=${o.id}
+        onClick=${() => o.id !== item.id && alOpcion(k)}>${(({ corto, nombre }) => corto || nombre.split(',')[0])(E.ejercicioPorId.get(o.id) || { nombre: o.id })}</button>`)}
     </div>`}
 
-    ${analisis.aviso && html`<div class="sugerencia" style="margin-top:12px"><${Icono} n=${{ subir: 'subir', arranque: 'nota' }[analisis.aviso.tipo] || 'cambiar'} t=${18} g=${2.4} />${analisis.aviso.texto}</div>`}
+    ${faltaMaquina && html`<p class="t2 peq" style="margin:12px 2px 0;font-weight:600">¿En qué máquina estás hoy?</p>`}
+    ${variantes && html`<div class="chips ej" style="margin-top:10px;padding:0">
+      ${variantes.map((v) => html`<button class=${`chip ${v === variante ? 'activo' : ''}`} key=${v}
+        onClick=${() => alAgarre(v === variante && !ej.maquinasDistintas ? null : v)}>${v}</button>`)}
+    </div>`}
+
+    ${analisis.aviso && !faltaMaquina && html`<div class="sugerencia" style="margin-top:12px"><${Icono} n=${{ subir: 'subir', arranque: 'nota' }[analisis.aviso.tipo] || 'cambiar'} t=${18} g=${2.4} />${analisis.aviso.texto}</div>`}
     ${ej.aviso && html`<div class="aviso" style="margin-top:8px"><${Icono} n="aviso" t=${17} g=${2} />${ej.aviso}</div>`}
 
-    <div class="series">
+    ${!faltaMaquina && html`<div class="series">
       <div class="fila-serie cabeza"><span>Serie</span><span>Anterior</span><span>${corporal ? '+Kg' : 'Kg'}</span><span>${ej.segundos ? 'Seg' : 'Reps'}</span><span>RIR</span><span></span></div>
       ${aproxs.map((f) => LADOS.map((lado) => fila('a', f, lado)))}
       ${filas.map((f) => LADOS.map((lado) => fila('t', f, lado)))}
@@ -490,7 +519,7 @@ function TarjetaEjercicio({ sesion, item, i, ej, alMenu, alCambiar, alCompletar,
       <button class="anadir-serie" style="margin-top:0" onClick=${alAnadirSerie}>+ Serie</button>
       <button class="anadir-serie" style="margin-top:0" onClick=${alAnadirAprox}>+ Aproximación</button>
     </div>
-    ${hechas.length === 0 && html`<p class="t3 peq" style="margin:8px 0 0;text-align:center">Toca el número de una serie para quitarla.</p>`}
+    ${hechas.length === 0 && html`<p class="t3 peq" style="margin:8px 0 0;text-align:center">Toca el número de una serie para quitarla.</p>`}`}
 
     ${filaMenu && html`<${HojaFila} ej=${ej} tipo=${filaMenu.tipo} f=${filaMenu.f}
       hechas=${mias.filter((s) => !!s.calent === (filaMenu.tipo === 'a') && (s.indice ?? 0) === filaMenu.f)}

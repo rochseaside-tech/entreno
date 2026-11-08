@@ -9,6 +9,12 @@
 // aviso:   se enseña en rojo suave. Para la rodilla (menisco) y el hombro izquierdo.
 // variantes: agarres o barras intercambiables del mismo ejercicio. Cada una guarda su
 //          propio peso y su propia progresión, porque no son comparables entre sí.
+// maquinasDistintas: las variantes son máquinas distintas (las prensas de 45°): hay que
+//          elegir una antes de apuntar, y el peso de una no se propone para la otra.
+// corto: nombre corto para los botones de elegir alternativa.
+// porMano: el peso que se apunta es el de cada mancuerna.
+
+import { QUIEN } from '../perfiles.js';
 
 export const GRUPOS = ['Pecho', 'Espalda', 'Hombro', 'Bíceps', 'Tríceps', 'Cuádriceps', 'Femoral', 'Glúteo', 'Gemelo', 'Abdomen'];
 
@@ -420,8 +426,12 @@ export const CATALOGO = [
     ],
   },
   {
-    // Desde el 19 sep, la de Pierna 2: trineo a 45° cargado con discos.
-    id: 'prensa-45', nombre: 'Prensa inclinada 45°, pies altos', grupo: 'Cuádriceps', sec: ['Glúteo', 'Femoral'], equipo: 'Máquina de discos',
+    // Desde el 19 sep, la de Pierna 2: trineo a 45° cargado con discos. En el gimnasio de
+    // Rocío hay TRES prensas de 45° y hasta el 8 nov todas se apuntaron aquí, así que su
+    // historial está mezclado: se queda como histórico y desde entonces van separadas
+    // (prensa-45-p1 con sus dos máquinas como variantes, y prensa-45-palanca). Aida la sigue usando.
+    id: 'prensa-45', nombre: QUIEN.id === 'aida' ? 'Prensa inclinada 45°, pies altos' : 'Prensa 45° (histórico mezclado, hasta nov)',
+    grupo: 'Cuádriceps', sec: ['Glúteo', 'Femoral'], equipo: 'Máquina de discos',
     en: 'Leg Press', img: 'prensa', rep: [10, 12], rir: '2', descanso: 90, incremento: 5, tipo: 'peso',
     claves: [
       'Pies altos y separados en la plataforma, para que el glúteo asuma más trabajo y el cuádriceps menos.',
@@ -429,6 +439,31 @@ export const CATALOGO = [
       'Si ese día y el siguiente no hay molestia en la rodilla, te quedas con el rango nuevo; si la hay, vuelves al anterior.',
       'Talón despegado de la plataforma = has bajado de más.',
       'Empuja con mediopié y talón y no bloquees la rodilla arriba. Con los topes de seguridad siempre puestos.',
+    ],
+  },
+  {
+    // Pierna 1 desde el 8 nov: un solo ejercicio de la rutina con dos máquinas distintas.
+    // Cada máquina lleva su propio historial y su propia progresión.
+    id: 'prensa-45-p1', nombre: 'Prensa inclinada 45°', grupo: 'Cuádriceps', sec: ['Glúteo', 'Femoral'], equipo: 'Máquina',
+    en: 'Leg Press', img: 'prensa', rep: [10, 12], rir: '2', descanso: 90, incremento: 5, tipo: 'peso',
+    variantes: ['Basculante', 'Fija'], maquinasDistintas: true,
+    claves: [
+      'La máquina se elige al empezar el ejercicio: Basculante o Fija. Cada una lleva su peso, porque no son comparables.',
+      'Recorrido por exposición progresiva, sin tope fijo de 90°: empieza en el recorrido que haces ahora y baja un poco más cada 2-3 semanas.',
+      'Si ese día y el siguiente no hay molestia en la rodilla, te quedas con el rango nuevo; si la hay, vuelves al anterior.',
+      'Talón despegado de la plataforma = has bajado de más.',
+      'Empuja con mediopié y talón y no bloquees la rodilla arriba. Con los topes de seguridad siempre puestos.',
+    ],
+  },
+  {
+    // Pierna 2 desde el 8 nov: la prensa de palanca, plataforma fija y pies altos.
+    id: 'prensa-45-palanca', nombre: 'Prensa 45° palanca (PL4005)', grupo: 'Glúteo', sec: ['Femoral', 'Cuádriceps'], equipo: 'Máquina de discos',
+    en: 'Leg Press', img: 'prensa', rep: [10, 12], rir: '2', descanso: 90, incremento: 5, tipo: 'peso',
+    claves: [
+      'Pies altos y separados en la plataforma: así trabajan más el glúteo y el femoral, y menos el cuádriceps.',
+      'Empuja con el talón y el mediopié; si notas que se despega el talón, has bajado de más.',
+      'Recorrido por exposición progresiva, sin tope fijo de 90°: baja un poco más cada 2-3 semanas si ese día y el siguiente la rodilla va bien.',
+      'No bloquees la rodilla arriba. Con los topes de seguridad siempre puestos.',
     ],
   },
   {
@@ -534,9 +569,10 @@ export const CATALOGO = [
     ],
   },
   {
-    id: 'peso-muerto-rumano-mancuernas', nombre: 'Peso muerto rumano con mancuernas', grupo: 'Femoral', sec: ['Glúteo'], equipo: 'Mancuernas',
-    en: 'Stiff-Legged Dumbbell Deadlift', rep: [10, 12], rir: '2', descanso: 90, incremento: 2, tipo: 'peso',
+    id: 'peso-muerto-rumano-mancuernas', nombre: 'Peso muerto rumano con mancuernas', corto: 'Peso muerto rumano', grupo: 'Femoral', sec: ['Glúteo'], equipo: 'Mancuernas',
+    en: 'Stiff-Legged Dumbbell Deadlift', rep: [10, 12], rir: '2', descanso: 90, incremento: 2, tipo: 'peso', porMano: true,
     claves: [
+      'El peso que apuntas es el de cada mancuerna.',
       'Mancuernas delante de los muslos, rodillas algo dobladas.',
       'Echa la cadera atrás con la espalda recta.',
       'Sube apretando el glúteo, sin echarte hacia atrás arriba.',
@@ -545,7 +581,7 @@ export const CATALOGO = [
 
   // ============================================================ Glúteo
   {
-    id: 'hip-thrust', nombre: 'Hip thrust en máquina', grupo: 'Glúteo', sec: ['Femoral'], equipo: 'Máquina',
+    id: 'hip-thrust', nombre: 'Hip thrust en máquina', corto: 'Hip thrust', grupo: 'Glúteo', sec: ['Femoral'], equipo: 'Máquina',
     en: 'Barbell Hip Thrust', rep: [10, 12], rir: '1-2', descanso: 90, incremento: 5, tipo: 'peso',
     fotoNota: 'La foto es del hip thrust con barra: el movimiento es el mismo, cambia el aparato.',
     claves: [

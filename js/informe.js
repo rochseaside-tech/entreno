@@ -104,7 +104,6 @@ export function textoEntrenos(sesiones, alcance) {
     'Progresión doble: subo peso cuando hago todas las series al tope del rango con RIR 1 o más.',
     `Limitaciones: ${LIMITACIONES}.`,
   ];
-  if (E.fase?.motivo) cab.push(`Fase actual: ${E.fase.motivo}`);
   if (!lista.length) return cab.join('\n') + '\n\nAún no hay entrenos terminados.';
   return cab.join('\n') + '\n\n' + lista.map(textoSesion).join('\n\n');
 }
@@ -153,7 +152,6 @@ export async function textoTodo(dias = 0) {
     `- Entreno: rutina en rotación ${rotacion()} (las sesiones con letra, A-D, son de la rutina anterior). Cada serie con peso (kg), repeticiones y RIR (repeticiones que me quedaban en recámara). Progresión doble: subo peso cuando hago todas las series al tope del rango con RIR 1 o más.`,
     `- Limitaciones: ${LIMITACIONES}.`,
   ];
-  if (E.fase?.motivo) cab.push(`- Fase actual: ${E.fase.motivo}`);
 
   // Resumen: las medias solo con días terminados y apuntados (hoy aún no ha acabado).
   const cerrados = [...porDia.keys()].filter((f) => f < hoy);

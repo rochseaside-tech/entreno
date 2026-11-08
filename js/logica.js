@@ -67,32 +67,12 @@ export function mmss(segundos) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-// ---------------------------------------------------------------- fase del bloque
+// ---------------------------------------------------------------- RIR
 
-// Reacondicionamiento: primeras 2 semanas desde la primera sesión, RIR 3-4 en todo.
-// Descarga: cada 8 semanas, mitad de series, mismo peso, RIR 3-4.
-export function faseActual(primeraSesion, iso = hoyISO()) {
-  if (!primeraSesion) {
-    return { semana: 1, reacondicionamiento: true, descarga: false, rirForzado: '3-4',
-      motivo: 'Primeras dos semanas: RIR 3-4 en todo, para volver sin pasarte.' };
-  }
-  const dias = diasEntre(primeraSesion, iso);
-  const semana = Math.floor(dias / 7) + 1;
-  const reacondicionamiento = dias < 14;
-  const descarga = semana > 0 && semana % 8 === 0;
-  let motivo = null;
-  if (reacondicionamiento) motivo = 'Reacondicionamiento (2 primeras semanas): RIR 3-4 en todo, no el de la tabla.';
-  else if (descarga) motivo = `Semana ${semana}: toca descarga. Mitad de series, mismo peso, RIR 3-4.`;
-  return { semana, dias, reacondicionamiento, descarga,
-    rirForzado: reacondicionamiento || descarga ? '3-4' : null, motivo };
-}
-
-export function seriesObjetivo(seriesPlan, fase) {
-  return fase.descarga ? Math.max(1, Math.round(seriesPlan / 2)) : seriesPlan;
-}
-
-export function rirObjetivo(ejercicio, fase) {
-  return fase.rirForzado || ejercicio.rir;
+// Sin fases ni semanas de descarga (quitadas el 8 nov 2026, a petición de Rocío): el RIR
+// es siempre el de la tabla, y el peso no se ajusta por el tiempo que pase entre sesiones.
+export function rirObjetivo(ejercicio) {
+  return ejercicio.rir;
 }
 
 // ---------------------------------------------------------------- progresión
@@ -119,7 +99,7 @@ export function agruparPorSesion(series) {
 // arranque de la tabla (o tantear, si no tiene), no lo que hiciste antes.
 // referencia = { peso, texto } para proponer el peso de otro agarre del mismo ejercicio.
 
-export function analizarEjercicio(ejercicio, series, fase, { arranque = false, referencia = null } = {}) {
+export function analizarEjercicio(ejercicio, series, { arranque = false, referencia = null } = {}) {
   const grupos = agruparPorSesion(series);
   const ultima = grupos[grupos.length - 1] || null;
 
@@ -136,7 +116,7 @@ export function analizarEjercicio(ejercicio, series, fase, { arranque = false, r
   let pesoSugerido = ultima ? ultima.pesoMax : (ejercicio.pesoInicial ?? null);
   let aviso = null;
 
-  if (ultima && !fase.descarga && !fase.reacondicionamiento) {
+  if (ultima) {
     // Progresión doble: todas las series al tope del rango con RIR >= 1 -> sube.
     const todasAlTope = ultima.series.length > 0 && ultima.series.every(
       (s) => (s.reps || 0) >= ejercicio.repMax && (s.rir ?? -1) >= 1);

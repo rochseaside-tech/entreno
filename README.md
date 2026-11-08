@@ -61,7 +61,10 @@ test-logica.mjs         Pruebas de las reglas: node test-logica.mjs
 - Cada serie con peso, repeticiones y RIR. Al marcarla empieza el descanso de ese ejercicio.
 - Progresión doble: todas las series al tope del rango con RIR ≥ 1 → la app propone subir.
 - Estancamiento: tres sesiones iguales → bajar un 10 % y volver a subir.
-- Reacondicionamiento las dos primeras semanas y descarga cada 8, con RIR 3-4.
+- Sin semanas de descarga ni ajustes por tiempo (quitados el 8 nov 2026): propone el peso de la última sesión de ese ejercicio.
+- Variantes con máquinas distintas (prensa de Pierna 1: Basculante / Fija): se elige al empezar y cada una lleva su historial.
+- Alternativa elegible al empezar (hip thrust ↔ peso muerto rumano con mancuernas), cada una con su historial.
+- Sonido al acabar la última serie de cada ejercicio (se silencia en Ajustes).
 - Límite de 55 minutos con cronómetro. Récords y máximo a una repetición calculado.
 - Avisos en los ejercicios que pueden molestar la rodilla (menisco) o el hombro izquierdo.
 

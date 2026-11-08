@@ -125,6 +125,8 @@ const PESOS_ROCIO = {
   'prensa-45': null, // 45° con discos desde el 19 sep: tantear, los pesos de la horizontal no valen
   'extension-cuadriceps': 40.8, 'curl-femoral-tumbado': 22.7, 'gemelo-de-pie': 22.7,
   'prensa': 95.8, // la horizontal, fuera de la rutina desde el 19 sep
+  // Desde el 8 nov (los pesos de arranque de cada línea van en RUTINA_ROCIO)
+  'prensa-45-p1': 70, 'prensa-45-palanca': 70, 'peso-muerto-rumano-mancuernas': 6,
   // Fuera de la rutina
   'hiperextensiones': 0, 'extension-cadera': null,
 };
@@ -149,11 +151,11 @@ const PESOS_AIDA = {
 
 export const PESOS_INICIALES = QUIEN.id === 'aida' ? PESOS_AIDA : PESOS_ROCIO;
 
-// La rutina desde el 15 sep 2026, en rotación continua. Cada ejercicio usa su rango, RIR,
+// La rutina de Aida (la de Rocío del 15-19 sep, que ella sigue), en rotación continua. Cada ejercicio usa su rango, RIR,
 // descanso e incremento del catálogo; si en una sesión lleva otros, van en su línea y
 // mandan solo en esa sesión. `desde` + `pesoInicial`: vuelve a arrancar con ese peso,
 // sin mirar lo hecho antes de esa fecha (el crunch de Pierna 2, que iba sobrado a 35 kg).
-export const RUTINA = {
+const RUTINA_AIDA = {
   T1: {
     nombre: 'Torso 1',
     ejercicios: [
@@ -202,6 +204,59 @@ export const RUTINA = {
   },
 };
 
+// La de Rocío desde el 8 nov 2026. Lo que cambia respecto a la de Aida:
+// - Torso 1: el press de hombro pasa a ser el primero (iba quinto, llegaba fatigada y
+//   llevaba dos meses clavada en 16 kg).
+// - Las tres prensas de 45° van separadas: en Pierna 1, prensa-45-p1 con dos máquinas
+//   (Basculante / Fija) como variantes; en Pierna 2, la de palanca PL4005. La horizontal
+//   y el glute kick salen de la rutina (su historial se queda).
+// - El hip thrust lleva una alternativa que se elige al empezarlo: peso muerto rumano con
+//   mancuernas (3 × 10-12, RIR 2, 6 kg por mano), con su propio historial.
+// - Pierna 1 y 2 arrancan con los pesos de su tabla (desde + pesoInicial). El hip thrust
+//   baja a 40 kg a propósito: prueba con técnica corregida por la rodilla.
+// - progresionPropia: el crunch va a 100 kg en Pierna 1 y a 120 kg en Pierna 2, así que
+//   cada sesión lleva su progresión aunque el rango sea el mismo.
+const NUEVA = '2026-11-08';
+const RUTINA_ROCIO = {
+  T1: {
+    nombre: 'Torso 1',
+    ejercicios: [
+      { id: 'press-hombro-maquina', series: 3 },
+      { id: 'jalon-prono', series: 3 },
+      { id: 'remo-sentado', series: 3 },
+      { id: 'press-pecho-maquina', series: 3 },
+      { id: 'triceps-polea', series: 3 },
+      { id: 'curl-biceps-maquina', series: 2 },
+    ],
+  },
+  P1: {
+    nombre: 'Pierna 1', nota: 'Dominante de cadera',
+    ejercicios: [
+      { id: 'hip-thrust', series: 4, pesoInicial: 40, desde: NUEVA,
+        alternativa: { id: 'peso-muerto-rumano-mancuernas', series: 3, pesoInicial: 6 } },
+      { id: 'prensa-45-p1', series: 4, pesoInicial: 70, desde: NUEVA },
+      { id: 'curl-femoral-sentado', series: 3, pesoInicial: 68, desde: NUEVA },
+      { id: 'abductores', series: 2, pesoInicial: 40.8, desde: NUEVA },
+      { id: 'aductores', series: 2, pesoInicial: 49.9, desde: NUEVA },
+      { id: 'crunch-maquina', series: 3, pesoInicial: 100, desde: NUEVA, progresionPropia: true },
+    ],
+  },
+  T2: RUTINA_AIDA.T2,
+  P2: {
+    nombre: 'Pierna 2', nota: 'Dominante de rodilla',
+    ejercicios: [
+      { id: 'prensa-45-palanca', series: 4, pesoInicial: 70, desde: NUEVA },
+      { id: 'extension-cuadriceps', series: 3, pesoInicial: 59, desde: NUEVA },
+      { id: 'curl-femoral-tumbado', series: 3, pesoInicial: 31.8, desde: NUEVA },
+      { id: 'abductores', series: 2, pesoInicial: 40.8, desde: NUEVA },
+      { id: 'gemelo-de-pie', series: 3, pesoInicial: 40, desde: NUEVA },
+      { id: 'crunch-maquina', series: 3, pesoInicial: 120, desde: NUEVA, progresionPropia: true },
+    ],
+  },
+};
+
+export const RUTINA = QUIEN.id === 'aida' ? RUTINA_AIDA : RUTINA_ROCIO;
+
 export const ORDEN_SESIONES = ['T1', 'P1', 'T2', 'P2'];
 
 // La rutina anterior (A → B → C → D, hasta el 14 sep 2026). Sus entrenos se quedan como
@@ -224,7 +279,8 @@ export const CALENTAMIENTOS = {
     'Rotaciones de hombro con un palo o una goma, brazos estirados: 10 hacia delante y 10 hacia atrás.',
     'Rotación externa en polea muy ligera, codo pegado al cuerpo: 12 con cada brazo, empezando por el izquierdo.',
     'Face pull con la polea muy ligera: 15.',
-    'Jalón al pecho casi sin peso: 12, notando cómo bajan los omóplatos.',
+    QUIEN.id === 'aida' ? 'Jalón al pecho casi sin peso: 12, notando cómo bajan los omóplatos.'
+      : 'Press de hombro en máquina casi sin peso: 12, bajando solo hasta que el codo quede un poco por debajo del hombro.',
   ] },
   P1: { min: 8, pasos: [
     '4 min de bici suave, con el sillín alto para que la rodilla no se doble de más.',

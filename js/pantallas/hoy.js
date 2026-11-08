@@ -81,7 +81,6 @@ function TarjetaEntreno() {
         ${visibles.map((ej) => html`<${FotoEj} ej=${ej} clase="mini" quieta />`)}
         ${ejercicios.length > 4 && html`<div class="mini" style="width:44px;height:44px;border-radius:10px;display:grid;place-items:center;background:var(--superficie2);font-weight:700;font-size:14px;color:var(--texto2)">+${ejercicios.length - 4}</div>`}
       </div>
-      ${E.fase?.motivo && html`<div class="sugerencia" style="margin-top:14px"><${Icono} n="reloj" t=${18} g=${2} />${E.fase.motivo}</div>`}
       <button class="boton" style="margin-top:14px" onClick=${empezar}>Empezar entreno</button>
       <button class="boton suave" style="margin-top:8px;min-height:44px;font-size:15px" onClick=${() => ir('entreno')}>Elegir otra sesión</button>
     </div>

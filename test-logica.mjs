@@ -10,7 +10,6 @@ const comprobar = (nombre, cond, extra = '') => {
 
 const delCatalogo = (id) => { const c = CATALOGO.find(e => e.id === id); return { ...c, repMin: c.rep[0], repMax: c.rep[1], pesoInicial: S.PESOS_INICIALES[id] ?? null }; };
 const ej = delCatalogo('jalon-prono'); // 8-12, +2.5
-const faseNormal = { semana: 5, reacondicionamiento: false, descarga: false, rirForzado: null };
 
 const A = L.analizarEjercicio;
 
@@ -19,76 +18,86 @@ const serie = (sesionId, fecha, i, peso, reps, rir) => ({ sesionId, fecha, indic
 console.log('\n--- Progresión doble ---');
 let s = [0,1,2].map(i => serie('s1','2026-09-01',i,30,12,2));
 comprobar('todas al tope con RIR 2 -> subir a 32,5',
-  A(ej, s, faseNormal).aviso?.tipo === 'subir' &&
-  A(ej, s, faseNormal).pesoSugerido === 32.5);
+  A(ej, s).aviso?.tipo === 'subir' &&
+  A(ej, s).pesoSugerido === 32.5);
 
 s = [0,1,2].map(i => serie('s1','2026-09-01',i,30,12,0));
-comprobar('todas al tope pero RIR 0 -> NO sube', A(ej, s, faseNormal).aviso === null);
+comprobar('todas al tope pero RIR 0 -> NO sube', A(ej, s).aviso === null);
 
 s = [serie('s1','2026-09-01',0,30,12,2), serie('s1','2026-09-01',1,30,11,2), serie('s1','2026-09-01',2,30,12,2)];
-comprobar('una serie por debajo del tope -> NO sube', A(ej, s, faseNormal).aviso === null);
+comprobar('una serie por debajo del tope -> NO sube', A(ej, s).aviso === null);
 
 console.log('\n--- Tras un parón ---');
 // 8 oct 2026: Rocío quitó la bajada del 10 % al volver; un parón no cambia la propuesta.
 s = [0,1,2].map(i => serie('s1','2026-09-20',i,30,12,2));
 comprobar('14 días sin hacerlo -> progresión normal, sin bajar',
-  L.analizarEjercicio(ej, s, faseNormal).aviso?.tipo === 'subir' &&
-  L.analizarEjercicio(ej, s, faseNormal).pesoSugerido === 32.5);
+  L.analizarEjercicio(ej, s).aviso?.tipo === 'subir' &&
+  L.analizarEjercicio(ej, s).pesoSugerido === 32.5);
 
 console.log('\n--- Estancamiento ---');
 // 3 sesiones iguales, con reps por debajo del tope (no dispara progresión doble)
 s = ['2026-08-20','2026-08-24','2026-08-28'].flatMap((f, k) =>
   [0,1,2].map(i => serie('s'+k, f, i, 40, 9, 1)));
-let a = A(ej, s, faseNormal);
+let a = A(ej, s);
 comprobar('3 sesiones clavadas -> bajar 10% (40 -> 35, el múltiplo de 2,5 más cercano a 36)',
   a.aviso?.tipo === 'estancado' && a.pesoSugerido === 35, JSON.stringify(a.aviso));
 
 s = ['2026-08-20','2026-08-24','2026-08-28'].flatMap((f, k) =>
   [0,1,2].map(i => serie('s'+k, f, i, 40, 9 + k, 1)));
-comprobar('reps mejorando -> NO es estancamiento', A(ej, s, faseNormal).aviso === null);
+comprobar('reps mejorando -> NO es estancamiento', A(ej, s).aviso === null);
 
 console.log('\n--- Máquinas en libras (saltos desde el peso real) ---');
 const pecho = delCatalogo('press-pecho-maquina'); // 10-12, +2.5, arranque 22,7
 const sp = (i, peso, reps, rir, ses = 's1', f = '2026-09-20') => ({ sesionId: ses, fecha: f, indice: i, peso, reps, rir, ejercicioId: pecho.id });
-a = A(pecho, [0,1,2].map(i => sp(i, 22.7, 12, 2)), faseNormal);
+a = A(pecho, [0,1,2].map(i => sp(i, 22.7, 12, 2)));
 comprobar(`22,7 al tope -> sube a 25,2, no a 25 (${a.pesoSugerido})`, a.aviso?.tipo === 'subir' && a.pesoSugerido === 25.2);
-a = A(pecho, ['2026-09-20','2026-09-24','2026-09-28'].flatMap((f, k) => [0,1,2].map(i => sp(i, 22.7, 10, 1, 's'+k, f))), faseNormal);
+a = A(pecho, ['2026-09-20','2026-09-24','2026-09-28'].flatMap((f, k) => [0,1,2].map(i => sp(i, 22.7, 10, 1, 's'+k, f))));
 comprobar(`22,7 estancado -> baja un salto a 20,2 (${a.pesoSugerido})`, a.aviso?.tipo === 'estancado' && a.pesoSugerido === 20.2);
 comprobar('prensa 95,8 estancada (+5) -> 85,8', L.bajarCarga(95.8, 5) === 85.8);
 
 console.log('\n--- Rutina nueva: peso de arranque ---');
-a = A(pecho, [0,1,2].map(i => sp(i, 30, 12, 2)), faseNormal, { arranque: true });
+a = A(pecho, [0,1,2].map(i => sp(i, 30, 12, 2)), { arranque: true });
 comprobar(`primera vez: manda la tabla (22,7), no el historial (${a.pesoSugerido})`, a.pesoSugerido === 22.7 && a.aviso?.tipo === 'arranque');
-a = A(delCatalogo('triceps-polea'), [], faseNormal,
+a = A(delCatalogo('triceps-polea'), [],
   { arranque: true, referencia: { peso: 25, texto: 'Primera vez con Cuerda: te propongo los 25 kg de Barra en V.' } });
 comprobar(`agarre nuevo: propone el peso del otro agarre (${a.pesoSugerido})`, a.pesoSugerido === 25 && a.aviso.texto.includes('Barra en V'));
 comprobar('el tríceps en polea tiene los tres agarres',
   CATALOGO.find(c => c.id === 'triceps-polea').variantes.join() === 'Barra en V,Barra recta,Cuerda');
-a = A(delCatalogo('remo-maquina'), [], faseNormal, { arranque: true });
+a = A(delCatalogo('remo-maquina'), [], { arranque: true });
 comprobar(`tantear: sin peso propuesto (${a.pesoSugerido})`, a.pesoSugerido === null && a.aviso.texto.includes('tantea'));
-comprobar('Pierna 2: prensa 45° · extensión · curl tumbado · abductores · gemelo · crunch',
-  S.RUTINA.P2.ejercicios.map(x => x.id).join() === 'prensa-45,extension-cuadriceps,curl-femoral-tumbado,abductores,gemelo-de-pie,crunch-maquina');
+comprobar('Torso 1: el press de hombro el primero, el resto en su orden',
+  S.RUTINA.T1.ejercicios.map(x => x.id).join() === 'press-hombro-maquina,jalon-prono,remo-sentado,press-pecho-maquina,triceps-polea,curl-biceps-maquina');
+comprobar('Pierna 1 (8 nov): hip thrust · prensa con variantes · curl sentado · abductores · aductores · crunch',
+  S.RUTINA.P1.ejercicios.map(x => x.id).join() === 'hip-thrust,prensa-45-p1,curl-femoral-sentado,abductores,aductores,crunch-maquina');
+comprobar('Pierna 2 (8 nov): prensa PL4005 · extensión · curl tumbado · abductores · gemelo · crunch',
+  S.RUTINA.P2.ejercicios.map(x => x.id).join() === 'prensa-45-palanca,extension-cuadriceps,curl-femoral-tumbado,abductores,gemelo-de-pie,crunch-maquina');
+const peso = (p, id) => S.RUTINA[p].ejercicios.find(x => x.id === id).pesoInicial;
+comprobar('pesos de la tabla del 8 nov', peso('P1','hip-thrust') === 40 && peso('P1','prensa-45-p1') === 70 && peso('P1','curl-femoral-sentado') === 68
+  && peso('P1','abductores') === 40.8 && peso('P1','aductores') === 49.9 && peso('P1','crunch-maquina') === 100
+  && peso('P2','prensa-45-palanca') === 70 && peso('P2','extension-cuadriceps') === 59 && peso('P2','curl-femoral-tumbado') === 31.8
+  && peso('P2','abductores') === 40.8 && peso('P2','gemelo-de-pie') === 40 && peso('P2','crunch-maquina') === 120);
+comprobar('series de la tabla', S.RUTINA.P1.ejercicios.map(x => x.series).join() === '4,4,3,2,2,3' && S.RUTINA.P2.ejercicios.map(x => x.series).join() === '4,3,3,2,3,3');
+const prensa1 = CATALOGO.find(c => c.id === 'prensa-45-p1');
+comprobar('prensa de Pierna 1: Basculante / Fija, máquinas distintas', prensa1.variantes.join() === 'Basculante,Fija' && prensa1.maquinasDistintas === true);
+comprobar('la PL4005 sin variantes', !CATALOGO.find(c => c.id === 'prensa-45-palanca').variantes);
+const alt = S.RUTINA.P1.ejercicios[0].alternativa;
+const rum = CATALOGO.find(c => c.id === alt.id);
+comprobar('alternativa al hip thrust: rumano con mancuernas 3 × 10-12, RIR 2, 6 kg', alt.id === 'peso-muerto-rumano-mancuernas'
+  && alt.series === 3 && alt.pesoInicial === 6 && rum.rep.join() === '10,12' && rum.rir === '2' && rum.porMano === true);
+comprobar('fuera de la rutina: prensa horizontal, glute kick y la 45° mezclada',
+  !Object.values(S.RUTINA).some(d => d.ejercicios.some(x => ['prensa', 'glute-kick-bioarc', 'prensa-45'].includes(x.id))));
 comprobar('el hip thrust solo en Pierna 1, con 4 series',
   !S.RUTINA.P2.ejercicios.some(x => x.id === 'hip-thrust') && S.RUTINA.P1.ejercicios.find(x => x.id === 'hip-thrust').series === 4);
-comprobar('prensa de 45° a tantear; crunch de Pierna 2 arranca en 60 kg desde el 19 sep',
-  S.PESOS_INICIALES['prensa-45'] === null && JSON.stringify(S.RUTINA.P2.ejercicios.find(x => x.id === 'crunch-maquina')) === '{"id":"crunch-maquina","series":3,"pesoInicial":60,"desde":"2026-09-19"}');
+comprobar('la 45° de antes se queda a tantear (Aida la usa)',
+  S.PESOS_INICIALES['prensa-45'] === null);
 const todos = Object.values(S.RUTINA).flatMap(d => d.ejercicios.map(x => x.id));
 comprobar('todos los ejercicios de la rutina están en el catálogo', todos.every(id => CATALOGO.some(c => c.id === id)), todos.filter(id => !CATALOGO.some(c => c.id === id)));
 comprobar('la extensión de cadera ya no está en la rutina', !todos.includes('extension-cadera'));
 comprobar('glute kick por pierna', CATALOGO.find(c => c.id === 'glute-kick-bioarc').lados === true);
 
-console.log('\n--- Fases del bloque ---');
-comprobar('sin primera sesión -> reacondicionamiento RIR 3-4', L.faseActual(null).rirForzado === '3-4');
-comprobar('día 5 -> reacondicionamiento', L.faseActual('2026-09-01','2026-09-06').reacondicionamiento === true);
-comprobar('día 15 -> ya no', L.faseActual('2026-09-01','2026-09-16').reacondicionamiento === false);
-const d8 = L.faseActual('2026-09-01', L.sumarDias('2026-09-01', 7*7));   // semana 8
-comprobar('semana 8 -> descarga', d8.semana === 8 && d8.descarga === true, JSON.stringify(d8));
-comprobar('descarga: 4 series -> 2', L.seriesObjetivo(4, d8) === 2);
-comprobar('descarga: 3 series -> 2 (redondeo al alza)', L.seriesObjetivo(3, d8) === 2);
-const d9 = L.faseActual('2026-09-01', L.sumarDias('2026-09-01', 8*7));
-comprobar('semana 9 -> sin descarga', d9.descarga === false);
-comprobar('en descarga no se pide subir peso',
-  A(ej, [0,1,2].map(i => serie('s1','2026-09-01',i,30,12,2)), d8).aviso === null);
+console.log('\n--- Sin descarga ni ajustes por tiempo ---');
+comprobar('ya no existe la semana de descarga', L.faseActual === undefined && L.seriesObjetivo === undefined);
+comprobar('el RIR es siempre el de la tabla', L.rirObjetivo({ rir: '0-1' }) === '0-1');
 
 console.log('\n--- Objetivos de comida ---');
 let o = L.objetivoDia({ huboGym: true });

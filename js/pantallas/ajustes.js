@@ -7,7 +7,7 @@ import * as L from '../logica.js';
 import * as db from '../db.js';
 import { Icono, Interruptor, atras, n0, aNum, TEMAS, ponerTema } from '../comunes.js';
 import { QUIEN } from '../perfiles.js';
-import { pitido } from '../descanso.js';
+import { pitido, finEjercicio } from '../descanso.js';
 
 export async function guardarCopia() {
   const datos = await db.exportarTodo();
@@ -95,6 +95,9 @@ export function Ajustes() {
       ${fila('Sonar aunque el iPhone esté en silencio', 'Si no, con el botón de silencio puesto solo suena por los cascos. Ojo: al pitar se para la música que tengas puesta.',
         html`<${Interruptor} etiqueta="Sonar en silencio" valor=${!!E.config.sonarEnSilencio} alCambiar=${(v) => guardarConfig({ sonarEnSilencio: v })} />`)}
       ${fila('Probar el pitido', null, html`<button class="boton suave chico" onClick=${() => pitido(1)}>Probar</button>`)}
+      ${fila('Sonido al acabar cada ejercicio', 'Suena al marcar la última serie, distinto del pitido del descanso.',
+        html`<${Interruptor} etiqueta="Sonido al acabar" valor=${E.config.sonidoFinEjercicio !== false} alCambiar=${(v) => guardarConfig({ sonidoFinEjercicio: v })} />`)}
+      ${fila('Probar el sonido de ejercicio acabado', null, html`<button class="boton suave chico" onClick=${finEjercicio}>Probar</button>`)}
       ${fila('Pantalla encendida mientras entrenas', 'El iPhone no deja que una web suene con la pantalla bloqueada. Así el descanso siempre te avisa.',
         html`<${Interruptor} etiqueta="Pantalla encendida" valor=${E.config.pantallaEncendida !== false} alCambiar=${(v) => guardarConfig({ pantallaEncendida: v })} />`)}
     </div>

@@ -35,7 +35,6 @@ export const E = {
   despensa: [],
   uso: new Map(),
   sesionActiva: null,
-  fase: null,
   ciclos: [],
   diasCiclo: new Map(),
   toast: null,
@@ -195,7 +194,6 @@ export async function recargar() {
   Object.assign(S.OBJETIVOS, E.config.objetivos);
   Object.assign(S.PERFIL, E.config.perfil);
   E.sesionActiva = E.sesiones.find((s) => !s.fin) || null;
-  E.fase = L.faseActual(E.config.primeraSesion);
 }
 
 export async function arrancarDatos() {
@@ -291,9 +289,21 @@ async function aplicarRegistros() {
       if (a) await db.guardar('alimentos', { ...a, ...c.campos });
     }
     if (c.sesionRutina) {
-      // Cambia una sola sesión de la rutina; las otras se quedan como las tenga ella.
+      // Cambia esas sesiones de la rutina (una o varias); las otras se quedan como las tenga ella.
       const r = await db.leerMeta('rutina', S.RUTINA);
-      await db.escribirMeta('rutina', { ...r, [c.sesionRutina]: S.RUTINA[c.sesionRutina] });
+      for (const p of [c.sesionRutina].flat()) r[p] = S.RUTINA[p];
+      await db.escribirMeta('rutina', r);
+    }
+    if (c.limpiarAjustes) {
+      // Quita lo que hubiera cambiado a mano en esos ejercicios (reps, RIR, peso de partida…)
+      // para que mande la tabla nueva. Las notas se quedan; el historial no se toca.
+      for (const id of c.limpiarAjustes) {
+        const g = await db.obtener('ejercicios', id);
+        if (!g || g.propio) continue;
+        const resto = Object.fromEntries(Object.entries(g).filter(([k]) => k === 'nota' || !AJUSTABLES.includes(k)));
+        if (Object.keys(resto).length > 1) await db.guardar('ejercicios', resto);
+        else await db.borrar('ejercicios', id);
+      }
     }
     if (c.borrarAlimentos) {
       // Borra de su biblioteca los que casen con el patrón (también los que creó ella a
@@ -378,9 +388,12 @@ const planDeSesion = (sesionId) => E.sesiones.find((x) => x.id === sesionId)?.pl
 //   lleva su propia progresión: si no, las 15 reps de una harían subir el peso en la otra.
 // - arranque: aún no lo has hecho en ninguna sesión de la rutina nueva, así que manda
 //   el peso de arranque de la tabla y no lo que hacías con la anterior.
+// - progresionPropia en la línea: esa sesión lleva su progresión aunque el rango sea el
+//   mismo (el crunch, a 100 kg en Pierna 1 y a 120 kg en Pierna 2).
 // - variante: con agarres intercambiables (tríceps en polea), cada uno lleva su propia
 //   progresión; si aún no has hecho ninguna serie con este, se propone el peso del
-//   agarre que usaste la última vez, para no arrancar a ciegas.
+//   agarre que usaste la última vez, para no arrancar a ciegas. Con máquinas distintas
+//   (las prensas de 45°) no: el peso de una no vale para la otra.
 export function previasPara(ejercicioId, sesion, variante = null) {
   const todas = seriesDe(ejercicioId).filter((s) => s.sesionId !== sesion.id && !s.aprox);
   const base = E.ejercicioPorId.get(ejercicioId);
@@ -389,7 +402,7 @@ export function previasPara(ejercicioId, sesion, variante = null) {
   // Referencia al estrenar un agarre: lo último que levantaste con otro, aunque sea de
   // hoy mismo (cambiar de barra a mitad de entreno es justo cuando más falta hace).
   const otroAgarre = () => {
-    if (!base?.variantes) return null;
+    if (!base?.variantes || base.maquinasDistintas) return null;
     const otras = seriesDe(ejercicioId).filter((s) => !s.aprox && s.peso > 0 && s.variante && s.variante !== variante);
     const ultima = otras.sort((a, b) => (a.ts || 0) - (b.ts || 0)).pop();
     return ultima ? { variante: ultima.variante, peso: ultima.peso } : null;
@@ -400,9 +413,11 @@ export function previasPara(ejercicioId, sesion, variante = null) {
   }
   const rangos = new Set(Object.values(E.rutina).flatMap((d) => d.ejercicios
     .filter((x) => x.id === ejercicioId).map((x) => { const e = conAjustes(base, x); return `${e?.repMin}-${e?.repMax}`; })));
-  const previas = porAgarre(rangos.size > 1 ? todas.filter((s) => planNuevo(planDeSesion(s.sesionId)) === plan) : todas);
+  const linea = E.rutina[plan]?.ejercicios.find((x) => x.id === ejercicioId);
+  const propia = rangos.size > 1 || !!linea?.progresionPropia;
+  const previas = porAgarre(propia ? todas.filter((s) => planNuevo(planDeSesion(s.sesionId)) === plan) : todas);
   // Una línea de la rutina con `desde` vuelve a arrancar con su peso: lo de antes no cuenta.
-  const desde = E.rutina[plan]?.ejercicios.find((x) => x.id === ejercicioId)?.desde || null;
+  const desde = linea?.desde || null;
   const arranque = !previas.some((s) => S.ORDEN_SESIONES.includes(planDeSesion(s.sesionId)) && (!desde || s.fecha >= desde));
   return { previas, arranque, otroAgarre: arranque ? otroAgarre() : null };
 }

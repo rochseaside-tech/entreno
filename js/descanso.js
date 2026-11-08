@@ -111,6 +111,28 @@ export function pitido(tandas = 2) {
   } catch { /* sin audio */ }
 }
 
+// Ejercicio terminado: un arpegio que sube (do-mi-sol-do), muy distinto del pitido del
+// descanso, para saber que has acabado sin mirar la pantalla. Suena dentro del toque del ✓,
+// así que no le afecta el bloqueo de audio del iPhone.
+export function finEjercicio() {
+  prepararAudio();
+  vibrar([60, 60, 60, 60, 180]);
+  if (!ctx) return;
+  try {
+    [523, 659, 784, 1047].forEach((hz, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'sine'; o.frequency.value = hz;
+      const t = ctx.currentTime + 0.03 + i * 0.12;
+      const largo = i === 3 ? 0.5 : 0.16;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.9, t + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + largo);
+      o.start(t); o.stop(t + largo + 0.02);
+    });
+  } catch { /* sin audio */ }
+}
+
 // ---------------------------------------------------------------- vibración
 
 // Android tiene navigator.vibrate. iPhone no, pero desde iOS 18 un interruptor

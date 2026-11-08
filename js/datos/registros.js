@@ -199,6 +199,17 @@ function CENA_9_SEP() {
 // cambia lo que hay). Se aplican una vez, igual que los registros.
 export const CAMBIOS_PENDIENTES = [
   {
+    // 8 nov: press de hombro el primero en Torso 1; prensas separadas (Pierna 1 con
+    // Basculante/Fija, Pierna 2 con la de palanca PL4005); hip thrust a 40 kg con el peso
+    // muerto rumano como alternativa; pesos nuevos de Pierna 1 y 2. Torso 2 no se toca.
+    // Se quitan los ajustes a mano de esos ejercicios (salvo la nota) para que mande la tabla.
+    id: 'rutina-2026-11-08',
+    sesionRutina: ['T1', 'P1', 'P2'],
+    limpiarAjustes: ['press-hombro-maquina', 'hip-thrust', 'peso-muerto-rumano-mancuernas', 'prensa-45-p1',
+      'curl-femoral-sentado', 'abductores', 'aductores', 'crunch-maquina', 'prensa-45-palanca',
+      'extension-cuadriceps', 'curl-femoral-tumbado', 'gemelo-de-pie'],
+  },
+  {
     // 8 oct: en su móvil las dos piernas salían con hip thrust y sin prensa. Se vuelven a
     // poner Pierna 1 (hip thrust) y Pierna 2 (prensa de 45°) como manda la rutina.
     id: 'rutina-pierna1-2026-10-08',
